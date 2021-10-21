@@ -8,27 +8,29 @@ import (
 	"os"
 )
 
-var Conf Config
+var Conf config
 
-type Config struct {
-	Application string `yaml:"application" json:"application"`
-	Debug       bool   `yaml:"debug" json:"debug"`
-	Logfile     string `yaml:"logfile" json:"logfile"`
-	Mysql       mysql  `yaml:"mysql" json:"mysql"`
-	Redis       redis  `yaml:"redis" json:"redis"`
+type config struct {
+	Application      string `yaml:"application" json:"application"`
+	ServerPort       int    `yaml:"serverPort" json:"serverPort"`
+	Debug            bool   `yaml:"debug" json:"debug"`
+	Logfile          string `yaml:"logfile" json:"logfile"`
+	EnableLogConsole bool   `yaml:"enableLogConsole" json:"enableLogConsole"`
+	Mysql            mysql  `yaml:"mysql" json:"mysql"`
+	Redis            redis  `yaml:"redis" json:"redis"`
 }
 type mysql struct {
 	Host string `yaml:"host" json:"host"`
-	Port string `yaml:"port" json:"port"`
+	Port int    `yaml:"port" json:"port"`
 }
 type redis struct {
 	Host string `yaml:"host" json:"host"`
-	Port string `yaml:"port" json:"port"`
+	Port int    `yaml:"port" json:"port"`
 	Pwd  string `yaml:"pwd" json:"pwd"`
 }
 
 func InitConfig() {
-	env := os.Getenv("env")
+	env := os.Getenv("ENV")
 
 	if utils.IsEmptyStr(env) {
 		env = "dev"

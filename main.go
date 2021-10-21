@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"ginLearn/conf"
 	"ginLearn/route"
 	"ginLearn/utils"
@@ -8,7 +9,7 @@ import (
 
 func initialize() {
 	conf.InitConfig()
-	utils.InitLog(conf.Conf.Logfile)
+	utils.InitLog(conf.Conf.Logfile, conf.Conf.EnableLogConsole)
 }
 
 func main() {
@@ -19,5 +20,8 @@ func main() {
 	// TODO add middleware
 	// TODO Custom Recovery behavior
 
-	r.Run("localhost:9000") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	addr := fmt.Sprintf(":%d", conf.Conf.ServerPort)
+
+	r.Run(addr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
 }
