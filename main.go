@@ -1,11 +1,14 @@
 package main
 
 import (
+	"ginLearn/conf"
 	"ginLearn/route"
+	"ginLearn/utils"
 )
 
 func initialize() {
-
+	conf.InitConfig()
+	utils.InitLog(conf.Conf.Logfile, conf.Conf.Application)
 }
 
 func main() {

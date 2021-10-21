@@ -1,7 +1,8 @@
 package route
 
 import (
-	"ginLearn/api/user/handlers"
+	projectHandlers "ginLearn/api/project/handlers"
+	userHandlers "ginLearn/api/user/handlers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +14,13 @@ func GetRoute() *gin.Engine {
 	user := api.Group("/user")
 
 	{
-		user.GET("/", handlers.UserBasic)
+		user.GET("", userHandlers.UserBasic)
+	}
+
+	config := api.Group("/project")
+
+	{
+		config.GET("/config", projectHandlers.GetProjectConfig)
 	}
 
 	return router
