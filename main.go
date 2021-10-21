@@ -8,7 +8,7 @@ import (
 
 func initialize() {
 	conf.InitConfig()
-	utils.InitLog(conf.Conf.Logfile, conf.Conf.Application)
+	utils.InitLog(conf.Conf.Logfile)
 }
 
 func main() {

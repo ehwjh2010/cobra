@@ -2,3 +2,4 @@
 .DS_Store
 config_local.yaml
 pkg/
+application.log

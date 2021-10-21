@@ -2,7 +2,7 @@ application: ginLearn
 
 debug: true
 
-logfile: 'ginLearn.log'
+logfile:
 
 mysql:
   host: 106.15.248.31
