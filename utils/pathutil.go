@@ -24,29 +24,35 @@ func EnsurePathExist(path string) (bool, error) {
 //MakeDir 创建单一目录, 不支持创建多级目录
 //@param path 路径
 //@param exist_no_error 路径已存在时是否返回错误
-func MakeDir(path string, existReturnError bool) (bool, error) {
+func MakeDir(path string, existReturnError bool) error {
 	if IsEmptyStr(path) {
-		return false, errors.New("invalid path")
+		return errors.New("invalid path")
 	}
 
 	exist, err := EnsurePathExist(path)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if exist {
 		if existReturnError {
-			return false, errors.New(fmt.Sprintf("%s had exist!!!", path))
+			return errors.New(fmt.Sprintf("%s had exist!!!", path))
 		} else {
-			return true, nil
+			return nil
 		}
 	} else {
 		err := os.Mkdir(path, 0777)
 		if err != nil {
-			return false, err
+			return err
 		}
-		return true, nil
+		return nil
 	}
+}
+
+//MakeDirIfNotPresent 目录不存在, 则创建; 存在则不操作
+//@param path 路径
+func MakeDirIfNotPresent(path string) error {
+	return MakeDir(path, false)
 }
 
 //RemovePath 完全删除文件夹或文件, 对于文件夹包括子文件以及子文件夹

@@ -17,6 +17,8 @@ func main() {
 
 	r := route.GetRoute()
 
+	utils.SetLogFormat(r)
+
 	// TODO add middleware
 	// TODO Custom Recovery behavior
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
+	"log"
 	"os"
 	"time"
 )
@@ -11,8 +12,16 @@ import (
 func InitLog(logDir string, enableLogConsole bool) {
 	gin.DisableConsoleColor()
 	// Logging to a file.
-	logFilePath := PathJoin(logDir, "application.log")
+
+	dirLogPath := PathJoin(logDir, "logs")
+	err := MakeDirIfNotPresent(dirLogPath)
+	if err != nil {
+		log.Fatalf("Access log dir failed! err: %v", err)
+	}
+
+	logFilePath := PathJoin(dirLogPath, "application.log")
 	f, _ := OpenFileWithAppend(logFilePath)
+
 	writers := []io.Writer{f}
 	if enableLogConsole {
 		writers = append(writers, os.Stdout)
