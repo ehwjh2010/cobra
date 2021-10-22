@@ -28,19 +28,19 @@ func InitConfig() {
 
 	exist, err := utils.EnsurePathExist(configFilePath)
 
-	if err != nil {
+	if utils.IsNotNil(err) {
 		log.Fatalf("Stat config file failed!, %v", err)
 	} else if !exist {
 		log.Fatalf("Confif file not exist, path is %s", configFilePath)
 	}
 
 	yamlFile, err := utils.ReadFile(configFilePath)
-	if err != nil {
+	if utils.IsNotNil(err) {
 		log.Fatalf("Yamlfile.get err   #%v ", err)
 	}
 
 	err = yaml.Unmarshal(yamlFile, &Conf)
-	if err != nil {
+	if utils.IsNotNil(err) {
 		log.Fatalf("Load config failed! reason: %v", err)
 	}
 

@@ -24,19 +24,19 @@ func logger(conf setting.Config) *logrus.Logger {
 		//确保日志目录存在
 		dirLogPath := PathJoin(conf.Log.LogPath, conf.Application)
 		err := MakeDirs(dirLogPath)
-		if err != nil {
+		if IsNotNil(err) {
 			log.Fatalf("Access log dir failed! err: %v", err)
 		}
 
 		//确保日志文件存在
 		logFilePath := PathJoin(dirLogPath, "application.log")
 		f, err = OpenFileWithAppend(logFilePath)
-		if err != nil {
+		if IsNotNil(err) {
 			log.Fatalf("Access log file failed! err: %v", err)
 		}
 	}
 
-	if f != nil {
+	if IsNotNil(f) {
 		log.Println("Log use file writer")
 		writers = append(writers, f)
 	}
@@ -63,7 +63,7 @@ func logger(conf setting.Config) *logrus.Logger {
 	//设置日志级别
 	level, err := logrus.ParseLevel(conf.Log.Level)
 
-	if err != nil {
+	if IsNotNil(err) {
 		logger.Fatalf("logger level convert failed!, err: %v", err)
 	}
 

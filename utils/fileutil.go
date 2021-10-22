@@ -18,7 +18,7 @@ func OpenFile(filename string, ifExistTrunc bool) (*os.File, error) {
 	}
 
 	file, err := os.OpenFile(filename, flag, 0666)
-	if err != nil {
+	if IsNotNil(err) {
 		return nil, err
 	}
 	return file, nil
@@ -42,7 +42,7 @@ func OpenFileWithTrunc(filename string) (*os.File, error) {
 //会主动关闭文件对象
 func ReadFile(filename string) ([]byte, error) {
 	content, err := ioutil.ReadFile(filename)
-	if err != nil {
+	if IsNotNil(err) {
 		return nil, err
 	} else {
 		return content, nil
@@ -54,7 +54,7 @@ func ReadFile(filename string) ([]byte, error) {
 //@param data 需要写入的数据
 func WriteFile(filename string, data []byte, ifExistTrunc bool) error {
 	f, err := OpenFile(filename, ifExistTrunc)
-	if err != nil {
+	if IsNotNil(err) {
 		return err
 	}
 

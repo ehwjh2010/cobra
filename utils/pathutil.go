@@ -30,7 +30,7 @@ func MakeDir(path string, existReturnError bool) error {
 	}
 
 	exist, err := EnsurePathExist(path)
-	if err != nil {
+	if IsNotNil(err) {
 		return err
 	}
 
@@ -42,7 +42,7 @@ func MakeDir(path string, existReturnError bool) error {
 		}
 	} else {
 		err := os.Mkdir(path, 0777)
-		if err != nil {
+		if IsNotNil(err) {
 			return err
 		}
 		return nil
@@ -64,7 +64,7 @@ func RemovePath(path string, noExistReturnError bool) (bool, error) {
 	}
 
 	exist, err := EnsurePathExist(path)
-	if err != nil {
+	if IsNotNil(err) {
 		return false, err
 	}
 
@@ -77,7 +77,7 @@ func RemovePath(path string, noExistReturnError bool) (bool, error) {
 
 	} else {
 		err := os.RemoveAll(path)
-		if err != nil {
+		if IsNotNil(err) {
 			return false, err
 		} else {
 			return true, nil
@@ -95,7 +95,7 @@ func PathJoin(paths ...string) string {
 func RelativePath2AbsPath(relativePath string) (string, error) {
 	absPath, err := filepath.Abs(relativePath)
 
-	if err != nil {
+	if IsNotNil(err) {
 		return "", err
 	} else {
 		return absPath, nil
