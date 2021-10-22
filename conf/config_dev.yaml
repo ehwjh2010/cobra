@@ -3,7 +3,7 @@ serverPort: 9090
 
 debug: true
 
-logfile:
+logPath: ./logs
 
 enableLogConsole: true
 

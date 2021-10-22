@@ -2,32 +2,14 @@ package conf
 
 import (
 	"fmt"
+	"ginLearn/structs/setting"
 	"ginLearn/utils"
 	"gopkg.in/yaml.v2"
 	"log"
 	"os"
 )
 
-var Conf config
-
-type config struct {
-	Application      string `yaml:"application" json:"application"`
-	ServerPort       int    `yaml:"serverPort" json:"serverPort"`
-	Debug            bool   `yaml:"debug" json:"debug"`
-	Logfile          string `yaml:"logfile" json:"logfile"`
-	EnableLogConsole bool   `yaml:"enableLogConsole" json:"enableLogConsole"`
-	Mysql            mysql  `yaml:"mysql" json:"mysql"`
-	Redis            redis  `yaml:"redis" json:"redis"`
-}
-type mysql struct {
-	Host string `yaml:"host" json:"host"`
-	Port int    `yaml:"port" json:"port"`
-}
-type redis struct {
-	Host string `yaml:"host" json:"host"`
-	Port int    `yaml:"port" json:"port"`
-	Pwd  string `yaml:"pwd" json:"pwd"`
-}
+var Conf setting.Config
 
 func InitConfig() {
 	env := os.Getenv("ENV")

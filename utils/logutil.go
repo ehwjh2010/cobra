@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"ginLearn/structs/setting"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
@@ -9,12 +10,12 @@ import (
 	"time"
 )
 
-func InitLog(logDir string, enableLogConsole bool) {
+func InitLog(conf setting.Config) {
 	gin.DisableConsoleColor()
 	// Logging to a file.
 
-	dirLogPath := PathJoin(logDir, "logs")
-	err := MakeDirIfNotPresent(dirLogPath)
+	dirLogPath := PathJoin(conf.LogPath, conf.Application)
+	err := MakeDirs(dirLogPath)
 	if err != nil {
 		log.Fatalf("Access log dir failed! err: %v", err)
 	}
@@ -23,7 +24,7 @@ func InitLog(logDir string, enableLogConsole bool) {
 	f, _ := OpenFileWithAppend(logFilePath)
 
 	writers := []io.Writer{f}
-	if enableLogConsole {
+	if conf.EnableLogConsole {
 		writers = append(writers, os.Stdout)
 	}
 	gin.DefaultWriter = io.MultiWriter(writers...)

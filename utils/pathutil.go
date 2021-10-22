@@ -108,3 +108,14 @@ func PathSplit(path string) (string, string) {
 	fileName := filepath.Base(path)
 	return dirName, fileName
 }
+
+//MakeDirs 创建多级目录
+func MakeDirs(path ...string) error {
+	tmp := PathJoin(path...)
+
+	if IsEmptyStr(tmp) {
+		return nil
+	}
+
+	return os.MkdirAll(tmp, os.ModePerm)
+}

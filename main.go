@@ -9,7 +9,7 @@ import (
 
 func initialize() {
 	conf.InitConfig()
-	utils.InitLog(conf.Conf.Logfile, conf.Conf.EnableLogConsole)
+	utils.InitLog(conf.Conf)
 }
 
 func main() {
