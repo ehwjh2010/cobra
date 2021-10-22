@@ -1,50 +1,76 @@
 package utils
 
 import (
-	"fmt"
 	"ginLearn/structs/setting"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"io"
 	"log"
 	"os"
-	"time"
 )
 
+var Log *logrus.Logger
+
 func InitLog(conf setting.Config) {
-	gin.DisableConsoleColor()
-	// Logging to a file.
-
-	dirLogPath := PathJoin(conf.LogPath, conf.Application)
-	err := MakeDirs(dirLogPath)
-	if err != nil {
-		log.Fatalf("Access log dir failed! err: %v", err)
-	}
-
-	logFilePath := PathJoin(dirLogPath, "application.log")
-	f, _ := OpenFileWithAppend(logFilePath)
-
-	writers := []io.Writer{f}
-	if conf.EnableLogConsole {
-		writers = append(writers, os.Stdout)
-	}
-	gin.DefaultWriter = io.MultiWriter(writers...)
+	Log = logger(conf)
 }
 
-//SetLogFormat 设置日志格式
-func SetLogFormat(r *gin.Engine) {
-	r.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		// your custom format
-		fmt.Println(param)
-		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
-			param.ClientIP,
-			param.TimeStamp.Format(time.RFC3339),
-			param.Method,
-			param.Path,
-			param.Request.Proto,
-			param.StatusCode,
-			param.Latency,
-			param.Request.UserAgent(),
-			param.ErrorMessage,
-		)
-	}))
+//logger logrus初始化设置
+func logger(conf setting.Config) *logrus.Logger {
+	var writers []io.Writer
+	var f *os.File
+
+	if IsNotEmptyStr(conf.Log.LogPath) {
+		//确保日志目录存在
+		dirLogPath := PathJoin(conf.Log.LogPath, conf.Application)
+		err := MakeDirs(dirLogPath)
+		if err != nil {
+			log.Fatalf("Access log dir failed! err: %v", err)
+		}
+
+		//确保日志文件存在
+		logFilePath := PathJoin(dirLogPath, "application.log")
+		f, err = OpenFileWithAppend(logFilePath)
+		if err != nil {
+			log.Fatalf("Access log file failed! err: %v", err)
+		}
+	}
+
+	if f != nil {
+		log.Println("Log use file writer")
+		writers = append(writers, f)
+	}
+
+	if conf.Log.EnableLogConsole {
+		log.Println("Log use console writer")
+		writers = append(writers, os.Stdout)
+	}
+
+	//实例化
+	logger := logrus.New()
+
+	//设置输出
+	if len(writers) == 0 {
+		log.Println("No set log writer, User console as default writer!!!")
+		logger.Out = os.Stdout
+	} else {
+		logger.Out = io.MultiWriter(writers...)
+	}
+
+	gin.DefaultWriter = logger.Out
+	gin.DefaultErrorWriter = logger.Out
+
+	//设置日志级别
+	level, err := logrus.ParseLevel(conf.Log.Level)
+
+	if err != nil {
+		logger.Fatalf("logger level convert failed!, err: %v", err)
+	}
+
+	logger.SetLevel(level)
+
+	//设置日志格式
+	logger.SetFormatter(&logrus.JSONFormatter{})
+
+	return logger
 }

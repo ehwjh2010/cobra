@@ -1,11 +1,11 @@
 application: ginLearn
 serverPort: 9090
+debug: false
 
-debug: true
-
-logPath: ./logs
-
-enableLogConsole: true
+log:
+  logPath: ./logs
+  level: DEBUG
+  enableLogConsole: false
 
 mysql:
   host: 106.15.248.31

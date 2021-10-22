@@ -10,6 +10,10 @@ func IsEmptyStr(str string) bool {
 	return false
 }
 
+func IsNotEmptyStr(str string) bool {
+	return !IsEmptyStr(str)
+}
+
 func StrSize(str string) int {
 	return utf8.RuneCountInString(str)
 }

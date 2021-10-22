@@ -6,8 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetRoute() *gin.Engine {
-	router := gin.Default()
+func BindRoute(router *gin.Engine) *gin.Engine {
 
 	api := router.Group("/api")
 
