@@ -27,5 +27,5 @@ func AddMiddleWares(mids ...MiddleWareFunc) {
 }
 
 func init() {
-	AddMiddleWares(LoggerToFile)
+	AddMiddleWares(LoggerToFile, gin.Recovery)
 }

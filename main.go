@@ -11,11 +11,16 @@ import (
 
 func initialize() {
 	conf.InitConfig()
-	utils.InitLog(conf.Conf)
+	utils.InitLog(
+		conf.Conf.Application,
+		conf.Conf.Log.LogPath,
+		conf.Conf.Log.Level,
+		conf.Conf.Log.EnableLogConsole,
+	)
 }
 
 func main() {
-	r := gin.Default()
+	r := gin.New()
 
 	initialize()
 

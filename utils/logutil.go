@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"ginLearn/structs/setting"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -11,18 +10,18 @@ import (
 
 var Log *logrus.Logger
 
-func InitLog(conf setting.Config) {
-	Log = logger(conf)
+func InitLog(application, logPath, logLevel string, enableLogConsole bool) {
+	Log = logger(application, logPath, logLevel, enableLogConsole)
 }
 
 //logger logrus初始化设置
-func logger(conf setting.Config) *logrus.Logger {
+func logger(application, logPath, logLevel string, enableLogConsole bool) *logrus.Logger {
 	var writers []io.Writer
 	var f *os.File
 
-	if IsNotEmptyStr(conf.Log.LogPath) {
+	if IsNotEmptyStr(logPath) {
 		//确保日志目录存在
-		dirLogPath := PathJoin(conf.Log.LogPath, conf.Application)
+		dirLogPath := PathJoin(logPath, application)
 		err := MakeDirs(dirLogPath)
 		if IsNotNil(err) {
 			log.Fatalf("Access log dir failed! err: %v", err)
@@ -41,7 +40,7 @@ func logger(conf setting.Config) *logrus.Logger {
 		writers = append(writers, f)
 	}
 
-	if conf.Log.EnableLogConsole {
+	if enableLogConsole {
 		log.Println("Log use console writer")
 		writers = append(writers, os.Stdout)
 	}
@@ -61,7 +60,7 @@ func logger(conf setting.Config) *logrus.Logger {
 	gin.DefaultErrorWriter = logger.Out
 
 	//设置日志级别
-	level, err := logrus.ParseLevel(conf.Log.Level)
+	level, err := logrus.ParseLevel(logLevel)
 
 	if IsNotNil(err) {
 		logger.Fatalf("logger level convert failed!, err: %v", err)
@@ -70,6 +69,7 @@ func logger(conf setting.Config) *logrus.Logger {
 	logger.SetLevel(level)
 
 	//设置日志格式
+	//TODO 时间未设置为UTC时间
 	logger.SetFormatter(&logrus.JSONFormatter{})
 
 	return logger
