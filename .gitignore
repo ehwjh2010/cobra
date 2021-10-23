@@ -4,3 +4,4 @@ config_local.yaml
 pkg/
 application.log
 logs/
+output/
