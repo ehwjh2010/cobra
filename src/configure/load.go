@@ -16,49 +16,58 @@ func LoadConfig() {
 
 	log.Println("Start load config")
 
-	currentDir, _ := os.Getwd()
-
-	localConfigPath := utils.PathJoin(currentDir, "conf", "config_local.yaml")
-
-	exist, err := utils.EnsurePathExist(localConfigPath)
-
-	if utils.IsNotNil(err) {
-		log.Fatalf("State local config failed! err: %s", err)
-	}
-
-	var configFilePath string
-
-	if exist {
-		configFilePath = localConfigPath
-	} else {
-		env := os.Getenv("ENV")
-
-		if utils.IsEmptyStr(env) {
-			env = "dev"
-		}
-
-		configFileName := fmt.Sprintf("config_%s.yaml", env)
-
-		configFilePath = utils.PathJoin(currentDir, "conf", configFileName)
-
-		exist, err = utils.EnsurePathExist(configFilePath)
-
-		if utils.IsNotNil(err) {
-			log.Fatalf("State %s config failed! err: %s", env, err)
-		} else if !exist {
-			log.Fatalf("Confif file not exist, path is %s", configFilePath)
-		}
-	}
+	configFilePath := ensureConfigPath()
 
 	yamlFile, err := utils.ReadFile(configFilePath)
-	if utils.IsNotNil(err) {
+	if err != nil {
 		log.Fatalf("Yamlfile.get err   #%v ", err)
 	}
 
 	err = yaml.Unmarshal(yamlFile, &Conf)
-	if utils.IsNotNil(err) {
+	if err != nil {
 		log.Fatalf("Load config failed! reason: %v", err)
 	}
 
 	log.Println("Load config success")
+
+	log.Printf("%#v", Conf)
+}
+
+//ensureConfigPath 确定配置文件
+func ensureConfigPath() string {
+	currentDir, _ := os.Getwd()
+
+	//优先读取本地配置, 利于本地开发以及线上配置
+	localConfigPath := utils.PathJoin(currentDir, "conf", "config_local.yaml")
+
+	exist, err := utils.EnsurePathExist(localConfigPath)
+
+	if err != nil {
+		log.Fatalf("State local config failed! err: %s", err)
+	}
+
+	if exist {
+		return localConfigPath
+	}
+
+	//未读取到local配置文件, 则读取相应环境配置文件
+	env := os.Getenv("ENV")
+
+	if utils.IsEmptyStr(env) {
+		env = "dev"
+	}
+
+	configFileName := fmt.Sprintf("config_%s.yaml", env)
+
+	configFilePath := utils.PathJoin(currentDir, "conf", configFileName)
+
+	exist, err = utils.EnsurePathExist(configFilePath)
+
+	if err != nil {
+		log.Fatalf("State %s config failed! err: %s", env, err)
+	} else if !exist {
+		log.Fatalf("%s config file not exist, path is %s", env, configFilePath)
+	}
+
+	return configFilePath
 }

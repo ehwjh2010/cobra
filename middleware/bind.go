@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +10,7 @@ var middlewares []MiddleWareFunc
 
 func UseMiddleWares(server *gin.Engine) {
 
-	if utils.IsNil(middlewares) {
+	if middlewares == nil {
 		return
 	}
 
