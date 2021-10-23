@@ -2,36 +2,33 @@ package main
 
 import (
 	"fmt"
-	"ginLearn/conf"
 	"ginLearn/middleware"
-	"ginLearn/route"
+	"ginLearn/src/configure"
+	"ginLearn/src/route"
 	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
 )
 
-func initialize() {
-	conf.InitConfig()
-	utils.InitLog(
-		conf.Conf.Application,
-		conf.Conf.Log.LogPath,
-		conf.Conf.Log.Level,
-		conf.Conf.Log.EnableLogConsole,
-	)
+func setUp() {
+	//加载配置
+	configure.LoadConfig()
+	utils.InitLog(configure.Conf.Application, configure.Conf.LogConfig)
 }
 
 func main() {
-	r := gin.New()
 
-	initialize()
+	setUp()
 
-	route.BindRoute(r)
+	server := gin.New()
 
-	middleware.UseMiddleWares(r)
+	route.BindRoute(server)
+
+	middleware.UseMiddleWares(server)
 
 	// TODO Custom Recovery behavior
 
-	addr := fmt.Sprintf(":%d", conf.Conf.ServerPort)
+	addr := fmt.Sprintf(":%d", configure.Conf.ServerPort)
 
-	r.Run(addr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	server.Run(addr) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 
 }

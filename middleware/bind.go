@@ -9,14 +9,14 @@ type MiddleWareFunc func() gin.HandlerFunc
 
 var middlewares []MiddleWareFunc
 
-func UseMiddleWares(r *gin.Engine) {
+func UseMiddleWares(server *gin.Engine) {
 
 	if utils.IsNil(middlewares) {
 		return
 	}
 
 	for _, middleware := range middlewares {
-		r.Use(middleware())
+		server.Use(middleware())
 	}
 }
 

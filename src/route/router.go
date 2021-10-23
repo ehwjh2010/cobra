@@ -1,14 +1,14 @@
 package route
 
 import (
-	projectHandlers "ginLearn/api/project/handlers"
-	userHandlers "ginLearn/api/user/handlers"
+	projectHandlers "ginLearn/src/controller/project"
+	userHandlers "ginLearn/src/controller/user/handlers"
 	"github.com/gin-gonic/gin"
 )
 
-func BindRoute(router *gin.Engine) *gin.Engine {
+func BindRoute(server *gin.Engine) *gin.Engine {
 
-	api := router.Group("/api")
+	api := server.Group("/api")
 
 	user := api.Group("/user")
 
@@ -22,5 +22,5 @@ func BindRoute(router *gin.Engine) *gin.Engine {
 		config.GET("/config", projectHandlers.GetProjectConfig)
 	}
 
-	return router
+	return server
 }

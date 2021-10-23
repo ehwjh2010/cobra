@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"ginLearn/client/setting"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -10,18 +11,18 @@ import (
 
 var Log *logrus.Logger
 
-func InitLog(application, logPath, logLevel string, enableLogConsole bool) {
-	Log = logger(application, logPath, logLevel, enableLogConsole)
+func InitLog(application string, logConfig setting.LogConfig) {
+	Log = logger(application, logConfig)
 }
 
 //logger logrus初始化设置
-func logger(application, logPath, logLevel string, enableLogConsole bool) *logrus.Logger {
+func logger(application string, logConfig setting.LogConfig) *logrus.Logger {
 	var writers []io.Writer
 	var f *os.File
 
-	if IsNotEmptyStr(logPath) {
+	if IsNotEmptyStr(logConfig.LogPath) {
 		//确保日志目录存在
-		dirLogPath := PathJoin(logPath, application)
+		dirLogPath := PathJoin(logConfig.LogPath, application)
 		err := MakeDirs(dirLogPath)
 		if IsNotNil(err) {
 			log.Fatalf("Access log dir failed! err: %v", err)
@@ -36,12 +37,12 @@ func logger(application, logPath, logLevel string, enableLogConsole bool) *logru
 	}
 
 	if IsNotNil(f) {
-		log.Println("Log use file writer")
+		log.Println("LogConfig use file writer")
 		writers = append(writers, f)
 	}
 
-	if enableLogConsole {
-		log.Println("Log use console writer")
+	if logConfig.EnableLogConsole {
+		log.Println("LogConfig use console writer")
 		writers = append(writers, os.Stdout)
 	}
 
@@ -51,16 +52,16 @@ func logger(application, logPath, logLevel string, enableLogConsole bool) *logru
 	//设置输出
 	if len(writers) == 0 {
 		log.Println("No set log writer, User console as default writer!!!")
-		logger.Out = os.Stdout
+		logger.SetOutput(os.Stdout)
 	} else {
-		logger.Out = io.MultiWriter(writers...)
+		logger.SetOutput(io.MultiWriter(writers...))
 	}
 
 	gin.DefaultWriter = logger.Out
 	gin.DefaultErrorWriter = logger.Out
 
 	//设置日志级别
-	level, err := logrus.ParseLevel(logLevel)
+	level, err := logrus.ParseLevel(logConfig.Level)
 
 	if IsNotNil(err) {
 		logger.Fatalf("logger level convert failed!, err: %v", err)
@@ -72,5 +73,18 @@ func logger(application, logPath, logLevel string, enableLogConsole bool) *logru
 	//TODO 时间未设置为UTC时间
 	logger.SetFormatter(&logrus.JSONFormatter{})
 
+	//添加打印日志所在文件以及行数, 比较影响性能, 是否使用自行决定
+	if logConfig.AccessMethodRow {
+		logger.SetReportCaller(true)
+	}
+
 	return logger
+}
+
+func Info(info ...interface{}) {
+	Log.WithFields(logrus.Fields{}).Infoln(info...)
+}
+
+func Infof(format string, args ...interface{}) {
+	Log.WithFields(logrus.Fields{}).Infof(format, args...)
 }

@@ -6,6 +6,7 @@ log:
   logPath: ./logs
   level: DEBUG
   enableLogConsole: false
+  accessMethodRow: true
 
 mysql:
   host: 106.15.248.31
