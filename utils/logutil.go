@@ -7,16 +7,17 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 )
 
 var Log *logrus.Logger
 
-func InitLog(application string, logConfig setting.LogConfig) {
+func InitLog(application string, logConfig *setting.LogConfig) {
 	Log = logger(application, logConfig)
 }
 
 //logger logrus初始化设置
-func logger(application string, logConfig setting.LogConfig) *logrus.Logger {
+func logger(application string, logConfig *setting.LogConfig) *logrus.Logger {
 	var writers []io.Writer
 	var f *os.File
 
@@ -70,8 +71,9 @@ func logger(application string, logConfig setting.LogConfig) *logrus.Logger {
 	logger.SetLevel(level)
 
 	//设置日志格式
-	//TODO 时间未设置为UTC时间
-	logger.SetFormatter(&logrus.JSONFormatter{})
+	logger.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: time.RFC3339,
+	})
 
 	//添加打印日志所在文件以及行数, 比较影响性能, 是否使用自行决定
 	if logConfig.AccessMethodRow {

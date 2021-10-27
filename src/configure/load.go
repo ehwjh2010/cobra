@@ -29,8 +29,6 @@ func LoadConfig() {
 	}
 
 	log.Println("Load config success")
-
-	log.Printf("%#v", Conf)
 }
 
 //ensureConfigPath 确定配置文件
