@@ -1,0 +1,18 @@
+application: ginLearn
+serverPort: 9090
+debug: false
+
+log:
+  logPath: ./logs
+  level: DEBUG
+  enableLogConsole: false
+  accessMethodRow: true
+
+mysql:
+  host: 106.15.248.31
+  port: 3307
+
+redis:
+  host: 106.15.248.31
+  port: 6380
+  pwd: A=9q5U776J-6
