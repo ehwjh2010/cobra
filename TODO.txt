@@ -1,6 +1,6 @@
 1. gin优雅退出程序
 2. 数据库连接
-    2.1 MySQL
+    2.1 MySQL 根据数据库自动生成结构体
     2.2 Redis
     2.3 MongoDB
 3. gin校验器
