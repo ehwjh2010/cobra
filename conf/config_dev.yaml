@@ -1,3 +1,4 @@
+env: dev
 application: ginLearn
 serverPort: 9090
 debug: false

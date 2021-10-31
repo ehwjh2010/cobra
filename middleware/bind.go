@@ -8,6 +8,7 @@ type MiddleWareFunc func() gin.HandlerFunc
 
 var middlewares []MiddleWareFunc
 
+//UseMiddleWares 使用全局中间件
 func UseMiddleWares(server *gin.Engine) {
 
 	if middlewares == nil {
@@ -19,12 +20,9 @@ func UseMiddleWares(server *gin.Engine) {
 	}
 }
 
+//AddMiddleWares 添加全局中间件
 func AddMiddleWares(mids ...MiddleWareFunc) {
 	for _, middleware := range mids {
 		middlewares = append(middlewares, middleware)
 	}
-}
-
-func init() {
-	AddMiddleWares(LoggerToFile, gin.Recovery)
 }

@@ -45,7 +45,7 @@ func MethodPathDemo(c *gin.Context) {
 func MethodUploadDemo(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		utils.Infof("Get file failed! err: %v", err)
+		utils.InfoF("Get file failed! err: %v", err)
 	}
 
 	filename := file.Filename
@@ -62,7 +62,7 @@ func MethodJson(c *gin.Context) {
 	data, err := ioutil.ReadAll(c.Request.Body)
 
 	if err != nil {
-		utils.Infof("Read body json failed!")
+		utils.InfoF("Read body json failed!")
 	}
 
 	c.String(http.StatusOK, string(data))

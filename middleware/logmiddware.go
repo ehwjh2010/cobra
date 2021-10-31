@@ -3,6 +3,7 @@ package middleware
 import (
 	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
+	"log"
 	"time"
 )
 
@@ -32,7 +33,7 @@ func LoggerToFile() gin.HandlerFunc {
 		clientIP := c.ClientIP()
 
 		// 日志格式
-		utils.Infof("| %3d | %13v | %15s | %s | %s |",
+		utils.InfoF("| %3d | %13v | %15s | %s | %s |",
 			statusCode,
 			latencyTime,
 			clientIP,
@@ -40,4 +41,9 @@ func LoggerToFile() gin.HandlerFunc {
 			reqUri,
 		)
 	}
+}
+
+func init() {
+	AddMiddleWares(LoggerToFile)
+	log.Println("Add log middleware.")
 }

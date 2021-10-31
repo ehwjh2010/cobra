@@ -12,7 +12,7 @@ import (
 func setUp() {
 	//加载配置
 	configure.LoadConfig()
-	utils.InitLog(configure.Conf.Application, configure.Conf.LogConfig)
+	utils.InitLogrus(configure.Conf.Application, configure.Conf.LogConfig)
 }
 
 func main() {
@@ -24,8 +24,6 @@ func main() {
 	route.BindRoute(server)
 
 	middleware.UseMiddleWares(server)
-
-	// TODO Custom Recovery behavior
 
 	addr := fmt.Sprintf(":%d", configure.Conf.ServerPort)
 

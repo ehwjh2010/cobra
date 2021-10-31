@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"log"
 	"os"
+	"strings"
 )
 
 var Conf setting.Config
@@ -55,7 +56,7 @@ func ensureConfigPath() string {
 		env = "dev"
 	}
 
-	configFileName := fmt.Sprintf("config_%s.yaml", env)
+	configFileName := fmt.Sprintf("config_%s.yaml", strings.ToLower(env))
 
 	configFilePath := utils.PathJoin(currentDir, "conf", configFileName)
 

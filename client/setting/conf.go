@@ -3,6 +3,7 @@ package setting
 import "fmt"
 
 type Config struct {
+	Env         string       `yaml:"env" json:"env"`
 	Application string       `yaml:"application" json:"application"`
 	ServerPort  int          `yaml:"serverPort" json:"serverPort"`
 	Debug       bool         `yaml:"debug" json:"debug"`
