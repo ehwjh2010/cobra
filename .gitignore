@@ -6,3 +6,4 @@ application.log
 logs/
 output/
 autoreload_run.sh
+bin/
