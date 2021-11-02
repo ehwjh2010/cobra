@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"ginLearn/middleware"
-	"ginLearn/src/configure"
+	"ginLearn/resource"
 	"ginLearn/src/route"
-	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -15,20 +14,11 @@ import (
 	"time"
 )
 
-func setUp() {
-	//加载配置
-	configure.LoadConfig()
-	utils.InitLogrus(configure.Conf.Application, configure.Conf.LogConfig)
-
-}
-
 func main() {
 
 	// Create context that listens for the interrupt signal from the OS.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-
-	setUp()
 
 	handler := gin.New()
 
@@ -36,7 +26,7 @@ func main() {
 
 	middleware.UseMiddleWare(handler)
 
-	addr := fmt.Sprintf(":%d", configure.Conf.ServerPort)
+	addr := fmt.Sprintf(":%d", resource.Conf.ServerPort)
 
 	srv := &http.Server{
 		Addr:    addr,
@@ -47,7 +37,8 @@ func main() {
 	// it won't block the graceful shutdown handling below
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Listen: %s\n", err)
+			resourceErrs := resource.Close()
+			log.Fatalf("Listen: %s\nresource: %#v", err, resourceErrs)
 		}
 	}()
 
@@ -62,9 +53,10 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
+		resource.Close()
 		log.Fatal("Server forced to shutdown: ", err)
 	}
 
+	resource.Close()
 	log.Println("Server exiting")
-
 }

@@ -20,8 +20,8 @@ func UseMiddleWare(handler *gin.Engine) {
 	}
 }
 
-//AddMiddleWares 添加全局中间件
-func AddMiddleWares(mids ...MiddleWareFunc) {
+//addMiddleWares 添加全局中间件
+func addMiddleWares(mids ...MiddleWareFunc) {
 	for _, middleware := range mids {
 		middlewares = append(middlewares, middleware)
 	}

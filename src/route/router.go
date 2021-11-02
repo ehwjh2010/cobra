@@ -14,7 +14,7 @@ func BindRoute(handler *gin.Engine) {
 	user := api.Group("/user")
 
 	{
-		user.GET("", userHandlers.UserBasic)
+		user.GET("", userHandlers.BasicUserInfo)
 	}
 
 	config := api.Group("/project")

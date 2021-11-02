@@ -1,4 +1,4 @@
-package configure
+package resource
 
 import (
 	"fmt"
@@ -29,6 +29,11 @@ func LoadConfig() {
 		log.Fatalf("Load config failed! reason: %v", err)
 	}
 
+	//设置环境标识
+	env := getEnv()
+
+	Conf.Env = env
+
 	log.Println("Load config success")
 }
 
@@ -50,11 +55,7 @@ func ensureConfigPath() string {
 	}
 
 	//未读取到local配置文件, 则读取相应环境配置文件
-	env := os.Getenv("ENV")
-
-	if utils.IsEmptyStr(env) {
-		env = "dev"
-	}
+	env := getEnv()
 
 	configFileName := fmt.Sprintf("config_%s.yaml", strings.ToLower(env))
 
@@ -69,4 +70,15 @@ func ensureConfigPath() string {
 	}
 
 	return configFilePath
+}
+
+//getEnv 获取环境标识
+func getEnv() string {
+	env := os.Getenv("ENV")
+
+	if utils.IsEmptyStr(env) {
+		env = "dev"
+	}
+
+	return env
 }
