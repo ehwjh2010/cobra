@@ -7,3 +7,4 @@ logs/
 output/
 autoreload_run.sh
 bin/
+gin-bin
