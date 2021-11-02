@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func BindRoute(server *gin.Engine) {
+func BindRoute(handler *gin.Engine) {
 
-	api := server.Group("/api")
+	api := handler.Group("/api")
 
 	user := api.Group("/user")
 

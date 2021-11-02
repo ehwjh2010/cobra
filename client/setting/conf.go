@@ -3,18 +3,19 @@ package setting
 import "fmt"
 
 type Config struct {
-	Env         string       `yaml:"env" json:"env"`
-	Application string       `yaml:"application" json:"application"`
-	ServerPort  int          `yaml:"serverPort" json:"serverPort"`
-	Debug       bool         `yaml:"debug" json:"debug"`
-	LogConfig   *LogConfig   `yaml:"log" json:"log"`
-	MysqlConfig *MysqlConfig `yaml:"mysql" json:"mysql"`
-	RedisConfig *RedisConfig `yaml:"redis" json:"redis"`
+	Env             string       `yaml:"env" json:"env"`
+	Application     string       `yaml:"application" json:"application"`
+	ServerPort      uint         `yaml:"serverPort" json:"serverPort"`
+	Debug           bool         `yaml:"debug" json:"debug"`
+	ShutDownTimeout uint         `yaml:"shut_down_timeout" json:"shut_down_timeout"`
+	LogConfig       *LogConfig   `yaml:"log" json:"log"`
+	MysqlConfig     *MysqlConfig `yaml:"mysql" json:"mysql"`
+	RedisConfig     *RedisConfig `yaml:"redis" json:"redis"`
 }
 
 type MysqlConfig struct {
 	Host     string `yaml:"host" json:"host"`
-	Port     int    `yaml:"port" json:"port"`
+	Port     uint   `yaml:"port" json:"port"`
 	User     string `yaml:"user" json:"user"`
 	Password string `yaml:"password" json:"password"`
 	Database string `yaml:"database" json:"database"`
@@ -28,7 +29,7 @@ func (c *MysqlConfig) Uri() string {
 
 type RedisConfig struct {
 	Host string `yaml:"host" json:"host"`
-	Port int    `yaml:"port" json:"port"`
+	Port uint   `yaml:"port" json:"port"`
 	Pwd  string `yaml:"pwd" json:"pwd"`
 }
 

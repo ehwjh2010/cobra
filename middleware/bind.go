@@ -8,15 +8,15 @@ type MiddleWareFunc func() gin.HandlerFunc
 
 var middlewares []MiddleWareFunc
 
-//UseMiddleWares 使用全局中间件
-func UseMiddleWares(server *gin.Engine) {
+//UseMiddleWare 使用全局中间件
+func UseMiddleWare(handler *gin.Engine) {
 
 	if middlewares == nil {
 		return
 	}
 
 	for _, middleware := range middlewares {
-		server.Use(middleware())
+		handler.Use(middleware())
 	}
 }
 
