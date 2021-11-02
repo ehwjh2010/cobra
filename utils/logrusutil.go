@@ -14,7 +14,7 @@ var Log *logrus.Logger
 var f *os.File
 
 //InitLogrus logrus初始化设置
-func InitLogrus(application string, logConfig *setting.LogConfig) {
+func InitLogrus(application string, logConfig *setting.LogConfig) error {
 	var writers []io.Writer
 
 	if IsNotEmptyStr(logConfig.LogPath) {
@@ -22,14 +22,16 @@ func InitLogrus(application string, logConfig *setting.LogConfig) {
 		dirLogPath := PathJoin(logConfig.LogPath, application)
 		err := MakeDirs(dirLogPath)
 		if err != nil {
-			log.Fatalf("Access log dir failed! err: %v", err)
+			//log.Fatalf("Access log dir failed! err: %v", err)
+			return err
 		}
 
 		//确保日志文件存在
 		logFilePath := PathJoin(dirLogPath, "application.log")
 		f, err = OpenFileWithAppend(logFilePath)
 		if err != nil {
-			log.Fatalf("Access log file failed! err: %v", err)
+			//log.Fatalf("Access log file failed! err: %v", err)
+			return err
 		}
 	}
 
@@ -61,7 +63,8 @@ func InitLogrus(application string, logConfig *setting.LogConfig) {
 	//设置日志级别
 	level, err := logrus.ParseLevel(logConfig.Level)
 	if err != nil {
-		logger.Fatalf("logger level convert failed!, err: %v", err)
+		//logger.Fatalf("logger level convert failed!, err: %v", err)
+		return err
 	}
 	logger.SetLevel(level)
 
@@ -76,6 +79,8 @@ func InitLogrus(application string, logConfig *setting.LogConfig) {
 	}
 
 	Log = logger
+
+	return nil
 }
 
 func CloseLogFile() error {

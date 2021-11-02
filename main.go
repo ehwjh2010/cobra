@@ -37,7 +37,7 @@ func main() {
 	// it won't block the graceful shutdown handling below
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			resourceErrs := resource.Close()
+			resourceErrs := resource.Release()
 			log.Fatalf("Listen: %s\nresource: %#v", err, resourceErrs)
 		}
 	}()
@@ -53,10 +53,10 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		resource.Close()
+		resource.Release()
 		log.Fatal("Server forced to shutdown: ", err)
 	}
 
-	resource.Close()
+	resource.Release()
 	log.Println("Server exiting")
 }
