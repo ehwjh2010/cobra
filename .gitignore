@@ -5,4 +5,4 @@ pkg/
 application.log
 logs/
 output/
-reload_run.sh
+autoreload_run.sh
