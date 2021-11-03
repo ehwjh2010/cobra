@@ -10,7 +10,7 @@ func LoadLogrus() {
 	err := utils.InitLogrus(Conf.Application, Conf.LogConfig)
 
 	if err != nil {
-		log.Fatalf("Load config failed!, err: %v", err)
+		log.Panicf("Load config failed!, err: %v", err)
 	}
 }
 

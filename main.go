@@ -38,7 +38,12 @@ func main() {
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			resourceErrs := resource.Release()
-			log.Fatalf("Listen: %s\nresource: %#v", err, resourceErrs)
+			if resourceErrs != nil {
+				log.Fatalf("Listen: %s, resource: %#v\n", err, resourceErrs)
+			} else {
+				log.Fatalf("Listen: %s\n", err)
+			}
+
 		}
 	}()
 
@@ -53,10 +58,18 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		resource.Release()
-		log.Fatal("Server forced to shutdown: ", err)
+		resourceErrs := resource.Release()
+		if resourceErrs != nil {
+			log.Fatalf("Server forced to shutdown: err: %v, resource: %v\n", err, resourceErrs)
+		} else {
+			log.Fatal("Server forced to shutdown: ", err)
+		}
 	}
 
-	resource.Release()
-	log.Println("Server exiting")
+	resourceErrs := resource.Release()
+	if resourceErrs != nil {
+		log.Printf("Server exiting, resource: %v", resourceErrs)
+	} else {
+		log.Println("Server exiting")
+	}
 }

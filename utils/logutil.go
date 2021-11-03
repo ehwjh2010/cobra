@@ -4,6 +4,30 @@ import "github.com/sirupsen/logrus"
 
 //-----------------------------------------------------------
 
+//Debug日志相关方法
+
+//Debug 打印Debug级别日志
+func Debug(Debug ...interface{}) {
+	Log.Debugln(Debug...)
+}
+
+//DebugWithFields 打印Debug级别日志, 包含fields
+func DebugWithFields(fields logrus.Fields, Debug ...interface{}) {
+	Log.WithFields(fields).Debug(Debug...)
+}
+
+//DebugF 格式化打印Debug级别日志
+func DebugF(format string, args ...interface{}) {
+	Log.WithFields(logrus.Fields{}).Debugf(format, args...)
+}
+
+//DebugFWithFields 格式化打印Debug级别日志, 包含fields
+func DebugFWithFields(format string, args ...interface{}) {
+	Log.WithFields(logrus.Fields{}).Debugf(format, args...)
+}
+
+//-----------------------------------------------------------
+
 //Info日志相关方法
 
 //Info 打印info级别日志
@@ -96,4 +120,28 @@ func FatalF(format string, args ...interface{}) {
 //FatalFWithFields 格式化打印Fatal级别日志, 包含fields
 func FatalFWithFields(format string, args ...interface{}) {
 	Log.WithFields(logrus.Fields{}).Fatalf(format, args...)
+}
+
+//-----------------------------------------------------------
+
+//Panic日志相关方法
+
+//Panic 打印Panic级别日志
+func Panic(Panic ...interface{}) {
+	Log.Panicln(Panic...)
+}
+
+//PanicWithFields 打印Panic级别日志, 包含fields
+func PanicWithFields(fields logrus.Fields, Panic ...interface{}) {
+	Log.WithFields(fields).Panic(Panic...)
+}
+
+//PanicF 格式化打印Panic级别日志
+func PanicF(format string, args ...interface{}) {
+	Log.WithFields(logrus.Fields{}).Panicf(format, args...)
+}
+
+//PanicFWithFields 格式化打印Panic级别日志, 包含fields
+func PanicFWithFields(format string, args ...interface{}) {
+	Log.WithFields(logrus.Fields{}).Panicf(format, args...)
 }

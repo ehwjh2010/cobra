@@ -6,7 +6,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"log"
 	"time"
 )
 
@@ -43,7 +42,7 @@ func InitMySQL(mysqlConfig *setting.MysqlConfig) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	log.Println("Connect mysql success!")
+	Log.Info("Connect mysql success!")
 
 	sqlDB, err := db.DB()
 

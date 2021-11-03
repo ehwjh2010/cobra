@@ -3,7 +3,6 @@ package resource
 import (
 	"ginLearn/utils"
 	"gorm.io/gorm"
-	"log"
 )
 
 var Conn *gorm.DB
@@ -15,7 +14,7 @@ func LoadMySQL() {
 
 	db, err := utils.InitMySQL(Conf.MysqlConfig)
 	if err != nil {
-		log.Fatalf("Load mysql failed!, err: %v", err)
+		utils.PanicF("Load mysql failed!, err: %v", err)
 	}
 
 	Conn = db
