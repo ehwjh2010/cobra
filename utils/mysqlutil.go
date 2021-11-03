@@ -12,7 +12,7 @@ import (
 
 const DefaultCreateBatchSize = 1000
 
-func InitMySQL(mysqlConfig *setting.MysqlConfig, conn *gorm.DB) error {
+func InitMySQL(mysqlConfig *setting.MysqlConfig) (*gorm.DB, error) {
 	dsn := mysqlConfig.Dsn()
 
 	var sqlLogger = logger.Silent
@@ -40,7 +40,7 @@ func InitMySQL(mysqlConfig *setting.MysqlConfig, conn *gorm.DB) error {
 
 	if err != nil {
 		//log.Fatalf("Connect mysql failed! err: %v", err)
-		return err
+		return nil, err
 	}
 
 	log.Println("Connect mysql success!")
@@ -49,7 +49,7 @@ func InitMySQL(mysqlConfig *setting.MysqlConfig, conn *gorm.DB) error {
 
 	if err != nil {
 		//log.Fatalf("Access sqlDB failed! err: %v", err)
-		return err
+		return nil, err
 	}
 
 	// SetMaxIdleConns 设置空闲连接池中连接的最大数量
@@ -61,12 +61,14 @@ func InitMySQL(mysqlConfig *setting.MysqlConfig, conn *gorm.DB) error {
 	// SetConnMaxLifetime 设置了连接可复用的最大时间。
 	sqlDB.SetConnMaxLifetime(mysqlConfig.ConnMaxLifetime * time.Minute)
 
-	conn = db
-
-	return nil
+	return db, nil
 }
 
 func CloseMySQL(db *gorm.DB) error {
+	if db == nil {
+		return nil
+	}
+
 	s, err := db.DB()
 	if err != nil {
 		Log.Errorf("Close conn; get db failed!, err: %v", err)

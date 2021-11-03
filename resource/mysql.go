@@ -13,10 +13,12 @@ func LoadMySQL() {
 		return
 	}
 
-	err := utils.InitMySQL(Conf.MysqlConfig, Conn)
+	db, err := utils.InitMySQL(Conf.MysqlConfig)
 	if err != nil {
-		log.Fatalf("Init mysql failed!, err: %v", err)
+		log.Fatalf("Load mysql failed!, err: %v", err)
 	}
+
+	Conn = db
 }
 
 func ReleaseMySQL() error {
