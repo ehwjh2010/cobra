@@ -7,14 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func BindRoute(server *gin.Engine) *gin.Engine {
+func BindRoute(handler *gin.Engine) {
 
-	api := server.Group("/api")
+	api := handler.Group("/api")
 
 	user := api.Group("/user")
 
 	{
-		user.GET("", userHandlers.UserBasic)
+		user.GET("", userHandlers.BasicUserInfo)
 	}
 
 	config := api.Group("/project")
@@ -32,5 +32,4 @@ func BindRoute(server *gin.Engine) *gin.Engine {
 		demo.POST("/json", demoHandlers.MethodJson)
 		demo.POST("/login", demoHandlers.BindJson)
 	}
-	return server
 }
