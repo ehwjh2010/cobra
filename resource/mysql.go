@@ -1,25 +1,12 @@
 package resource
 
-import (
-	"ginLearn/utils"
-	"gorm.io/gorm"
-)
+import "ginLearn/utils"
 
-var Conn *gorm.DB
+var MysqlClient utils.MysqlClient
 
 func LoadMySQL() {
-	if Conf.MysqlConfig == nil {
-		return
-	}
-
-	db, err := utils.InitMySQL(Conf.MysqlConfig)
+	err := MysqlClient.SetUp(Conf.MysqlConfig)
 	if err != nil {
 		utils.PanicF("Load mysql failed!, err: %v", err)
 	}
-
-	Conn = db
-}
-
-func ReleaseMySQL() error {
-	return utils.CloseMySQL(Conn)
 }

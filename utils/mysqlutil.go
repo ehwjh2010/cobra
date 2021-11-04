@@ -2,86 +2,23 @@ package utils
 
 import (
 	"ginLearn/client/setting"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"gorm.io/gorm/schema"
-	"log"
-	"time"
 )
 
-const DefaultCreateBatchSize = 1000
-
-func InitMySQL(mysqlConfig *setting.MysqlConfig) (*gorm.DB, error) {
-	dsn := mysqlConfig.Dsn()
-
-	var sqlLogger = logger.Silent
-	if mysqlConfig.EnableRawSQL {
-		sqlLogger = logger.Info
-	}
-
-	var createBatchSize = DefaultCreateBatchSize
-	if mysqlConfig.CreateBatchSize > 0 {
-		createBatchSize = mysqlConfig.CreateBatchSize
-	}
-
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		//打印SQL
-		Logger: logger.Default.LogMode(sqlLogger),
-		NamingStrategy: schema.NamingStrategy{
-			//指定表前缀
-			TablePrefix: mysqlConfig.TablePrefix,
-			//表复数禁用
-			SingularTable: mysqlConfig.SingularTable,
-		},
-		//批量操作 每批数量
-		CreateBatchSize: createBatchSize,
-	})
-
-	if err != nil {
-		//log.Fatalf("Connect mysql failed! err: %v", err)
-		return nil, err
-	}
-
-	log.Println("Connect mysql success!")
-
-	sqlDB, err := db.DB()
-
-	if err != nil {
-		//log.Fatalf("Access sqlDB failed! err: %v", err)
-		return nil, err
-	}
-
-	// SetMaxIdleConns 设置空闲连接池中连接的最大数量
-	sqlDB.SetMaxIdleConns(mysqlConfig.MaxFreeConnCount)
-
-	// SetMaxOpenConns 设置打开数据库连接的最大数量。
-	sqlDB.SetMaxOpenConns(mysqlConfig.MaxOpenConnCount)
-
-	// SetConnMaxLifetime 设置了连接可复用的最大时间。
-	sqlDB.SetConnMaxLifetime(mysqlConfig.ConnMaxLifetime * time.Minute)
-
-	return db, nil
+type MysqlClient struct {
+	gormDB *gorm.DB
 }
 
-func CloseMySQL(db *gorm.DB) error {
-	if db == nil {
-		return nil
-	}
-
-	s, err := db.DB()
+func (c *MysqlClient) SetUp(mysqlConfig *setting.MysqlConfig) error {
+	gormDB, err := InitMySQLWithGorm(mysqlConfig)
 	if err != nil {
-		log.Printf("Close conn; get db failed!, err: %v", err)
 		return err
 	}
 
-	err = s.Close()
+	c.gormDB = gormDB
+	return nil
+}
 
-	if err != nil {
-		log.Println("Close mysql failed!")
-	} else {
-		log.Println("Close mysql success!")
-	}
-
-	return err
+func (c *MysqlClient) Close() error {
+	return CloseMySQLWithGorm(c.gormDB)
 }
