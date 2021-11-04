@@ -46,3 +46,4 @@ func init() {
 	addMiddleWares(LoggerToFile)
 	log.Println("Add log middleware.")
 }
+
