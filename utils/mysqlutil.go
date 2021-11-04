@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
+	"log"
 	"time"
 )
 
@@ -42,7 +43,7 @@ func InitMySQL(mysqlConfig *setting.MysqlConfig) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	Log.Info("Connect mysql success!")
+	log.Println("Connect mysql success!")
 
 	sqlDB, err := db.DB()
 
@@ -70,16 +71,16 @@ func CloseMySQL(db *gorm.DB) error {
 
 	s, err := db.DB()
 	if err != nil {
-		Log.Errorf("Close conn; get db failed!, err: %v", err)
+		log.Printf("Close conn; get db failed!, err: %v", err)
 		return err
 	}
 
 	err = s.Close()
 
 	if err != nil {
-		Log.Errorln("Close mysql failed!")
+		log.Println("Close mysql failed!")
 	} else {
-		Log.Infoln("Close mysql success!")
+		log.Println("Close mysql success!")
 	}
 
 	return err

@@ -68,8 +68,8 @@ func main() {
 
 	resourceErrs := resource.Release()
 	if resourceErrs != nil {
-		log.Printf("Server exiting, resource: %v", resourceErrs)
+		log.Fatalf("Server exiting, resource: %v", resourceErrs)
 	} else {
-		log.Println("Server exiting")
+		log.Fatal("Server exiting")
 	}
 }

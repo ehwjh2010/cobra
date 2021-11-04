@@ -14,7 +14,7 @@ func init() {
 
 	LoadConfig()
 
-	LoadLogrus()
+	LoadLog()
 
 	LoadMySQL()
 }

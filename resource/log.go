@@ -5,15 +5,17 @@ import (
 	"log"
 )
 
-func LoadLogrus() {
+func LoadLog() {
 
 	err := utils.InitLogrus(Conf.Application, Conf.LogConfig)
 
 	if err != nil {
 		log.Panicf("Load config failed!, err: %v", err)
 	}
+
+	log.Println("Load log success")
 }
 
-func ReleaseLogrus() error {
-	return utils.CloseLogFile()
+func ReleaseLog() error {
+	return utils.CloseLogrus()
 }

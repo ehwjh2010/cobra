@@ -8,7 +8,7 @@ func Release() []error {
 
 	//...其他需要处理的数据
 
-	logFileErr := ReleaseLogrus()
+	logFileErr := ReleaseLog()
 	addErr(logFileErr)
 
 	return errs

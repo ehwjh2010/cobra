@@ -83,7 +83,7 @@ func InitLogrus(application string, logConfig *setting.LogConfig) error {
 	return nil
 }
 
-func CloseLogFile() error {
+func CloseLogrus() error {
 
 	if f == nil {
 		return nil
