@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"ginLearn/client/setting"
 	"github.com/gomodule/redigo/redis"
 	"log"
 	"time"
@@ -10,7 +9,7 @@ import (
 
 const network = "tcp"
 
-func InitCacheWithRedisGo(redisConfig *setting.RedisConfig) (*redis.Pool, error) {
+func InitCacheWithRedisGo(redisConfig *CacheConfig) (*redis.Pool, error) {
 
 	if redisConfig == nil {
 		return nil, nil

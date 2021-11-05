@@ -8,11 +8,12 @@ log:
   enableLogConsole: false
   accessMethodRow: false
 
-mysql:
+db:
   host: 127.0.0.1
   port: 3306
   user: root
   password: devpwd
+  dbType: mysql
   database: demo_shiyanlou
   location: UTC
   tablePrefix:
@@ -23,7 +24,7 @@ mysql:
   maxOpenConnCount: 1
   freeMaxLifetime: 30
 
-redis:
+cache:
   host: 127.0.0.1
   port: 6379
   pwd: A=9q5U776J-6

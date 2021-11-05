@@ -22,22 +22,22 @@ func init() {
 
 	LoadLog()
 
-	LoadMySQL()
+	LoadDB()
 
 	LoadRedis()
 }
 
 func Release() []error {
-	mysqlErr := MysqlClient.Close()
+	mysqlErr := DBClient.Close()
 	addErr(mysqlErr)
-
-	//...其他需要处理的数据
-
-	logFileErr := ReleaseLog()
-	addErr(logFileErr)
 
 	redisErr := RedisClient.Close()
 	addErr(redisErr)
+
+	logFileErr := Logger.Close()
+	addErr(logFileErr)
+
+	//...其他需要处理的数据
 
 	return releaseErrs
 }

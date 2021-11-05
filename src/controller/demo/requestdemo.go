@@ -2,6 +2,7 @@ package demo
 
 import (
 	"fmt"
+	"ginLearn/resource"
 	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
@@ -45,7 +46,7 @@ func MethodPathDemo(c *gin.Context) {
 func MethodUploadDemo(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		utils.InfoF("Get file failed! err: %v", err)
+		resource.Logger.InfoF("Get file failed! err: %v", err)
 	}
 
 	filename := file.Filename
@@ -62,7 +63,7 @@ func MethodJson(c *gin.Context) {
 	data, err := ioutil.ReadAll(c.Request.Body)
 
 	if err != nil {
-		utils.InfoF("Read body json failed!")
+		resource.Logger.InfoF("Read body json failed!")
 	}
 
 	c.String(http.StatusOK, string(data))

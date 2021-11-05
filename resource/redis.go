@@ -4,12 +4,14 @@ import (
 	"ginLearn/utils"
 )
 
-var RedisClient utils.RedisClient
+var RedisClient *utils.RedisClient
 
 func LoadRedis() {
-	err := RedisClient.SetUp(Conf.RedisConfig)
+	client, err := utils.InitCache(Conf.RedisConfig)
 	if err != nil {
-		utils.PanicF("Load redis failed!, err: %v\n", err)
+		Logger.PanicF("Load redis failed!, err: %v\n", err)
 	}
+
+	RedisClient = client
 
 }

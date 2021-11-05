@@ -2,11 +2,15 @@ package resource
 
 import "ginLearn/utils"
 
-var MysqlClient utils.MysqlClient
+var DBClient *utils.DBClient
 
-func LoadMySQL() {
-	err := MysqlClient.SetUp(Conf.MysqlConfig)
+func LoadDB() {
+
+	client, err := utils.InitDB(Conf.DBConfig)
+
 	if err != nil {
-		utils.PanicF("Load mysql failed!, err: %v", err)
+		Logger.PanicF("Load mysql failed!, err: %v", err)
 	}
+
+	DBClient = client
 }
