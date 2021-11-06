@@ -1,16 +1,17 @@
 package resource
 
-import "ginLearn/utils"
+import (
+	"ginLearn/utils"
+	"log"
+)
 
-var DBClient *utils.DBClient
+var DBClient utils.DBClient
 
 func LoadDB() {
 
-	client, err := utils.InitDB(Conf.DBConfig)
+	err := utils.InitDB(Conf.DBConfig, &DBClient)
 
 	if err != nil {
-		Logger.PanicF("Load mysql failed!, err: %v", err)
+		log.Panicf("Load mysql failed!, err: %v", err)
 	}
-
-	DBClient = client
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"ginLearn/middleware"
 	"ginLearn/resource"
-	"ginLearn/src/route"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -22,9 +21,9 @@ func main() {
 
 	handler := gin.New()
 
-	route.BindRoute(handler)
+	BindRoute(handler)
 
-	middleware.UseMiddleWare(handler)
+	middleware.UseMiddles(handler, middleware.NewMiddleConfig())
 
 	addr := fmt.Sprintf(":%d", resource.Conf.ServerPort)
 

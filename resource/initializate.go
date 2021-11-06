@@ -1,6 +1,8 @@
 package resource
 
-import "log"
+import (
+	"log"
+)
 
 var releaseErrs []error
 
@@ -11,6 +13,7 @@ func init() {
 		if err := recover(); err != nil {
 			Release()
 			if releaseErrs != nil {
+				//log.Fatalf("Load resource failed!, %v, releaseErrs: %v\n", err, releaseErrs)
 				log.Fatalf("Load resource failed!, %v, releaseErrs: %v\n", err, releaseErrs)
 			} else {
 				log.Fatalf("Load resource failed!, %v\n", err)
@@ -24,7 +27,7 @@ func init() {
 
 	LoadDB()
 
-	LoadRedis()
+	LoadCache()
 }
 
 func Release() []error {
@@ -33,9 +36,6 @@ func Release() []error {
 
 	redisErr := RedisClient.Close()
 	addErr(redisErr)
-
-	logFileErr := Logger.Close()
-	addErr(logFileErr)
 
 	//...其他需要处理的数据
 

@@ -179,9 +179,9 @@ func DBConfigWithFreeMaxLifetime(freeMaxLifetime time.Duration) DBConfigOption {
 
 //DBInterface 不同的数据库需要实现的接口
 type DBInterface interface {
-	InitDB(config *DBConfig) (*gorm.DB, error)
+	initDB(config *DBConfig) (*gorm.DB, error)
 
-	Close(db *gorm.DB) error
+	close(db *gorm.DB) error
 }
 
 //ParseDBType 解析使用数据库类型
@@ -190,29 +190,29 @@ func ParseDBType(dbType string) DBInterface {
 	case "mysql":
 		return NewMysql()
 	case "postgresql":
-		return nil
+		panic("Unsupported db type")
 	case "sqlite":
-		return nil
+		panic("Unsupported db type")
 	default:
 		panic("Unsupported db type")
 	}
 }
 
 //InitDB 初始化DB
-func InitDB(dbConfig *DBConfig) (*DBClient, error) {
+func InitDB(dbConfig *DBConfig, client *DBClient) error {
 	dbType := strings.ToLower(dbConfig.DBType)
 
 	dbImpl := ParseDBType(dbType)
 
-	gormDB, err := dbImpl.InitDB(dbConfig)
+	gormDB, err := dbImpl.initDB(dbConfig)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	client := NewDBClient(DBClientWithDB(gormDB), DBClientWithDBImpl(dbImpl))
+	client = NewDBClient(DBClientWithDB(gormDB), DBClientWithDBImpl(dbImpl))
 
-	return client, nil
+	return nil
 }
 
 //Close 关闭数据库连接
@@ -221,5 +221,5 @@ func (c *DBClient) Close() error {
 		return nil
 	}
 
-	return c.dbImpl.Close(c.db)
+	return c.dbImpl.close(c.db)
 }

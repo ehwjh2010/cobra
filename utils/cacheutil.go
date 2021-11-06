@@ -94,14 +94,14 @@ func RedisConfigWithWriteTimeout(writeTimeout time.Duration) RedisConfigOption {
 	}
 }
 
-func InitCache(config *CacheConfig) (*RedisClient, error) {
+func InitCache(config *CacheConfig, client *RedisClient) error {
 	pool, err := InitCacheWithRedisGo(config)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	client := NewRedisClient(RedisClientWithPool(pool))
-	return client, err
+	client = NewRedisClient(RedisClientWithPool(pool))
+	return err
 }
 
 func (c *RedisClient) Close() error {

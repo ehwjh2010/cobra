@@ -17,7 +17,7 @@ func NewMysql() *Mysql {
 	return &Mysql{}
 }
 
-func (m *Mysql) InitDB(dbConfig *DBConfig) (*gorm.DB, error) {
+func (m *Mysql) initDB(dbConfig *DBConfig) (*gorm.DB, error) {
 	dsn := dbConfig.Dsn()
 
 	var sqlLogger = logger.Silent
@@ -69,7 +69,7 @@ func (m *Mysql) InitDB(dbConfig *DBConfig) (*gorm.DB, error) {
 	return db, nil
 }
 
-func (m *Mysql) Close(db *gorm.DB) error {
+func (m *Mysql) close(db *gorm.DB) error {
 	if db == nil {
 		return nil
 	}
