@@ -76,7 +76,7 @@ func (m *Mysql) close(db *gorm.DB) error {
 
 	s, err := db.DB()
 	if err != nil {
-		log.Printf("Close conn; get db failed!, err: %v", err)
+		log.Printf("Close conn; get DB failed!, err: %v", err)
 		return err
 	}
 

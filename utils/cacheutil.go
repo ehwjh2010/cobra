@@ -18,6 +18,10 @@ type CacheConfig struct {
 	WriteTimeout     time.Duration `yaml:"writeTimeout" json:"writeTimeout"`         //写超时时间, 单位: 秒
 }
 
+func NewCacheConfig() *CacheConfig {
+	return &CacheConfig{}
+}
+
 type RedisConfigOption func(*CacheConfig)
 
 type RedisClient struct {
@@ -94,14 +98,14 @@ func RedisConfigWithWriteTimeout(writeTimeout time.Duration) RedisConfigOption {
 	}
 }
 
-func InitCache(config *CacheConfig, client *RedisClient) error {
+func InitCache(config *CacheConfig) (client *RedisClient, err error) {
 	pool, err := InitCacheWithRedisGo(config)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	client = NewRedisClient(RedisClientWithPool(pool))
-	return err
+	return client, err
 }
 
 func (c *RedisClient) Close() error {

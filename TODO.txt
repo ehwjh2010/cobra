@@ -3,19 +3,15 @@
     2.2 Redis
     2.3 MongoDB
 3. gin校验器
-4. 日志中间件未生效
-5. 自定义panic捕获中间件
 6. 数据库钩子函数
 7. 支持多种数据库
 8. 根据数据库自动生成结构体
-9. 日志按天切分
 10. 日志输出到日志中心
 11. 项目支持自动重启
 12. 支持swagger
 13. 依赖注入  https://github.com/google/wire,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
-14. Option模式
 15. 错误优化
 16. Builder模式
 17. 定时器 https://github.com/robfig/cron,  https://segmentfault.com/a/1190000023029219,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
 18. 协程池 https://github.com/panjf2000/ants
-19. 接入zap日志组件
+19. redis提供基础查询方法

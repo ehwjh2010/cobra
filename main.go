@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"ginLearn/conf"
 	"ginLearn/middleware"
-	"ginLearn/resource"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -12,6 +12,10 @@ import (
 	"syscall"
 	"time"
 )
+
+func init() {
+	Initialization()
+}
 
 func main() {
 
@@ -25,7 +29,7 @@ func main() {
 
 	middleware.UseMiddles(handler, middleware.NewMiddleConfig())
 
-	addr := fmt.Sprintf(":%d", resource.Conf.ServerPort)
+	addr := fmt.Sprintf(":%d", conf.Conf.ServerPort)
 
 	srv := &http.Server{
 		Addr:    addr,
@@ -36,7 +40,7 @@ func main() {
 	// it won't block the graceful shutdown handling below
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			resourceErrs := resource.Release()
+			resourceErrs := Release()
 			if resourceErrs != nil {
 				log.Fatalf("Listen: %s, resource: %#v\n", err, resourceErrs)
 			} else {
@@ -57,7 +61,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		resourceErrs := resource.Release()
+		resourceErrs := Release()
 		if resourceErrs != nil {
 			log.Fatalf("Server forced to shutdown: err: %v, resource: %v\n", err, resourceErrs)
 		} else {
@@ -65,7 +69,7 @@ func main() {
 		}
 	}
 
-	resourceErrs := resource.Release()
+	resourceErrs := Release()
 	if resourceErrs != nil {
 		log.Fatalf("Server exiting, resource: %v", resourceErrs)
 	} else {

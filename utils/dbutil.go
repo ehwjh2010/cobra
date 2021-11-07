@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/gorm"
 	"strings"
@@ -9,7 +10,7 @@ import (
 
 type DBClient struct {
 	dbImpl DBInterface
-	db     *gorm.DB
+	DB     *gorm.DB
 }
 
 type DBClientOption func(client *DBClient)
@@ -24,7 +25,7 @@ func NewDBClient(args ...DBClientOption) (client *DBClient) {
 
 func DBClientWithDB(db *gorm.DB) DBClientOption {
 	return func(client *DBClient) {
-		client.db = db
+		client.DB = db
 	}
 }
 
@@ -186,33 +187,31 @@ type DBInterface interface {
 
 //ParseDBType 解析使用数据库类型
 func ParseDBType(dbType string) DBInterface {
-	switch dbType {
+	switch strings.ToLower(dbType) {
 	case "mysql":
 		return NewMysql()
 	case "postgresql":
-		panic("Unsupported db type")
+		panic("Unsupported postgresql")
 	case "sqlite":
-		panic("Unsupported db type")
+		panic("Unsupported sqlite")
 	default:
-		panic("Unsupported db type")
+		panic("Unsupported DB type")
 	}
 }
 
 //InitDB 初始化DB
-func InitDB(dbConfig *DBConfig, client *DBClient) error {
-	dbType := strings.ToLower(dbConfig.DBType)
-
-	dbImpl := ParseDBType(dbType)
+func InitDB(dbConfig *DBConfig) (client *DBClient, err error) {
+	dbImpl := ParseDBType(dbConfig.DBType)
 
 	gormDB, err := dbImpl.initDB(dbConfig)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	client = NewDBClient(DBClientWithDB(gormDB), DBClientWithDBImpl(dbImpl))
 
-	return nil
+	return client, nil
 }
 
 //Close 关闭数据库连接
@@ -221,5 +220,140 @@ func (c *DBClient) Close() error {
 		return nil
 	}
 
-	return c.dbImpl.close(c.db)
+	return c.dbImpl.close(c.DB)
+}
+
+//occurErr 判断是否发生报错
+func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
+
+	if tx.Error == nil {
+		return false
+	}
+
+	txErr := tx.Error
+	if excludeErr == nil {
+		return true
+	}
+
+	for _, err := range excludeErr {
+		if errors.Is(txErr, err) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
+
+	if c.occurErr(tx, excludeErr...) {
+		Errorf("Query DB occur err, err: %v", tx.Error)
+		return false, tx.Error
+	}
+
+	if tx.RowsAffected <= 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+//Migrate 数据库迁移
+//models 数据库模型
+//model: client.Migrate(&Product{}, &Fruit{})
+func (c *DBClient) Migrate(pointers ...interface{}) error {
+	return c.DB.AutoMigrate(pointers...)
+}
+
+//QueryById 通过主键查询
+//exist 记录是否存在
+//err 发生的错误
+func (c *DBClient) QueryById(id int64, pointer interface{}) (exist bool, err error) {
+	db := c.DB
+
+	tx := db.Limit(1).Where("id = ?", id).Find(pointer)
+
+	return c.check(tx)
+}
+
+//QueryByIds 通过主键查询
+func (c *DBClient) QueryByIds(ids []int64, pointers interface{}) (exist bool, err error) {
+	tx := c.DB.Where("id in ?", ids).Find(pointers)
+	return c.check(tx)
+}
+
+//QueryByStruct 通过结构体查询, 结构体字段为零值的字段, 不会作为条件
+func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}) (exist bool, err error) {
+	tx := c.DB.Where(condition).Find(dst)
+	return c.check(tx)
+}
+
+//QueryByMap 通过Map查询
+func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}) (exist bool, err error) {
+	tx := c.DB.Where(condition).Find(dst)
+	return c.check(tx)
+}
+
+//First 查询第一条记录
+func (c *DBClient) First(condition interface{}, pointer interface{}) (exist bool, err error) {
+	tx := c.DB.Where(condition).First(pointer)
+
+	return c.check(tx, gorm.ErrRecordNotFound)
+}
+
+//Last 查询最后一条记录
+func (c *DBClient) Last(condition interface{}, pointer interface{}) (exist bool, err error) {
+	tx := c.DB.Where(condition).Last(pointer)
+
+	return c.check(tx, gorm.ErrRecordNotFound)
+}
+
+//Exist 记录是否存在
+func (c *DBClient) Exist(condition map[string]interface{}, dst interface{}) (exist bool, err error) {
+	return c.First(condition, dst)
+}
+
+//AddRecord 添加记录
+//data 指针
+func (c *DBClient) AddRecord(data interface{}) error {
+	tx := c.DB.Create(data)
+
+	return tx.Error
+}
+
+//AddRecords 批量添加记录
+func (c *DBClient) AddRecords(data interface{}, batchSize int) error {
+	tx := c.DB.CreateInBatches(data, batchSize)
+	return tx.Error
+}
+
+//updateRecord 更新记录, condition必须包含条件, 否则会返回错误ErrMissingWhereClause,
+//如果想无条件更新, 请使用updateRecordWithoutCond
+//tableName 表名
+//dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
+//condition, struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
+func (c *DBClient) updateRecord(tableName string, condition interface{}, dstValue interface{}) error {
+	tx := c.DB.Table(tableName).Where(condition).Updates(dstValue)
+	return tx.Error
+}
+
+//updateRecordWithoutCond 无条件更新记录
+//tableName 表名
+//dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
+func (c *DBClient) updateRecordWithoutCond(tableName string, dstValue interface{}) error {
+	tx := c.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Table(tableName).Updates(dstValue)
+	return tx.Error
+}
+
+//Raw 执行原生SQL
+func (c *DBClient) Raw(sql string) error {
+	tx := c.DB.Exec(sql)
+	return tx.Error
+}
+
+//Save 保存记录, 会保存所有的字段，即使字段是零值
+//ptr 必须是struct指针
+func (c *DBClient) Save(ptr interface{}) error {
+	tx := c.DB.Save(ptr)
+	return tx.Error
 }

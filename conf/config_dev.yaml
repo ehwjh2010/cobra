@@ -3,16 +3,20 @@ serverPort: 9090
 shutDownTimeout: 5
 
 log:
-  logPath:
   level: DEBUG
-  enableLogConsole: false
-  accessMethodRow: false
+  enableConsole: true
+  rotated: true
+  fileDir:
+  maxSize: 1
+  maxAge: 7
+  localtime: true
+  compress: true
 
 db:
   host: 127.0.0.1
   port: 3306
-  user: root
-  password: devpwd
+  user: jh
+  password: 123456
   dbType: mysql
   database: demo_shiyanlou
   location: UTC
@@ -27,7 +31,7 @@ db:
 cache:
   host: 127.0.0.1
   port: 6379
-  pwd: A=9q5U776J-6
+  pwd: 123456
   maxFreeConnCount: 1
   maxOpenConnCount: 1
   freeMaxLifetime: 30

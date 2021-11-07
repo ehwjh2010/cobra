@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -42,6 +43,10 @@ type LogConfig struct {
 	Compress bool `json:"compress" yaml:"compress"`
 }
 
+func NewLogConfig() *LogConfig {
+	return &LogConfig{}
+}
+
 func (conf *LogConfig) RealLogDir(application string) string {
 	return PathJoin(conf.FileDir, application)
 }
@@ -54,12 +59,13 @@ func (conf *LogConfig) FileName(application string) string {
 func InitLog(config *LogConfig, application string) (err error) {
 	var writeSyncer zapcore.WriteSyncer
 
-	err = MakeDirs(config.RealLogDir(application))
-	if err != nil {
-		return
-	}
-
 	writeSyncer = getWriters(config, application)
+
+	if IsNotEmptyStr(config.FileDir) {
+		if err = MakeDirs(config.RealLogDir(application)); err != nil {
+			return
+		}
+	}
 
 	encoder := getEncoder()
 	var l = new(zapcore.Level)
@@ -109,7 +115,11 @@ func getWriters(conf *LogConfig, application string) zapcore.WriteSyncer {
 		}
 	}
 
-	return zapcore.AddSync(io.MultiWriter(writers...))
+	w := io.MultiWriter(writers...)
+
+	gin.DefaultWriter = w
+
+	return zapcore.AddSync(w)
 }
 
 func getRotedLogWriter(filename string, maxSize, maxBackup, maxAge int, localTime bool, compress bool) io.Writer {
