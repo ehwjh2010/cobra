@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -12,6 +13,7 @@ import (
 //utc 是否使用UTC时间
 //skipPath 不记录日志的url
 func GinZap(conf *MiddleConfig) gin.HandlerFunc {
+	fmt.Println("Use ginzap middleware")
 	skipPaths := make(map[string]bool, len(conf.SkipPaths))
 	for _, path := range conf.SkipPaths {
 		skipPaths[path] = true

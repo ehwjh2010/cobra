@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"github.com/gomodule/redigo/redis"
 	"time"
 )
@@ -110,4 +111,432 @@ func InitCache(config *CacheConfig) (client *RedisClient, err error) {
 
 func (c *RedisClient) Close() error {
 	return CloseCacheWithRedisGo(c.pool)
+}
+
+//Set 如果ex小于0, 则认为没有设置时间, ex 单位: 秒
+func (c *RedisClient) Set(key string, v interface{}, timeout int) error {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	var err error
+
+	if timeout > 0 {
+		_, err = conn.Do("SET", key, v, "EX", timeout)
+	} else {
+		_, err = conn.Do("SET", key, v)
+	}
+
+	if err != nil {
+		Error("set error", err.Error())
+		return err
+	}
+	return nil
+}
+
+//SetJson 设置json
+func (c *RedisClient) SetJson(key string, data interface{}, timeout int) error {
+	value, _ := JsonMarshal(data)
+	return c.Set(key, value, timeout)
+}
+
+//GetString redis get
+func (c *RedisClient) GetString(key string) (string, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	val, err := redis.String(conn.Do("GET", key))
+	if err != nil {
+		Error("get error", err.Error())
+		return "", err
+	}
+
+	return val, nil
+}
+
+//GetBool redis get
+func (c *RedisClient) GetBool(key string) (bool, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	val, err := redis.Bool(conn.Do("GET", key))
+	if err != nil {
+		Error("get error", err.Error())
+		return false, err
+	}
+
+	return val, nil
+}
+
+func (c *RedisClient) SetExp(key string, ex int) error {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	_, err := conn.Do("EXPIRE", key, ex)
+	if err != nil {
+		Error("set error", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (c *RedisClient) GetJson(key string, data interface{}) error {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	bv, err := redis.Bytes(conn.Do("GET", key))
+	if err != nil {
+		Error("get json error", err.Error())
+		return err
+	}
+	errJson := JsonUnmarshal(bv, data)
+	if errJson != nil {
+		Error("json nil", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (c *RedisClient) HSet(key string, field string, data interface{}) error {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	_, err := conn.Do("HSET", key, field, data)
+	if err != nil {
+		Error("hSet error", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (c *RedisClient) HGetStr(key, field string) (string, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	data, err := redis.String(conn.Do("HGET", key, field))
+	if err != nil {
+		Error("hGet error", err.Error())
+		return "", err
+	}
+	return data, nil
+}
+
+func (c *RedisClient) HGetInt(key, field string) (int, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	data, err := redis.Int(conn.Do("HGET", key, field))
+	if err != nil {
+		Error("hGet error", err.Error())
+		return 0, err
+	}
+	return data, nil
+}
+
+func (c *RedisClient) HGetInt64(key, field string) (int64, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	data, err := redis.Int64(conn.Do("HGET", key, field))
+	if err != nil {
+		Error("hGet error", err.Error())
+		return 0, err
+	}
+	return data, nil
+}
+
+func (c *RedisClient) HGetBool(key, field string) (bool, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	data, err := redis.Bool(conn.Do("HGET", key, field))
+	if err != nil {
+		Error("hGet error", err.Error())
+		return false, err
+	}
+	return data, nil
+}
+
+func (c *RedisClient) HGetAll(key string) (map[string]interface{}, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	var data map[string]interface{}
+
+	tmp, err := redis.Bytes(conn.Do("HGETALL", key))
+	if err != nil {
+		Error("hGetAll error", err.Error())
+		return nil, err
+	}
+
+	err = json.Unmarshal(tmp, &data)
+	if err != nil {
+		Error("json nil, ", err.Error())
+		return nil, err
+	}
+	return data, nil
+}
+
+func (c *RedisClient) Incr(key string) (int, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	count, err := redis.Int(conn.Do("INCR", key))
+	if err != nil {
+		Error("INCR error", err.Error())
+		return 0, err
+	}
+	return count, nil
+
+}
+
+func (c *RedisClient) IncrBy(key string, n int) (int, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	count, err := redis.Int(conn.Do("INCRBY", key, n))
+	if err != nil {
+		Error("INCRBY error", err.Error())
+		return 0, err
+	}
+	return count, nil
+}
+
+func (c *RedisClient) Decr(key string) (int, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	count, err := redis.Int(conn.Do("DECR", key))
+	if err != nil {
+		Error("DECR error", err.Error())
+		return 0, err
+	}
+	return count, nil
+}
+
+func (c *RedisClient) DecrBy(key string, n int) (int, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	count, err := redis.Int(conn.Do("DECRBY", key, n))
+	if err != nil {
+		Error("DECRBY error", err.Error())
+		return 0, err
+	}
+	return count, nil
+}
+
+func (c *RedisClient) SAdd(key string, v interface{}) error {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	_, err := conn.Do("SADD", key, v)
+	if err != nil {
+		Error("SADD error", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (c *RedisClient) SMembersStr(key string) ([]string, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	data, err := redis.Strings(conn.Do("SMEMBERS", key))
+	if err != nil {
+		Error("json nil", err)
+		return nil, err
+	}
+	return data, nil
+}
+
+func (c *RedisClient) SMembersInt(key string) ([]int, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	data, err := redis.Ints(conn.Do("SMEMBERS", key))
+	if err != nil {
+		Error("json nil", err)
+		return nil, err
+	}
+	return data, nil
+}
+
+func (c *RedisClient) SMembersInt64(key string) ([]int64, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	data, err := redis.Int64s(conn.Do("SMEMBERS", key))
+	if err != nil {
+		Error("json nil", err)
+		return nil, err
+	}
+	return data, nil
+}
+
+func (c *RedisClient) SISMembers(key, v string) bool {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	b, err := redis.Bool(conn.Do("SISMEMBER", key, v))
+	if err != nil {
+		Error("SISMEMBER error", err.Error())
+		return false
+	}
+	return b
+}
+
+func (c *RedisClient) Exist(key string) bool {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	b, err := redis.Bool(conn.Do("EXISTS", key))
+	if err != nil {
+		Error(err)
+		return false
+	}
+	return b
+}
+
+func (c *RedisClient) Del(key string) error {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			Errorf("Redis conn close failed, err: %v", err)
+		}
+	}()
+
+	_, err := conn.Do("DEL", key)
+	if err != nil {
+		Error(err)
+		return err
+	}
+	return nil
 }

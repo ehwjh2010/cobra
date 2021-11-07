@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -19,6 +20,7 @@ import (
 // stack means whether output the stack info.
 // The stack info is easy to find where the error occurs but the stack info is too large.
 func RecoveryWithZap(conf *MiddleConfig) gin.HandlerFunc {
+	fmt.Println("Use recoveryWithZap middleware")
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {

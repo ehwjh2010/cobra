@@ -25,9 +25,9 @@ func main() {
 
 	handler := gin.New()
 
-	BindRoute(handler)
-
 	middleware.UseMiddles(handler, middleware.NewMiddleConfig())
+
+	BindRoute(handler)
 
 	addr := fmt.Sprintf(":%d", conf.Conf.ServerPort)
 

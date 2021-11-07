@@ -1,8 +1,8 @@
 package main
 
 import (
+	"ginLearn/api/dao"
 	"ginLearn/conf"
-	"ginLearn/src/dao"
 	"ginLearn/utils"
 	"log"
 )

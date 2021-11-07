@@ -8,7 +8,7 @@ import (
 
 var (
 	DBClient    *utils.DBClient
-	RedisClient *utils.RedisClient
+	CacheClient *utils.RedisClient
 )
 
 func LoadDB(config *conf.DBConfig) {
@@ -48,9 +48,9 @@ func LoadCache(config *conf.CacheConfig) {
 		log.Panicf("Load redis failed!, err: %v\n", err)
 	}
 
-	RedisClient = client
+	CacheClient = client
 }
 
 func CloseCache() error {
-	return RedisClient.Close()
+	return CacheClient.Close()
 }
