@@ -15,11 +15,7 @@ func LoadDB(config *conf.DBConfig) {
 
 	dbConfig := utils.NewDBConfig()
 
-	err := utils.CopyProperty(config, dbConfig)
-
-	if err != nil {
-		log.Panicf(err.Error())
-	}
+	utils.CopyProperty(config, dbConfig)
 
 	client, err := utils.InitDB(dbConfig)
 
@@ -38,10 +34,7 @@ func LoadCache(config *conf.CacheConfig) {
 
 	cacheConfig := utils.NewCacheConfig()
 
-	err := utils.CopyProperty(config, cacheConfig)
-	if err != nil {
-		log.Panicf(err.Error())
-	}
+	utils.CopyProperty(config, cacheConfig)
 
 	client, err := utils.InitCache(cacheConfig)
 	if err != nil {

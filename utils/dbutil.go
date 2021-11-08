@@ -327,20 +327,26 @@ func (c *DBClient) AddRecords(data interface{}, batchSize int) error {
 	return tx.Error
 }
 
-//updateRecord 更新记录, condition必须包含条件, 否则会返回错误ErrMissingWhereClause,
+//UpdateById 根据主键更新
+func (c DBClient) UpdateById(id int64, data interface{}) error {
+	tx := c.DB.Where("id = ?", id).Updates(data)
+	return tx.Error
+}
+
+//UpdateRecord 更新记录, condition必须包含条件, 否则会返回错误ErrMissingWhereClause,
 //如果想无条件更新, 请使用updateRecordWithoutCond
 //tableName 表名
 //dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
 //condition, struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
-func (c *DBClient) updateRecord(tableName string, condition interface{}, dstValue interface{}) error {
+func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValue interface{}) error {
 	tx := c.DB.Table(tableName).Where(condition).Updates(dstValue)
 	return tx.Error
 }
 
-//updateRecordWithoutCond 无条件更新记录
+//UpdateRecordWithoutCond 无条件更新记录
 //tableName 表名
 //dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
-func (c *DBClient) updateRecordWithoutCond(tableName string, dstValue interface{}) error {
+func (c *DBClient) UpdateRecordWithoutCond(tableName string, dstValue interface{}) error {
 	tx := c.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Table(tableName).Updates(dstValue)
 	return tx.Error
 }

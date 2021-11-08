@@ -6,13 +6,13 @@ import (
 )
 
 type Product struct {
-	ID         int64        `json:"id"`
-	CreatedAt  utils.BJTime `json:"createdAt"`
-	UpdatedAt  utils.BJTime `json:"updatedAt"`
-	Name       string       `json:"name"`
-	Price      float64      `json:"price"`
-	TotalCount int64        `json:"totalCount"`
-	Brand      null.String  `json:"brand"`
+	ID         int64         `json:"id"`
+	CreatedAt  utils.UTCTime `json:"createdAt"`
+	UpdatedAt  utils.UTCTime `json:"updatedAt"`
+	Name       string        `json:"name"`
+	Price      float64       `json:"price"`
+	TotalCount int64         `json:"totalCount"`
+	Brand      null.String   `json:"brand"`
 }
 
 func NewProduct() *Product {

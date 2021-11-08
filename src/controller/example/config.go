@@ -30,7 +30,35 @@ func AddRecord(c *gin.Context) {
 
 	dao.DBClient.AddRecord(&product)
 
-	fmt.Printf("product=%+v\n", product)
+	p := example.NewProduct()
+
+	utils.CopyProperty(product, p)
+
+	utils.Success(c, p)
+}
+
+func UpdateRecord(c *gin.Context) {
+	product := model.NewProduct()
+
+	product.ID = 9
+	product.TotalCount = 100
+	product.Price = 15
+
+	err := dao.DBClient.UpdateById(product.ID, product)
+
+	if err != nil {
+		utils.Fail(
+			c,
+			utils.ResponseWithCode(2000),
+			utils.ResponseWithMessage(fmt.Sprintf("Update failed, %+v\n", err)))
+		return
+	}
+
+	p := example.NewProduct()
+
+	utils.CopyProperty(product, p)
+
+	utils.Success(c, p)
 }
 
 //QueryById 通过ID查询
@@ -59,11 +87,7 @@ func QueryById(c *gin.Context) {
 	}
 
 	p := example.NewProduct()
-	err = utils.CopyProperty(product, p)
-	if err != nil {
-		utils.Fail(c, utils.ResponseWithCode(1001))
-		return
-	}
+	utils.CopyProperty(product, p)
 
 	utils.Success(c, p)
 }

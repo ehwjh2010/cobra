@@ -35,12 +35,9 @@ func LoadLog() {
 
 	logConfig := utils.NewLogConfig()
 
-	err := utils.CopyProperty(conf.Conf.LogConfig, logConfig)
-	if err != nil {
-		log.Panicf(err.Error())
-	}
+	utils.CopyProperty(conf.Conf.LogConfig, logConfig)
 
-	err = utils.InitLog(logConfig, conf.Conf.Application)
+	err := utils.InitLog(logConfig, conf.Conf.Application)
 
 	if err != nil {
 		log.Panicf("Load log failed!, err: %v", err)
