@@ -1,11 +1,14 @@
 package example
 
 import (
-	"ginLearn/api/dao"
-	"ginLearn/api/dao/model"
+	"fmt"
+	"ginLearn/client/example"
 	"ginLearn/conf"
+	"ginLearn/src/dao"
+	"ginLearn/src/dao/model"
 	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/guregu/null.v4"
 	"strconv"
 )
 
@@ -13,6 +16,21 @@ func GetProjectConfig(c *gin.Context) {
 	c.JSON(200, conf.Conf)
 
 	utils.Info("你好")
+}
+
+//AddRecord 添加记录
+func AddRecord(c *gin.Context) {
+
+	product := model.Product{
+		Name:       "orange",
+		Price:      30,
+		TotalCount: 10000,
+		Brand:      null.NewString("肯德基", true),
+	}
+
+	dao.DBClient.AddRecord(&product)
+
+	fmt.Printf("product=%+v\n", product)
 }
 
 //QueryById 通过ID查询
@@ -40,7 +58,14 @@ func QueryById(c *gin.Context) {
 		return
 	}
 
-	utils.Success(c, product)
+	p := example.NewProduct()
+	err = utils.CopyProperty(product, p)
+	if err != nil {
+		utils.Fail(c, utils.ResponseWithCode(1001))
+		return
+	}
+
+	utils.Success(c, p)
 }
 
 //QueryByCache 查缓存
