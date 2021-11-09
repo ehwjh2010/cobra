@@ -35,7 +35,7 @@ func LoadLog() {
 
 	logConfig := utils.NewLogConfig()
 
-	utils.CopyProperty(conf.Conf.LogConfig, logConfig)
+	utils.CopyProperties(conf.Conf.LogConfig, logConfig)
 
 	err := utils.InitLog(logConfig, conf.Conf.Application)
 

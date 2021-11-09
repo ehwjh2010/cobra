@@ -9,6 +9,7 @@ const BJ = "Asia/Shanghai"
 
 var BJZone *time.Location
 
+//GetBJLocation 获取北京时区
 func GetBJLocation() *time.Location {
 	if BJZone != nil {
 		return BJZone

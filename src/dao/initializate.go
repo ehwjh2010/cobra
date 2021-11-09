@@ -11,11 +11,12 @@ var (
 	CacheClient *utils.RedisClient
 )
 
+//LoadDB 加载DB
 func LoadDB(config *conf.DBConfig) {
 
 	dbConfig := utils.NewDBConfig()
 
-	utils.CopyProperty(config, dbConfig)
+	utils.CopyProperties(config, dbConfig)
 
 	client, err := utils.InitDB(dbConfig)
 
@@ -26,15 +27,17 @@ func LoadDB(config *conf.DBConfig) {
 	DBClient = client
 }
 
+//CloseDB 关闭DB
 func CloseDB() error {
 	return DBClient.Close()
 }
 
+//LoadCache 加载缓存
 func LoadCache(config *conf.CacheConfig) {
 
 	cacheConfig := utils.NewCacheConfig()
 
-	utils.CopyProperty(config, cacheConfig)
+	utils.CopyProperties(config, cacheConfig)
 
 	client, err := utils.InitCache(cacheConfig)
 	if err != nil {
@@ -44,6 +47,7 @@ func LoadCache(config *conf.CacheConfig) {
 	CacheClient = client
 }
 
+//CloseCache 关闭缓存
 func CloseCache() error {
 	return CacheClient.Close()
 }

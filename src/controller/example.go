@@ -1,14 +1,12 @@
-package example
+package controller
 
 import (
 	"fmt"
-	"ginLearn/client/example"
 	"ginLearn/conf"
 	"ginLearn/src/dao"
 	"ginLearn/src/dao/model"
 	"ginLearn/utils"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/guregu/null.v4"
 	"strconv"
 )
 
@@ -22,29 +20,39 @@ func GetProjectConfig(c *gin.Context) {
 func AddRecord(c *gin.Context) {
 
 	product := model.Product{
-		Name:       "orange",
+		Name:       "appleNormalStr",
 		Price:      30,
 		TotalCount: 10000,
-		Brand:      null.NewString("肯德基", true),
+		Brand:      utils.NewStr("oooooo"),
 	}
 
-	dao.DBClient.AddRecord(&product)
+	err := dao.DBClient.AddRecord(&product)
 
-	p := example.NewProduct()
+	if err != nil {
+		utils.Fail(c, utils.ResponseWithCode(10000), utils.ResponseWithMessage("Insert failed!"))
+		return
+	}
 
-	utils.CopyProperty(product, p)
-
-	utils.Success(c, p)
+	utils.Success(c, product)
 }
 
 func UpdateRecord(c *gin.Context) {
 	product := model.NewProduct()
 
-	product.ID = 9
-	product.TotalCount = 100
-	product.Price = 15
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		utils.Fail(c, utils.ResponseWithCode(1000))
+		return
+	}
 
-	err := dao.DBClient.UpdateById(product.ID, product)
+	//product.TotalCount = 99
+	//product.Price = 9900
+	//err = dao.DBClient.UpdateById(product.TableName(), int64(id), product)
+
+	product.ID = int64(id)
+	product.TotalCount = 10
+	product.Price = 156
+	err = dao.DBClient.UpdateByStruct(product)
 
 	if err != nil {
 		utils.Fail(
@@ -54,11 +62,7 @@ func UpdateRecord(c *gin.Context) {
 		return
 	}
 
-	p := example.NewProduct()
-
-	utils.CopyProperty(product, p)
-
-	utils.Success(c, p)
+	utils.Success(c, product)
 }
 
 //QueryById 通过ID查询
@@ -86,24 +90,21 @@ func QueryById(c *gin.Context) {
 		return
 	}
 
-	p := example.NewProduct()
-	utils.CopyProperty(product, p)
-
-	utils.Success(c, p)
+	utils.Success(c, product)
 }
 
 //QueryByCache 查缓存
 func QueryByCache(c *gin.Context) {
 	name := c.Param("name")
 
-	name, err := dao.CacheClient.GetString(name)
+	nameValue, err := dao.CacheClient.GetString(name)
 
 	if err != nil {
 		utils.Fail(c, utils.ResponseWithCode(1000))
 		return
 	}
 
-	utils.Success(c, map[string]string{"name": name})
+	utils.Success(c, map[string]utils.NullString{"name": nameValue})
 
 }
 
@@ -131,6 +132,6 @@ func GetJob(c *gin.Context) {
 		return
 	}
 
-	utils.Success(c, map[string]string{"job": job})
+	utils.Success(c, map[string]utils.NullString{"job": job})
 
 }

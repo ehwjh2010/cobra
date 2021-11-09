@@ -9,6 +9,7 @@ import (
 
 const network = "tcp"
 
+//InitCacheWithRedisGo 使用RedisGo初始化
 func InitCacheWithRedisGo(redisConfig *CacheConfig) (*redis.Pool, error) {
 
 	if redisConfig == nil {

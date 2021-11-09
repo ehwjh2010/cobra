@@ -1,7 +1,7 @@
 package main
 
 import (
-	"ginLearn/src/controller/example"
+	"ginLearn/src/controller"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,13 +12,13 @@ func BindRoute(handler *gin.Engine) {
 	exampleGroup := api.Group("/example")
 
 	{
-		exampleGroup.GET("/config", example.GetProjectConfig)
-		exampleGroup.GET("/db/:id", example.QueryById)
-		exampleGroup.GET("/db/add", example.AddRecord)
-		exampleGroup.GET("/db/update", example.UpdateRecord)
-		exampleGroup.GET("/cache/:name", example.QueryByCache)
-		exampleGroup.GET("/cache/set/:job", example.SetJob)
-		exampleGroup.GET("/cache/get/job", example.GetJob)
+		exampleGroup.GET("/config", controller.GetProjectConfig)
+		exampleGroup.GET("/db/:id", controller.QueryById)
+		exampleGroup.GET("/db/add", controller.AddRecord)
+		exampleGroup.GET("/db/update/:id", controller.UpdateRecord)
+		exampleGroup.GET("/cache/:name", controller.QueryByCache)
+		exampleGroup.GET("/cache/set/:job", controller.SetJob)
+		exampleGroup.GET("/cache/get/job", controller.GetJob)
 
 	}
 

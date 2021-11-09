@@ -12,7 +12,5 @@
 16. Builder模式
 17. 定时器 https://github.com/robfig/cron,  https://segmentfault.com/a/1190000023029219,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
 18. 协程池 https://github.com/panjf2000/ants
-19. redis提供基础查询方法
-20. 返回的时间格式 缺少时区
-21. gorm null类型处理
 22. 错误包装
+23. 错误堆栈格式化

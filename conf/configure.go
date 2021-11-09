@@ -20,6 +20,7 @@ type Config struct {
 	CacheConfig     *CacheConfig  `yaml:"cache" json:"cache"`
 }
 
+//LogConfig 日志配置
 type LogConfig struct {
 	//Level 日志级别
 	Level string `json:"level" yaml:"level"`
@@ -49,23 +50,26 @@ type LogConfig struct {
 	Compress bool `json:"compress" yaml:"compress"`
 }
 
+//DBConfig 数据库配置
 type DBConfig struct {
-	Host             string        `yaml:"host" json:"host"`                         //DB IP
-	Port             int           `yaml:"port" json:"port"`                         //DB 端口
-	User             string        `yaml:"user" json:"user"`                         //用户名
-	Password         string        `yaml:"password" json:"password"`                 //密码
-	DBType           string        `yaml:"dbType" json:"dbType"`                     //数据库类型
-	Database         string        `yaml:"database" json:"database"`                 //数据库名
-	Location         string        `yaml:"location" json:"location"`                 //时区
-	TablePrefix      string        `yaml:"tablePrefix" json:"tablePrefix"`           //表前缀
-	SingularTable    bool          `yaml:"singularTable" json:"singularTable"`       //表复数禁用
-	CreateBatchSize  int           `yaml:"createBatchSize" json:"createBatchSize"`   //批量创建数量
-	EnableRawSQL     bool          `yaml:"enableRawSql" json:"enableRawSql"`         //打印原生SQL
-	MaxFreeConnCount int           `yaml:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数量
-	MaxOpenConnCount int           `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数量
-	FreeMaxLifetime  time.Duration `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`   //闲置连接最大存活时间, 单位: 分钟
+	Host             string           `yaml:"host" json:"host"`                         //DB IP
+	Port             int              `yaml:"port" json:"port"`                         //DB 端口
+	User             string           `yaml:"user" json:"user"`                         //用户名
+	Password         string           `yaml:"password" json:"password"`                 //密码
+	DBType           string           `yaml:"dbType" json:"dbType"`                     //数据库类型
+	Database         string           `yaml:"database" json:"database"`                 //数据库名
+	Location         string           `yaml:"location" json:"location"`                 //时区
+	TablePrefix      string           `yaml:"tablePrefix" json:"tablePrefix"`           //表前缀
+	SingularTable    bool             `yaml:"singularTable" json:"singularTable"`       //表复数禁用
+	CreateBatchSize  int              `yaml:"createBatchSize" json:"createBatchSize"`   //批量创建数量
+	EnableRawSQL     bool             `yaml:"enableRawSql" json:"enableRawSql"`         //打印原生SQL
+	MaxFreeConnCount int              `yaml:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数量
+	MaxOpenConnCount int              `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数量
+	FreeMaxLifetime  time.Duration    `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`   //闲置连接最大存活时间, 单位: 分钟
+	TimeFunc         func() time.Time //设置当前时间函数
 }
 
+//CacheConfig 缓存配置
 type CacheConfig struct {
 	Host             string        `yaml:"host" json:"host"`                         //Redis IP
 	Port             int           `yaml:"port" json:"port"`                         //Redis 端口
@@ -77,6 +81,7 @@ type CacheConfig struct {
 	ConnectTimeout   time.Duration `yaml:"connectTimeout" json:"connectTimeout"`     //连接Redis超时时间, 单位: 秒
 	ReadTimeout      time.Duration `yaml:"readTimeout" json:"readTimeout"`           //读取超时时间, 单位: 秒
 	WriteTimeout     time.Duration `yaml:"writeTimeout" json:"writeTimeout"`         //写超时时间, 单位: 秒
+	DefaultTimeOut   int           `yaml:"defaultTimeOut" json:"defaultTimeOut"`     //默认缓存时间, 单位: 秒
 }
 
 var Conf Config

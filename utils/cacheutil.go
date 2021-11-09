@@ -2,10 +2,14 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/gomodule/redigo/redis"
 	"time"
 )
 
+const DefaultTimeOut = 60 * 5 //5分钟
+
+//CacheConfig 缓存配置
 type CacheConfig struct {
 	Host             string        `yaml:"host" json:"host"`                         //Redis IP
 	Port             int           `yaml:"port" json:"port"`                         //Redis 端口
@@ -17,6 +21,7 @@ type CacheConfig struct {
 	ConnectTimeout   time.Duration `yaml:"connectTimeout" json:"connectTimeout"`     //连接Redis超时时间, 单位: 秒
 	ReadTimeout      time.Duration `yaml:"readTimeout" json:"readTimeout"`           //读取超时时间, 单位: 秒
 	WriteTimeout     time.Duration `yaml:"writeTimeout" json:"writeTimeout"`         //写超时时间, 单位: 秒
+	DefaultTimeOut   int           `yaml:"defaultTimeOut" json:"defaultTimeOut"`     //默认缓存时间, 单位: 秒
 }
 
 func NewCacheConfig() *CacheConfig {
@@ -26,7 +31,11 @@ func NewCacheConfig() *CacheConfig {
 type RedisConfigOption func(*CacheConfig)
 
 type RedisClient struct {
+	//pool redis连接池
 	pool *redis.Pool
+
+	//defaultTimeOut 默认超时时间
+	defaultTimeOut int
 }
 
 func NewRedisClient(args ...RedisClientOption) (client *RedisClient) {
@@ -45,91 +54,54 @@ func RedisClientWithPool(pool *redis.Pool) RedisClientOption {
 	}
 }
 
-func RedisConfigWithHost(host string) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.Host = host
+func RedisClientWithDefaultTimeOut(defaultTimeOut int) RedisClientOption {
+	return func(client *RedisClient) {
+		timeout := defaultTimeOut
+		if timeout <= 0 {
+			timeout = DefaultTimeOut
+		}
+
+		client.defaultTimeOut = timeout
 	}
 }
 
-func RedisConfigWithPort(port int) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.Port = port
-	}
-}
-
-func RedisConfigWithMaxFreeConnCount(maxFreeConnCount int) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.MaxFreeConnCount = maxFreeConnCount
-	}
-}
-
-func RedisConfigWithMaxOpenConnCount(maxOpenConnCount int) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.MaxOpenConnCount = maxOpenConnCount
-	}
-}
-
-func RedisConfigWithFreeMaxLifetime(freeMaxLifetime time.Duration) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.FreeMaxLifetime = freeMaxLifetime
-	}
-}
-
-func RedisConfigWithDatabase(database int) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.Database = database
-	}
-}
-
-func RedisConfigWithConnectTimeout(connectTimeout time.Duration) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.ConnectTimeout = connectTimeout
-	}
-}
-
-func RedisConfigWithReadTimeout(readTimeout time.Duration) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.ReadTimeout = readTimeout
-	}
-}
-
-func RedisConfigWithWriteTimeout(writeTimeout time.Duration) RedisConfigOption {
-	return func(config *CacheConfig) {
-		config.WriteTimeout = writeTimeout
-	}
-}
-
+//InitCache 初始化缓存
 func InitCache(config *CacheConfig) (client *RedisClient, err error) {
 	pool, err := InitCacheWithRedisGo(config)
 	if err != nil {
 		return nil, err
 	}
 
-	client = NewRedisClient(RedisClientWithPool(pool))
+	client = NewRedisClient(RedisClientWithPool(pool), RedisClientWithDefaultTimeOut(config.DefaultTimeOut))
 	return client, err
 }
 
+//Close 关闭连接池
 func (c *RedisClient) Close() error {
 	return CloseCacheWithRedisGo(c.pool)
 }
 
-//Set 如果ex小于0, 则认为没有设置时间, ex 单位: 秒
-func (c *RedisClient) Set(key string, v interface{}, timeout int) error {
+//Set 如果ex小于0, 则使用默认超时时间, ex 单位: 秒
+func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
+	if value == nil {
+		return nil
+	}
+
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
 	var err error
 
 	if timeout > 0 {
-		_, err = conn.Do("SET", key, v, "EX", timeout)
+		_, err = conn.Do("SET", key, value, "EX", timeout)
 	} else {
-		_, err = conn.Do("SET", key, v)
+		_, err = conn.Do("SET", key, value, "EX", c.defaultTimeOut)
 	}
 
 	if err != nil {
@@ -141,75 +113,87 @@ func (c *RedisClient) Set(key string, v interface{}, timeout int) error {
 
 //SetJson 设置json
 func (c *RedisClient) SetJson(key string, data interface{}, timeout int) error {
+	if data == nil {
+		return nil
+	}
+
 	value, _ := JsonMarshal(data)
 	return c.Set(key, value, timeout)
 }
 
 //GetString redis get
-func (c *RedisClient) GetString(key string) (string, error) {
+func (c *RedisClient) GetString(key string) (NullString, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
 	val, err := redis.String(conn.Do("GET", key))
 	if err != nil {
-		Error("get error", err.Error())
-		return "", err
+		if errors.Is(err, redis.ErrNil) {
+			return NewStrNull(), nil
+		} else {
+			return NewStrNull(), err
+		}
 	}
 
-	return val, nil
+	return NewStr(val), nil
 }
 
 //GetBool redis get
-func (c *RedisClient) GetBool(key string) (bool, error) {
+func (c *RedisClient) GetBool(key string) (NullBool, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
 	val, err := redis.Bool(conn.Do("GET", key))
 	if err != nil {
-		Error("get error", err.Error())
-		return false, err
+		if errors.Is(err, redis.ErrNil) {
+			return NewBoolNull(), nil
+		} else {
+			return NewBoolNull(), err
+		}
 	}
 
-	return val, nil
+	return NewBool(val), nil
 }
 
+//SetExp 设置过期时间
 func (c *RedisClient) SetExp(key string, ex int) error {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
 	_, err := conn.Do("EXPIRE", key, ex)
 	if err != nil {
-		Error("set error", err.Error())
+		Errorf("set error, %v", err.Error())
 		return err
 	}
 	return nil
 }
 
+//GetJson 获取JSON
 func (c *RedisClient) GetJson(key string, data interface{}) error {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
@@ -226,13 +210,18 @@ func (c *RedisClient) GetJson(key string, data interface{}) error {
 	return nil
 }
 
+//HSet 对应hset命令
 func (c *RedisClient) HSet(key string, field string, data interface{}) error {
+	if data == nil {
+		return nil
+	}
+
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
@@ -244,89 +233,108 @@ func (c *RedisClient) HSet(key string, field string, data interface{}) error {
 	return nil
 }
 
-func (c *RedisClient) HGetStr(key, field string) (string, error) {
+//HGetStr 对应hget命令
+func (c *RedisClient) HGetStr(key, field string) (NullString, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	data, err := redis.String(conn.Do("HGET", key, field))
+	val, err := redis.String(conn.Do("HGET", key, field))
 	if err != nil {
-		Error("hGet error", err.Error())
-		return "", err
+		if errors.Is(err, redis.ErrNil) {
+			return NewStrNull(), nil
+		} else {
+			return NewStrNull(), err
+		}
 	}
-	return data, nil
+	return NewStr(val), nil
 }
 
-func (c *RedisClient) HGetInt(key, field string) (int, error) {
+//HGetInt 对应hget命令
+func (c *RedisClient) HGetInt(key, field string) (NullInt, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	data, err := redis.Int(conn.Do("HGET", key, field))
+	val, err := redis.Int(conn.Do("HGET", key, field))
 	if err != nil {
-		Error("hGet error", err.Error())
-		return 0, err
+		if errors.Is(err, redis.ErrNil) {
+			return NewIntNull(), nil
+		} else {
+			return NewIntNull(), err
+		}
 	}
-	return data, nil
+
+	return NewInt(val), nil
 }
 
-func (c *RedisClient) HGetInt64(key, field string) (int64, error) {
+//HGetInt64 对应hget命令
+func (c *RedisClient) HGetInt64(key, field string) (NullInt64, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	data, err := redis.Int64(conn.Do("HGET", key, field))
+	val, err := redis.Int64(conn.Do("HGET", key, field))
 	if err != nil {
-		Error("hGet error", err.Error())
-		return 0, err
+		if errors.Is(err, redis.ErrNil) {
+			return NewInt64Null(), nil
+		} else {
+			return NewInt64Null(), err
+		}
 	}
-	return data, nil
+
+	return NewInt64(val), nil
 }
 
-func (c *RedisClient) HGetBool(key, field string) (bool, error) {
+//HGetBool 对应hget命令
+func (c *RedisClient) HGetBool(key, field string) (NullBool, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	data, err := redis.Bool(conn.Do("HGET", key, field))
+	val, err := redis.Bool(conn.Do("HGET", key, field))
 	if err != nil {
-		Error("hGet error", err.Error())
-		return false, err
+		if errors.Is(err, redis.ErrNil) {
+			return NewBoolNull(), nil
+		} else {
+			return NewBoolNull(), err
+		}
 	}
-	return data, nil
+	return NewBool(val), nil
 }
 
+//HGetAll 对应hgetall命令
 func (c *RedisClient) HGetAll(key string) (map[string]interface{}, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	var data map[string]interface{}
+	var val map[string]interface{}
 
 	tmp, err := redis.Bytes(conn.Do("HGETALL", key))
 	if err != nil {
@@ -334,94 +342,99 @@ func (c *RedisClient) HGetAll(key string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(tmp, &data)
+	err = json.Unmarshal(tmp, &val)
 	if err != nil {
 		Error("json nil, ", err.Error())
 		return nil, err
 	}
-	return data, nil
+	return val, nil
 }
 
+//Incr 对应incr命令
 func (c *RedisClient) Incr(key string) (int, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	count, err := redis.Int(conn.Do("INCR", key))
+	val, err := redis.Int(conn.Do("INCR", key))
 	if err != nil {
-		Error("INCR error", err.Error())
+		Error("INCR error, ", err.Error())
 		return 0, err
 	}
-	return count, nil
+	return val, nil
 
 }
 
+//IncrBy 对应incrby命令
 func (c *RedisClient) IncrBy(key string, n int) (int, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	count, err := redis.Int(conn.Do("INCRBY", key, n))
+	val, err := redis.Int(conn.Do("INCRBY", key, n))
 	if err != nil {
 		Error("INCRBY error", err.Error())
 		return 0, err
 	}
-	return count, nil
+	return val, nil
 }
 
+//Decr 对应decr命令
 func (c *RedisClient) Decr(key string) (int, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	count, err := redis.Int(conn.Do("DECR", key))
+	val, err := redis.Int(conn.Do("DECR", key))
 	if err != nil {
 		Error("DECR error", err.Error())
 		return 0, err
 	}
-	return count, nil
+	return val, nil
 }
 
+//DecrBy 对应decrby命令
 func (c *RedisClient) DecrBy(key string, n int) (int, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	count, err := redis.Int(conn.Do("DECRBY", key, n))
+	val, err := redis.Int(conn.Do("DECRBY", key, n))
 	if err != nil {
 		Error("DECRBY error", err.Error())
 		return 0, err
 	}
-	return count, nil
+	return val, nil
 }
 
+//SAdd 对应sadd命令
 func (c *RedisClient) SAdd(key string, v interface{}) error {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
@@ -433,103 +446,109 @@ func (c *RedisClient) SAdd(key string, v interface{}) error {
 	return nil
 }
 
+//SMembersStr 对应smembers命令
 func (c *RedisClient) SMembersStr(key string) ([]string, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	data, err := redis.Strings(conn.Do("SMEMBERS", key))
+	val, err := redis.Strings(conn.Do("SMEMBERS", key))
 	if err != nil {
 		Error("json nil", err)
 		return nil, err
 	}
-	return data, nil
+	return val, nil
 }
 
+//SMembersInt 对应smembers命令
 func (c *RedisClient) SMembersInt(key string) ([]int, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	data, err := redis.Ints(conn.Do("SMEMBERS", key))
+	val, err := redis.Ints(conn.Do("SMEMBERS", key))
 	if err != nil {
 		Error("json nil", err)
 		return nil, err
 	}
-	return data, nil
+	return val, nil
 }
 
+//SMembersInt64 对应smembers命令
 func (c *RedisClient) SMembersInt64(key string) ([]int64, error) {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	data, err := redis.Int64s(conn.Do("SMEMBERS", key))
+	val, err := redis.Int64s(conn.Do("SMEMBERS", key))
 	if err != nil {
 		Error("json nil", err)
 		return nil, err
 	}
-	return data, nil
+	return val, nil
 }
 
+//SISMembers 对应sismembers命令
 func (c *RedisClient) SISMembers(key, v string) bool {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	b, err := redis.Bool(conn.Do("SISMEMBER", key, v))
+	val, err := redis.Bool(conn.Do("SISMEMBER", key, v))
 	if err != nil {
 		Error("SISMEMBER error", err.Error())
 		return false
 	}
-	return b
+	return val
 }
 
+//Exist 对应exists命令
 func (c *RedisClient) Exist(key string) bool {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 
-	b, err := redis.Bool(conn.Do("EXISTS", key))
+	val, err := redis.Bool(conn.Do("EXISTS", key))
 	if err != nil {
 		Error(err)
 		return false
 	}
-	return b
+	return val
 }
 
+//Del 对应del命令
 func (c *RedisClient) Del(key string) error {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			Errorf("Redis conn close failed, err: %v", err)
+			Errorf("Redis conn close failed, %v", err)
 		}
 	}()
 

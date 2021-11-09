@@ -2,6 +2,7 @@ package utils
 
 import "github.com/jinzhu/copier"
 
-func CopyProperty(source interface{}, dst interface{}) {
+//CopyProperties 拷贝属性, 支持struct, slice, map等
+func CopyProperties(source interface{}, dst interface{}) {
 	copier.Copy(dst, source)
 }

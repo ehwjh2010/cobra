@@ -17,6 +17,10 @@ func NewMysql() *Mysql {
 	return &Mysql{}
 }
 
+func DefaultTimeFunc() time.Time {
+	return time.Now().In(time.UTC)
+}
+
 func (m *Mysql) initDB(dbConfig *DBConfig) (*gorm.DB, error) {
 	dsn := dbConfig.Dsn()
 
@@ -30,7 +34,13 @@ func (m *Mysql) initDB(dbConfig *DBConfig) (*gorm.DB, error) {
 		createBatchSize = dbConfig.CreateBatchSize
 	}
 
+	timeFunc := dbConfig.TimeFunc
+	if timeFunc == nil {
+		timeFunc = DefaultTimeFunc
+	}
+
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		NowFunc: timeFunc,
 		//打印SQL
 		Logger: logger.Default.LogMode(sqlLogger),
 		NamingStrategy: schema.NamingStrategy{

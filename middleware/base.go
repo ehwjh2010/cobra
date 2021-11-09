@@ -10,6 +10,7 @@ const (
 	Stack      = true
 )
 
+//MiddleConfig 中间件配置
 type MiddleConfig struct {
 	//TimeFormat 时间格式
 	TimeFormat string `yaml:"timeFormat" json:"timeFormat"`

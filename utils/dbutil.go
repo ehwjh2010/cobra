@@ -35,23 +35,26 @@ func DBClientWithDBImpl(dbImpl DBInterface) DBClientOption {
 	}
 }
 
+//DBConfig 数据库配置
 type DBConfig struct {
-	Host             string        `yaml:"host" json:"host"`                         //DB IP
-	Port             int           `yaml:"port" json:"port"`                         //DB 端口
-	User             string        `yaml:"user" json:"user"`                         //用户名
-	Password         string        `yaml:"password" json:"password"`                 //密码
-	DBType           string        `yaml:"dbType" json:"dbType"`                     //数据库类型
-	Database         string        `yaml:"database" json:"database"`                 //数据库名
-	Location         string        `yaml:"location" json:"location"`                 //时区
-	TablePrefix      string        `yaml:"tablePrefix" json:"tablePrefix"`           //表前缀
-	SingularTable    bool          `yaml:"singularTable" json:"singularTable"`       //表复数禁用
-	CreateBatchSize  int           `yaml:"createBatchSize" json:"createBatchSize"`   //批量创建数量
-	EnableRawSQL     bool          `yaml:"enableRawSql" json:"enableRawSql"`         //打印原生SQL
-	MaxFreeConnCount int           `yaml:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数量
-	MaxOpenConnCount int           `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数量
-	FreeMaxLifetime  time.Duration `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`   //闲置连接最大存活时间, 单位: 分钟
+	Host             string           `yaml:"host" json:"host"`                         //DB IP
+	Port             int              `yaml:"port" json:"port"`                         //DB 端口
+	User             string           `yaml:"user" json:"user"`                         //用户名
+	Password         string           `yaml:"password" json:"password"`                 //密码
+	DBType           string           `yaml:"dbType" json:"dbType"`                     //数据库类型
+	Database         string           `yaml:"database" json:"database"`                 //数据库名
+	Location         string           `yaml:"location" json:"location"`                 //时区
+	TablePrefix      string           `yaml:"tablePrefix" json:"tablePrefix"`           //表前缀
+	SingularTable    bool             `yaml:"singularTable" json:"singularTable"`       //表复数禁用
+	CreateBatchSize  int              `yaml:"createBatchSize" json:"createBatchSize"`   //批量创建数量
+	EnableRawSQL     bool             `yaml:"enableRawSql" json:"enableRawSql"`         //打印原生SQL
+	MaxFreeConnCount int              `yaml:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数量
+	MaxOpenConnCount int              `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数量
+	FreeMaxLifetime  time.Duration    `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`   //闲置连接最大存活时间, 单位: 分钟
+	TimeFunc         func() time.Time //设置当前时间函数
 }
 
+//Dsn 连接URL
 func (c *DBConfig) Dsn() string {
 	uri := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,
 		c.User, c.Password, c.Host, c.Port, c.Database, c.Location)
@@ -60,122 +63,14 @@ func (c *DBConfig) Dsn() string {
 
 type DBConfigOption func(*DBConfig)
 
-const (
-	Host             = "127.0.0.1"
-	Port             = 3306
-	User             = "root"
-	Password         = "123456"
-	Database         = "mysql"
-	Location         = "UTC"
-	TablePrefix      = ""
-	SingularTable    = true
-	CreateBatchSize  = 1000
-	EnableRawSQL     = false
-	MaxFreeConnCount = 3
-	MaxOpenConnCount = 10
-	FreeMaxLifetime  = 30
-)
-
 func NewDBConfig(args ...DBConfigOption) (dbConfig *DBConfig) {
-	dbConfig = &DBConfig{
-		Host:             Host,
-		Port:             Port,
-		User:             User,
-		Password:         Password,
-		Database:         Database,
-		Location:         Location,
-		TablePrefix:      TablePrefix,
-		SingularTable:    SingularTable,
-		CreateBatchSize:  CreateBatchSize,
-		EnableRawSQL:     EnableRawSQL,
-		MaxFreeConnCount: MaxFreeConnCount,
-		MaxOpenConnCount: MaxOpenConnCount,
-		FreeMaxLifetime:  FreeMaxLifetime,
-	}
+	dbConfig = &DBConfig{}
 
 	for _, arg := range args {
 		arg(dbConfig)
 	}
 
 	return dbConfig
-}
-
-func DBConfigWithHost(host string) DBConfigOption {
-	return func(config *DBConfig) {
-		config.Host = host
-	}
-}
-
-func DBConfigWithPort(port int) DBConfigOption {
-	return func(config *DBConfig) {
-		config.Port = port
-	}
-}
-
-func DBConfigWithUser(user string) DBConfigOption {
-	return func(config *DBConfig) {
-		config.User = user
-	}
-}
-
-func DBConfigWithPwd(password string) DBConfigOption {
-	return func(config *DBConfig) {
-		config.Password = password
-	}
-}
-
-func DBConfigWithDatabase(database string) DBConfigOption {
-	return func(config *DBConfig) {
-		config.Database = database
-	}
-}
-
-func DBConfigWithLocation(location string) DBConfigOption {
-	return func(config *DBConfig) {
-		config.Location = location
-	}
-}
-
-func DBConfigWithTablePrefix(tablePrefix string) DBConfigOption {
-	return func(config *DBConfig) {
-		config.TablePrefix = tablePrefix
-	}
-}
-
-func DBConfigWithSingularTable(singularTable bool) DBConfigOption {
-	return func(config *DBConfig) {
-		config.SingularTable = singularTable
-	}
-}
-
-func DBConfigWithCreateBatchSize(createBatchSize int) DBConfigOption {
-	return func(config *DBConfig) {
-		config.CreateBatchSize = createBatchSize
-	}
-}
-
-func DBConfigWithEnableRawSQL(enableRawSql bool) DBConfigOption {
-	return func(config *DBConfig) {
-		config.EnableRawSQL = enableRawSql
-	}
-}
-
-func DBConfigWithMaxFreeConnCount(maxFreeConnCount int) DBConfigOption {
-	return func(config *DBConfig) {
-		config.MaxFreeConnCount = maxFreeConnCount
-	}
-}
-
-func DBConfigWithMaxOpenConnCount(maxOpenConnCount int) DBConfigOption {
-	return func(config *DBConfig) {
-		config.MaxOpenConnCount = maxOpenConnCount
-	}
-}
-
-func DBConfigWithFreeMaxLifetime(freeMaxLifetime time.Duration) DBConfigOption {
-	return func(config *DBConfig) {
-		config.FreeMaxLifetime = freeMaxLifetime
-	}
 }
 
 //DBInterface 不同的数据库需要实现的接口
@@ -328,18 +223,26 @@ func (c *DBClient) AddRecords(data interface{}, batchSize int) error {
 }
 
 //UpdateById 根据主键更新
-func (c DBClient) UpdateById(id int64, data interface{}) error {
-	tx := c.DB.Where("id = ?", id).Updates(data)
+//data为结构体指针时, 结构体零值字段不会被更新
+//data为`map`时, 更具`map`更新属性
+func (c *DBClient) UpdateById(tableName string, id int64, data interface{}) error {
+	tx := c.DB.Table(tableName).Where("id = ?", id).Updates(data)
 	return tx.Error
 }
 
 //UpdateRecord 更新记录, condition必须包含条件, 否则会返回错误ErrMissingWhereClause,
 //如果想无条件更新, 请使用updateRecordWithoutCond
-//tableName 表名
-//dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
-//condition, struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
+//tableName  表名
+//dstValue	 struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
+//condition	 struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
 func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValue interface{}) error {
 	tx := c.DB.Table(tableName).Where(condition).Updates(dstValue)
+	return tx.Error
+}
+
+//UpdateByStruct 根据主键更新, data必须为结构体指针且主键为有效值, 结构体零值字段不会被更新
+func (c *DBClient) UpdateByStruct(data interface{}) error {
+	tx := c.DB.Updates(data)
 	return tx.Error
 }
 
