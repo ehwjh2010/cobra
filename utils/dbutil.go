@@ -233,13 +233,17 @@ func QCWithSort(sort []*Order) QCOption {
 
 //AddWhere 添加条件
 func (qc *QueryCondition) AddWhere(where *Where) *QueryCondition {
-	qc.Where = append(qc.Where, where)
+	if where != nil {
+		qc.Where = append(qc.Where, where)
+	}
 	return qc
 }
 
 //AddSort 添加排序
 func (qc *QueryCondition) AddSort(sort *Order) *QueryCondition {
-	qc.Sort = append(qc.Sort, sort)
+	if sort != nil {
+		qc.Sort = append(qc.Sort, sort)
+	}
 	return qc
 }
 
