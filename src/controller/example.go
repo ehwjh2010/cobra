@@ -45,14 +45,9 @@ func UpdateRecord(c *gin.Context) {
 		return
 	}
 
-	//product.TotalCount = 99
-	//product.Price = 9900
-	//err = dao.DBClient.UpdateById(product.TableName(), int64(id), product)
-
-	product.ID = int64(id)
-	product.TotalCount = 10
-	product.Price = 156
-	err = dao.DBClient.UpdateByStruct(product)
+	product.TotalCount = 99
+	product.Price = 9900
+	err = dao.DBClient.UpdateById(product.TableName(), int64(id), product)
 
 	if err != nil {
 		utils.Fail(
@@ -91,6 +86,35 @@ func QueryById(c *gin.Context) {
 	}
 
 	utils.Success(c, product)
+}
+
+func QueryByCond(c *gin.Context) {
+	names := c.QueryArray("name")
+
+	page, _ := strconv.Atoi(c.Query("page"))
+	pageSize, _ := strconv.Atoi(c.Query("pageSize"))
+	cond := utils.NewQueryCondition()
+
+	cond.SetPage(page).SetPageSize(pageSize).AddSort(utils.NewOrder("price", utils.OrderWithSort(utils.DESC))).AddSort(utils.NewOrder("id"))
+
+	cond.SetTotalCount(true)
+
+	cond.AddWhere(utils.NewNotEqWhere("total_count", 90))
+
+	if len(names) > 0 {
+		cond.AddWhere(utils.NewInWhere("name", names))
+	}
+
+	var products []*model.Product
+
+	count, _ := dao.DBClient.Query(model.NewProduct().TableName(), cond, &products)
+
+	utils.Success(c, map[string]interface{}{
+		"totalCount": count,
+		"products":   &products,
+		"page":       page,
+		"pageSize":   pageSize,
+	})
 }
 
 //QueryByCache 查缓存

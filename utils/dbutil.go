@@ -10,7 +10,7 @@ import (
 
 type DBClient struct {
 	dbImpl DBInterface
-	DB     *gorm.DB
+	db     *gorm.DB
 }
 
 type DBClientOption func(client *DBClient)
@@ -25,7 +25,7 @@ func NewDBClient(args ...DBClientOption) (client *DBClient) {
 
 func DBClientWithDB(db *gorm.DB) DBClientOption {
 	return func(client *DBClient) {
-		client.DB = db
+		client.db = db
 	}
 }
 
@@ -73,6 +73,226 @@ func NewDBConfig(args ...DBConfigOption) (dbConfig *DBConfig) {
 	return dbConfig
 }
 
+type Where struct {
+	//Column 字段名
+	Column string
+	//Value 值
+	Value interface{}
+	//符号
+	Sign string
+}
+
+func NewWhere(column string, value interface{}, sign string) *Where {
+	return &Where{Column: column, Value: value, Sign: sign}
+}
+
+func NewEqWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: Eq}
+}
+
+func NewNotEqWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: NotEq}
+}
+
+func NewGtWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: Gt}
+}
+
+func NewGteWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: Gte}
+}
+
+func NewLteWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: Lte}
+}
+
+func NewLtWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: Lt}
+}
+
+func NewInWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: In}
+}
+
+func NewNotInWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: NotIn}
+}
+
+func NewLikeWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: Like}
+}
+
+//ForWhere 获取SQL
+func (where *Where) ForWhere() (pattern string, value interface{}) {
+	pattern = strings.Join([]string{where.Column, where.Sign, "?"}, " ")
+	value = where.Value
+	return
+}
+
+type Order struct {
+	//Column 字段名
+	Column string
+	//Sort 排序, 用 ASC, DESC 常量
+	Sort string
+}
+
+func NewOrder(column string, args ...OrderOpt) (order *Order) {
+	order = &Order{Column: column, Sort: ASC}
+	for _, arg := range args {
+		arg(order)
+	}
+
+	return order
+}
+
+type OrderOpt func(order *Order)
+
+func OrderWithSort(sort string) OrderOpt {
+	return func(order *Order) {
+		order.Sort = sort
+	}
+}
+
+//Description 获取排序SQL
+func (o *Order) Description() (description string) {
+	description = fmt.Sprintf("%s %s", o.Column, o.Sort)
+	return description
+}
+
+//QueryCondition 查询条件
+type QueryCondition struct {
+	//Where 查询条件, `map`时, 根据`map`设定查询条件, struct时, struct零值字段不会当做条件. 推荐使用`map`
+	Where []*Where
+
+	//Page 页数, 从1开始
+	Page int
+
+	//PageSize 每页数量, 必须大于0
+	PageSize int
+
+	//Sort 排序
+	Sort []*Order
+
+	//TotalCount 是否查询总数量
+	TotalCount bool
+
+	offset int
+
+	limit int
+}
+
+func NewQueryCondition(args ...QCOption) *QueryCondition {
+	cond := &QueryCondition{}
+
+	for _, arg := range args {
+		arg(cond)
+	}
+
+	return cond
+}
+
+type QCOption func(condition *QueryCondition)
+
+func QCWithWhere(where []*Where) QCOption {
+	return func(condition *QueryCondition) {
+		condition.Where = where
+	}
+}
+
+func QCWithPage(page int) QCOption {
+	if page <= 0 {
+		panic("Page must gt 0")
+	}
+
+	return func(condition *QueryCondition) {
+		condition.Page = page
+	}
+}
+
+func QCWithPageSize(pageSize int) QCOption {
+	if pageSize <= 0 {
+		panic("PageSize must gt 0")
+	}
+
+	return func(condition *QueryCondition) {
+		condition.PageSize = pageSize
+	}
+}
+
+func QCWithTotalCount(totalCount bool) QCOption {
+	return func(condition *QueryCondition) {
+		condition.TotalCount = totalCount
+	}
+}
+
+func QCWithSort(sort []*Order) QCOption {
+	return func(condition *QueryCondition) {
+		condition.Sort = sort
+	}
+}
+
+//AddWhere 添加条件
+func (qc *QueryCondition) AddWhere(where *Where) *QueryCondition {
+	qc.Where = append(qc.Where, where)
+	return qc
+}
+
+//AddSort 添加排序
+func (qc *QueryCondition) AddSort(sort *Order) *QueryCondition {
+	qc.Sort = append(qc.Sort, sort)
+	return qc
+}
+
+//SetPage 设置页数
+func (qc *QueryCondition) SetPage(page int) *QueryCondition {
+	qc.Page = page
+	return qc
+}
+
+//SetPageSize 设置每页数量
+func (qc *QueryCondition) SetPageSize(pageSize int) *QueryCondition {
+	qc.PageSize = pageSize
+	return qc
+}
+
+//SetTotalCount 设置是否查询总数
+func (qc *QueryCondition) SetTotalCount(query bool) *QueryCondition {
+	qc.TotalCount = query
+	return qc
+}
+
+//OrderStr 获取Order排序
+func (qc *QueryCondition) OrderStr() string {
+	if qc.Sort == nil {
+		return ""
+	}
+
+	var tmp []string
+	for _, item := range qc.Sort {
+		tmp = append(tmp, item.Description())
+	}
+
+	result := strings.Join(tmp, ", ")
+
+	return result
+}
+
+//Offset 获取偏移量
+func (qc *QueryCondition) Offset() (offset int) {
+	if qc.Page < 1 {
+		return 0
+	}
+
+	offset = (qc.Page - 1) * qc.PageSize
+
+	return offset
+}
+
+//Limit 获取Limit
+func (qc *QueryCondition) Limit() (limit int) {
+	return qc.PageSize
+}
+
 //DBInterface 不同的数据库需要实现的接口
 type DBInterface interface {
 	initDB(config *DBConfig) (*gorm.DB, error)
@@ -90,7 +310,7 @@ func ParseDBType(dbType string) DBInterface {
 	case "sqlite":
 		panic("Unsupported sqlite")
 	default:
-		panic("Unsupported DB type")
+		panic("Unsupported db type")
 	}
 }
 
@@ -115,7 +335,7 @@ func (c *DBClient) Close() error {
 		return nil
 	}
 
-	return c.dbImpl.close(c.DB)
+	return c.dbImpl.close(c.db)
 }
 
 //occurErr 判断是否发生报错
@@ -125,10 +345,11 @@ func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 		return false
 	}
 
-	txErr := tx.Error
 	if excludeErr == nil {
 		return true
 	}
+
+	txErr := tx.Error
 
 	for _, err := range excludeErr {
 		if errors.Is(txErr, err) {
@@ -142,7 +363,7 @@ func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
 
 	if c.occurErr(tx, excludeErr...) {
-		Errorf("Query DB occur err, err: %v", tx.Error)
+		Errorf("Query db occur err, err: %v", tx.Error)
 		return false, tx.Error
 	}
 
@@ -157,14 +378,26 @@ func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err erro
 //models 数据库模型
 //model: client.Migrate(&Product{}, &Fruit{})
 func (c *DBClient) Migrate(pointers ...interface{}) error {
-	return c.DB.AutoMigrate(pointers...)
+	db := c.db
+
+	return db.AutoMigrate(pointers...)
+}
+
+func (c *DBClient) QueryByPrimaryKey(pkColumnName string, pkValue, pointer interface{}) (exist bool, err error) {
+	db := c.db
+
+	pattern := fmt.Sprintf("%s = ?", pkColumnName)
+
+	tx := db.Limit(1).Where(pattern, pkValue).Find(pointer)
+
+	return c.check(tx)
 }
 
 //QueryById 通过主键查询
 //exist 记录是否存在
 //err 发生的错误
 func (c *DBClient) QueryById(id int64, pointer interface{}) (exist bool, err error) {
-	db := c.DB
+	db := c.db
 
 	tx := db.Limit(1).Where("id = ?", id).Find(pointer)
 
@@ -173,32 +406,85 @@ func (c *DBClient) QueryById(id int64, pointer interface{}) (exist bool, err err
 
 //QueryByIds 通过主键查询
 func (c *DBClient) QueryByIds(ids []int64, pointers interface{}) (exist bool, err error) {
-	tx := c.DB.Where("id in ?", ids).Find(pointers)
+	db := c.db
+
+	tx := db.Where("id in ?", ids).Find(pointers)
+
 	return c.check(tx)
+}
+
+//Query 查询
+func (c *DBClient) Query(tableName string, queryCondition *QueryCondition, dst interface{}) (totalCount int64, err error) {
+	db := c.db
+
+	db = db.Table(tableName)
+
+	if queryCondition.Where != nil {
+		for _, where := range queryCondition.Where {
+			query, args := where.ForWhere()
+			db = db.Where(query, args)
+		}
+	}
+
+	if queryCondition.TotalCount {
+		db = db.Count(&totalCount)
+	}
+
+	orderStr := queryCondition.OrderStr()
+	if IsNotEmptyStr(orderStr) {
+		db = db.Order(orderStr)
+	}
+
+	limit := queryCondition.Limit()
+	if limit >= 0 {
+		db = db.Limit(limit)
+	}
+
+	offset := queryCondition.Offset()
+	if offset >= 0 {
+		db = db.Offset(offset)
+	}
+
+	tx := db.Find(dst)
+
+	_, err = c.check(tx)
+
+	return totalCount, err
+
 }
 
 //QueryByStruct 通过结构体查询, 结构体字段为零值的字段, 不会作为条件
 func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}) (exist bool, err error) {
-	tx := c.DB.Where(condition).Find(dst)
+	db := c.db
+
+	tx := db.Where(condition).Find(dst)
+
 	return c.check(tx)
 }
 
 //QueryByMap 通过Map查询
 func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}) (exist bool, err error) {
-	tx := c.DB.Where(condition).Find(dst)
+	db := c.db
+
+	tx := db.Where(condition).Find(dst)
+
 	return c.check(tx)
 }
 
 //First 查询第一条记录
 func (c *DBClient) First(condition interface{}, pointer interface{}) (exist bool, err error) {
-	tx := c.DB.Where(condition).First(pointer)
+	db := c.db
+
+	tx := db.Where(condition).First(pointer)
 
 	return c.check(tx, gorm.ErrRecordNotFound)
 }
 
 //Last 查询最后一条记录
 func (c *DBClient) Last(condition interface{}, pointer interface{}) (exist bool, err error) {
-	tx := c.DB.Where(condition).Last(pointer)
+	db := c.db
+
+	tx := db.Where(condition).Last(pointer)
 
 	return c.check(tx, gorm.ErrRecordNotFound)
 }
@@ -209,16 +495,21 @@ func (c *DBClient) Exist(condition map[string]interface{}, dst interface{}) (exi
 }
 
 //AddRecord 添加记录
-//data 指针
+//data 结构体指针
 func (c *DBClient) AddRecord(data interface{}) error {
-	tx := c.DB.Create(data)
+	db := c.db
+
+	tx := db.Create(data)
 
 	return tx.Error
 }
 
 //AddRecords 批量添加记录
 func (c *DBClient) AddRecords(data interface{}, batchSize int) error {
-	tx := c.DB.CreateInBatches(data, batchSize)
+	db := c.db
+
+	tx := db.CreateInBatches(data, batchSize)
+
 	return tx.Error
 }
 
@@ -226,7 +517,10 @@ func (c *DBClient) AddRecords(data interface{}, batchSize int) error {
 //data为结构体指针时, 结构体零值字段不会被更新
 //data为`map`时, 更具`map`更新属性
 func (c *DBClient) UpdateById(tableName string, id int64, data interface{}) error {
-	tx := c.DB.Table(tableName).Where("id = ?", id).Updates(data)
+	db := c.db
+
+	tx := db.Table(tableName).Where("id = ?", id).Updates(data)
+
 	return tx.Error
 }
 
@@ -236,13 +530,10 @@ func (c *DBClient) UpdateById(tableName string, id int64, data interface{}) erro
 //dstValue	 struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
 //condition	 struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
 func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValue interface{}) error {
-	tx := c.DB.Table(tableName).Where(condition).Updates(dstValue)
-	return tx.Error
-}
+	db := c.db
 
-//UpdateByStruct 根据主键更新, data必须为结构体指针且主键为有效值, 结构体零值字段不会被更新
-func (c *DBClient) UpdateByStruct(data interface{}) error {
-	tx := c.DB.Updates(data)
+	tx := db.Table(tableName).Where(condition).Updates(dstValue)
+
 	return tx.Error
 }
 
@@ -250,19 +541,25 @@ func (c *DBClient) UpdateByStruct(data interface{}) error {
 //tableName 表名
 //dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
 func (c *DBClient) UpdateRecordWithoutCond(tableName string, dstValue interface{}) error {
-	tx := c.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Table(tableName).Updates(dstValue)
-	return tx.Error
-}
+	db := c.db
 
-//Raw 执行原生SQL
-func (c *DBClient) Raw(sql string) error {
-	tx := c.DB.Exec(sql)
+	tx := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Table(tableName).Updates(dstValue)
+
 	return tx.Error
 }
 
 //Save 保存记录, 会保存所有的字段，即使字段是零值
 //ptr 必须是struct指针
 func (c *DBClient) Save(ptr interface{}) error {
-	tx := c.DB.Save(ptr)
+	db := c.db
+
+	tx := db.Save(ptr)
+
 	return tx.Error
+}
+
+//DB 获取原生DB对象
+func (c *DBClient) DB() *gorm.DB {
+	db := c.db
+	return db
 }
