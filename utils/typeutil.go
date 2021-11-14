@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"time"
 )
+
+var nullBytes = []byte("null")
 
 //********************int64*****************************
 
@@ -18,16 +21,21 @@ func (ni *NullInt64) IsNil() bool {
 	return !ni.NullInt64.Valid
 }
 
+//Equal 比较是否相等
+func (ni *NullInt64) Equal(v NullInt64) bool {
+	return ni.Valid == v.Valid && (!ni.Valid || ni.Int64 == v.Int64)
+}
+
 //GetValue 获取值
 func (ni *NullInt64) GetValue() int64 {
-	return ni.NullInt64.Int64
+	return ni.Int64
 }
 
 type nullInt64Opt func(nullInt64 *NullInt64)
 
 func newInt64WithInt64(v int64) nullInt64Opt {
 	return func(nullInt64 *NullInt64) {
-		nullInt64.NullInt64.Int64 = v
+		nullInt64.Int64 = v
 	}
 }
 
@@ -56,19 +64,30 @@ func NewInt64Null() NullInt64 {
 }
 
 // MarshalJSON for NullInt64
-func (ni *NullInt64) MarshalJSON() ([]byte, error) {
+func (ni NullInt64) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
 	return JsonMarshal(ni.Int64)
 }
 
-// UnmarshalJSON for NullInt64
-// func (ni *NullInt64) UnmarshalJSON(b []byte) error {
-//  err := json.Unmarshal(b, &ni.Int64)
-//  ni.Valid = (err == nil)
-//  return err
-// }
+//UnmarshalJSON for NullInt64
+func (ni *NullInt64) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, nullBytes) {
+		ni.Valid = false
+		return nil
+	}
+
+	err := JsonUnmarshal(b, &ni.Int64)
+
+	if err != nil {
+		ni.Valid = false
+	} else {
+		ni.Valid = true
+	}
+
+	return err
+}
 
 //********************int64*****************************
 
@@ -120,19 +139,34 @@ func NewIntNull() NullInt {
 }
 
 // MarshalJSON for NullInt
-func (ni *NullInt) MarshalJSON() ([]byte, error) {
+func (ni NullInt) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
 	return JsonMarshal(Int64ToInt(ni.Int64))
 }
 
-// UnmarshalJSON for NullInt
-// func (ni *NullInt) UnmarshalJSON(b []byte) error {
-//  err := json.Unmarshal(b, &ni.Int)
-//  ni.Valid = (err == nil)
-//  return err
-// }
+//UnmarshalJSON for NullInt
+func (ni *NullInt) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, nullBytes) {
+		ni.Valid = false
+		return nil
+	}
+
+	err := JsonUnmarshal(b, &ni.Int64)
+	if err != nil {
+		ni.Valid = false
+	} else {
+		ni.Valid = true
+	}
+
+	return err
+}
+
+//Equal 比较是否相等
+func (ni *NullInt) Equal(v NullInt) bool {
+	return ni.Valid == v.Valid && (!ni.Valid || ni.Int64 == v.Int64)
+}
 
 //********************bool*****************************
 
@@ -152,7 +186,7 @@ func (nb *NullBool) GetValue() bool {
 }
 
 // MarshalJSON for NullBool
-func (nb *NullBool) MarshalJSON() ([]byte, error) {
+func (nb NullBool) MarshalJSON() ([]byte, error) {
 	if !nb.Valid {
 		return []byte("null"), nil
 	}
@@ -191,12 +225,27 @@ func NewBoolNull() NullBool {
 	return *newNullBool()
 }
 
-// UnmarshalJSON for NullBool
-// func (nb *NullBool) UnmarshalJSON(b []byte) error {
-//  err := json.Unmarshal(b, &nb.Bool)
-//  nb.Valid = (err == nil)
-//  return err
-// }
+//UnmarshalJSON for NullBool
+func (nb *NullBool) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, nullBytes) {
+		nb.Valid = false
+		return nil
+	}
+
+	err := JsonUnmarshal(b, &nb.Bool)
+	if err != nil {
+		nb.Valid = false
+	} else {
+		nb.Valid = true
+	}
+
+	return err
+}
+
+//Equal 比较是否相等
+func (nb *NullBool) Equal(v NullBool) bool {
+	return nb.Valid == v.Valid && (!nb.Valid || nb.Bool == v.Bool)
+}
 
 //********************float64*****************************
 
@@ -216,7 +265,7 @@ func (nf *NullFloat64) GetValue() float64 {
 }
 
 // MarshalJSON for NullFloat64
-func (nf *NullFloat64) MarshalJSON() ([]byte, error) {
+func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 	if !nf.Valid {
 		return []byte("null"), nil
 	}
@@ -256,11 +305,26 @@ func NewFloat64Null() *NullFloat64 {
 }
 
 // UnmarshalJSON for NullFloat64
-// func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
-//  err := json.Unmarshal(b, &nf.Float64)
-//  nf.Valid = (err == nil)
-//  return err
-// }
+func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, nullBytes) {
+		nf.Valid = false
+		return nil
+	}
+
+	err := JsonUnmarshal(b, &nf.Float64)
+	if err != nil {
+		nf.Valid = false
+	} else {
+		nf.Valid = true
+	}
+
+	return err
+}
+
+//Equal 比较是否相等
+func (nf *NullFloat64) Equal(v NullFloat64) bool {
+	return nf.Valid == v.Valid && (!nf.Valid || nf.Float64 == v.Float64)
+}
 
 //********************string*****************************
 
@@ -316,7 +380,7 @@ func NewStrNull() NullString {
 }
 
 // MarshalJSON for NullString
-func (ns *NullString) MarshalJSON() ([]byte, error) {
+func (ns NullString) MarshalJSON() ([]byte, error) {
 	if !ns.Valid {
 		return []byte("null"), nil
 	}
@@ -324,11 +388,26 @@ func (ns *NullString) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON for NullString
-// func (ns *NullString) UnmarshalJSON(b []byte) error {
-//  err := json.Unmarshal(b, &ns.String)
-//  ns.Valid = (err == nil)
-//  return err
-// }
+func (ns *NullString) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, nullBytes) {
+		ns.Valid = false
+		return nil
+	}
+
+	err := JsonUnmarshal(b, &ns.String)
+	if err != nil {
+		ns.Valid = false
+	} else {
+		ns.Valid = true
+	}
+
+	return err
+}
+
+//Equal 比较是否相等
+func (ns *NullString) Equal(v NullString) bool {
+	return ns.Valid == v.Valid && (!ns.Valid || ns.String == v.String)
+}
 
 //********************time*****************************
 
@@ -350,11 +429,12 @@ func (nt *NullTime) GetValue() time.Time {
 }
 
 // MarshalJSON for NullTime
-func (nt *NullTime) MarshalJSON() ([]byte, error) {
+func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.In(GetBJLocation()).Format(time.RFC3339))
+	//val := fmt.Sprintf("\"%s\"", nt.Time.In(GetBJLocation()).Format(time.RFC3339))
+	val := fmt.Sprintf("\"%s\"", nt.Time.Format(time.RFC3339))
 	return []byte(val), nil
 }
 
@@ -388,4 +468,26 @@ func NewTime(t time.Time) *NullTime {
 
 func NewTimeNull() *NullTime {
 	return newNullTime()
+}
+
+// UnmarshalJSON for NullTime
+func (nt *NullTime) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, nullBytes) {
+		nt.Valid = false
+		return nil
+	}
+
+	err := JsonUnmarshal(b, &nt.Time)
+	if err != nil {
+		nt.Valid = false
+	} else {
+		nt.Valid = true
+	}
+
+	return err
+}
+
+//Equal 比较是否相等
+func (nt *NullTime) Equal(v NullTime) bool {
+	return nt.Valid == v.Valid && (!nt.Valid || nt.Time == v.Time)
 }
