@@ -418,33 +418,33 @@ func (c *DBClient) QueryByIds(ids []int64, pointers interface{}) (exist bool, er
 }
 
 //Query 查询
-func (c *DBClient) Query(tableName string, queryCondition *QueryCondition, dst interface{}) (totalCount int64, err error) {
+func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interface{}) (totalCount int64, err error) {
 	db := c.db
 
 	db = db.Table(tableName)
 
-	if queryCondition.Where != nil {
-		for _, where := range queryCondition.Where {
+	if condition.Where != nil {
+		for _, where := range condition.Where {
 			query, args := where.ForWhere()
 			db = db.Where(query, args)
 		}
 	}
 
-	if queryCondition.TotalCount {
+	if condition.TotalCount {
 		db = db.Count(&totalCount)
 	}
 
-	orderStr := queryCondition.OrderStr()
+	orderStr := condition.OrderStr()
 	if IsNotEmptyStr(orderStr) {
 		db = db.Order(orderStr)
 	}
 
-	limit := queryCondition.Limit()
+	limit := condition.Limit()
 	if limit >= 0 {
 		db = db.Limit(limit)
 	}
 
-	offset := queryCondition.Offset()
+	offset := condition.Offset()
 	if offset >= 0 {
 		db = db.Offset(offset)
 	}
@@ -454,6 +454,27 @@ func (c *DBClient) Query(tableName string, queryCondition *QueryCondition, dst i
 	_, err = c.check(tx)
 
 	return totalCount, err
+
+}
+
+//QueryCount 查询数量
+func (c *DBClient) QueryCount(tableName string, condition *QueryCondition) (count int64, err error) {
+	db := c.db
+
+	db = db.Table(tableName)
+
+	if condition.Where != nil {
+		for _, where := range condition.Where {
+			query, args := where.ForWhere()
+			db = db.Where(query, args)
+		}
+	}
+
+	tx := db.Count(&count)
+
+	_, err = c.check(tx)
+
+	return count, err
 
 }
 

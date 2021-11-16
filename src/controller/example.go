@@ -117,6 +117,25 @@ func QueryByCond(c *gin.Context) {
 	})
 }
 
+//QueryCountByCond 查询数量
+func QueryCountByCond(c *gin.Context) {
+	product := model.NewProduct()
+
+	cond := utils.NewQueryCondition()
+
+	cond.AddWhere(utils.NewEqWhere("total_count", 10))
+	cond.AddWhere(utils.NewEqWhere("price", 30))
+
+	count, err := dao.DBClient.QueryCount(product.TableName(), cond)
+
+	if err != nil {
+		utils.Fail(c, utils.ResponseWithCode(991111))
+		return
+	}
+
+	utils.Success(c, map[string]int64{"count": count})
+}
+
 //QueryByCache 查缓存
 func QueryByCache(c *gin.Context) {
 	name := c.Param("name")

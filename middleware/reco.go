@@ -49,12 +49,7 @@ func RecoveryWithZap(conf *MiddleConfig) gin.HandlerFunc {
 				}
 
 				if conf.Stack {
-					utils.Errorl("[Recovery from panic]",
-						zap.Time("time", time.Now()),
-						zap.Any("error", err),
-						zap.String("request", string(httpRequest)),
-						zap.String("stack", string(debug.Stack())),
-					)
+					utils.Errorf("| %v | %v%v", err, string(httpRequest), string(debug.Stack()))
 				} else {
 					utils.Errorl("[Recovery from panic]",
 						zap.Time("time", time.Now()),

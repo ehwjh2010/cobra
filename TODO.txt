@@ -13,12 +13,9 @@
 17. 定时器 https://github.com/robfig/cron,  https://segmentfault.com/a/1190000023029219,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
 18. 协程池 https://github.com/panjf2000/ants
 22. 错误包装
-23. 错误堆栈格式化
 24. gorm持续优化, 提供查询数量方法, Or查询, 连表查询, 查询指定字段
 
 
 优先级:
-1. 提供查询数量方法
-2. 错误堆栈格式化
 3. gin校验器
 4. 接入swagger

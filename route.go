@@ -15,6 +15,7 @@ func BindRoute(handler *gin.Engine) {
 		exampleGroup.GET("/config", controller.GetProjectConfig)
 		exampleGroup.GET("/db/:id", controller.QueryById)
 		exampleGroup.GET("/db/query", controller.QueryByCond)
+		exampleGroup.GET("/db/count", controller.QueryCountByCond)
 		exampleGroup.GET("/db/add", controller.AddRecord)
 		exampleGroup.GET("/db/update/:id", controller.UpdateRecord)
 		exampleGroup.GET("/cache/:name", controller.QueryByCache)

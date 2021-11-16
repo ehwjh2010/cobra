@@ -433,8 +433,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
 	}
-	//val := fmt.Sprintf("\"%s\"", nt.Time.In(GetBJLocation()).Format(time.RFC3339))
-	val := fmt.Sprintf("\"%s\"", nt.Time.Format(time.RFC3339))
+	val := fmt.Sprintf("\"%s\"", nt.Time.Format(DefaultTimePattern))
 	return []byte(val), nil
 }
 
