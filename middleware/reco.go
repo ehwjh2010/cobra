@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"ginLearn/utils"
+	"ginLearn/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net"
@@ -38,7 +38,7 @@ func RecoveryWithZap(conf *MiddleConfig) gin.HandlerFunc {
 
 				httpRequest, _ := httputil.DumpRequest(c.Request, false)
 				if brokenPipe {
-					utils.Errorl(c.Request.URL.Path,
+					log.Errorl(c.Request.URL.Path,
 						zap.Any("error", err),
 						zap.String("request", string(httpRequest)),
 					)
@@ -49,9 +49,9 @@ func RecoveryWithZap(conf *MiddleConfig) gin.HandlerFunc {
 				}
 
 				if conf.Stack {
-					utils.Errorf("| %v | %v%v", err, string(httpRequest), string(debug.Stack()))
+					log.Errorf("| %v | %v%v", err, string(httpRequest), string(debug.Stack()))
 				} else {
-					utils.Errorl("[Recovery from panic]",
+					log.Errorl("[Recovery from panic]",
 						zap.Time("time", time.Now()),
 						zap.Any("error", err),
 						zap.String("request", string(httpRequest)),

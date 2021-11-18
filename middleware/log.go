@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"ginLearn/utils"
+	"ginLearn/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"time"
@@ -36,10 +36,10 @@ func GinZap(conf *MiddleConfig) gin.HandlerFunc {
 			if len(c.Errors) > 0 {
 				// Append error field if this is an erroneous request.
 				for _, e := range c.Errors.Errors() {
-					utils.Error(e)
+					log.Error(e)
 				}
 			} else {
-				utils.Infol(path,
+				log.Infol(path,
 					zap.Int("status", c.Writer.Status()),
 					zap.String("method", c.Request.Method),
 					zap.String("path", path),

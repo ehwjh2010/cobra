@@ -2,7 +2,9 @@ package conf
 
 import (
 	"fmt"
-	"ginLearn/utils"
+	"ginLearn/util/fileutils"
+	"ginLearn/util/pathutils"
+	"ginLearn/util/strutils"
 	"gopkg.in/yaml.v2"
 	"log"
 	"os"
@@ -97,7 +99,7 @@ func LoadConfig() {
 		panic(err)
 	}
 
-	yamlFile, err := utils.ReadFile(configFilePath)
+	yamlFile, err := fileutils.ReadFile(configFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -120,9 +122,9 @@ func ensureConfigPath() (string, error) {
 	currentDir, _ := os.Getwd()
 
 	//优先读取本地配置, 利于本地开发以及线上配置
-	localConfigPath := utils.PathJoin(currentDir, "conf", "config_local.yaml")
+	localConfigPath := pathutils.PathJoin(currentDir, "conf", "config_local.yaml")
 
-	exist, err := utils.EnsurePathExist(localConfigPath)
+	exist, err := pathutils.EnsurePathExist(localConfigPath)
 
 	if err != nil {
 		return "", err
@@ -137,9 +139,9 @@ func ensureConfigPath() (string, error) {
 
 	configFileName := fmt.Sprintf("config_%s.yaml", strings.ToLower(env))
 
-	configFilePath := utils.PathJoin(currentDir, "conf", configFileName)
+	configFilePath := pathutils.PathJoin(currentDir, "conf", configFileName)
 
-	exist, err = utils.EnsurePathExist(configFilePath)
+	exist, err = pathutils.EnsurePathExist(configFilePath)
 
 	if err != nil {
 		return "", err
@@ -154,7 +156,7 @@ func ensureConfigPath() (string, error) {
 func getEnv() string {
 	env := os.Getenv("ENV")
 
-	if utils.IsEmptyStr(env) {
+	if strutils.IsEmptyStr(env) {
 		env = "dev"
 	}
 

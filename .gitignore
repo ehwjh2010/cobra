@@ -3,7 +3,6 @@
 config_local.yaml
 pkg/
 application.log
-logs/
 output/
 autoreload_run.sh
 bin/
