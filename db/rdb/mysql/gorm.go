@@ -1,6 +1,7 @@
-package util
+package mysql
 
 import (
+	"ginLearn/client"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -11,17 +12,11 @@ import (
 
 const DefaultCreateBatchSize = 1000
 
-type Mysql struct{}
-
-func NewMysql() *Mysql {
-	return &Mysql{}
-}
-
 func DefaultTimeFunc() time.Time {
 	return time.Now().In(time.UTC)
 }
 
-func (m *Mysql) initDB(dbConfig *DBConfig) (*gorm.DB, error) {
+func InitMysqlWithGorm(dbConfig *client.DBConfig) (*gorm.DB, error) {
 	dsn := dbConfig.Dsn()
 
 	var sqlLogger = logger.Silent
@@ -67,36 +62,14 @@ func (m *Mysql) initDB(dbConfig *DBConfig) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	// SetMaxIdleConns 设置空闲连接池中连接的最大数量
+	// SetMaxIdleConns 设置连接池中空闲连接最大数
 	sqlDB.SetMaxIdleConns(dbConfig.MaxFreeConnCount)
 
-	// SetMaxOpenConns 设置打开数据库连接的最大数量。
+	// SetMaxOpenConns 设置打开数据库最大连接数
 	sqlDB.SetMaxOpenConns(dbConfig.MaxOpenConnCount)
 
-	// SetConnMaxIdleTime 设置了连接可复用的最大时间。
+	// SetConnMaxIdleTime 设置闲置连接最长存活时间
 	sqlDB.SetConnMaxIdleTime(dbConfig.FreeMaxLifetime * time.Minute)
 
 	return db, nil
-}
-
-func (m *Mysql) close(db *gorm.DB) error {
-	if db == nil {
-		return nil
-	}
-
-	s, err := db.DB()
-	if err != nil {
-		log.Printf("Close conn; get db failed!, err: %v", err)
-		return err
-	}
-
-	err = s.Close()
-
-	if err != nil {
-		log.Println("Close mysql failed!")
-	} else {
-		log.Println("Close mysql success!")
-	}
-
-	return err
 }

@@ -1,6 +1,8 @@
 package jsonutils
 
-import jsoniter "github.com/jsonutils-iterator/go"
+import (
+	"github.com/json-iterator/go"
+)
 
 //Marshal 对应json.Marshal
 func Marshal(v interface{}) ([]byte, error) {

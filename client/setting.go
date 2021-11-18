@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -46,13 +47,20 @@ type DBConfig struct {
 	TimeFunc         func() time.Time //设置当前时间函数
 }
 
+//Dsn 连接URL
+func (c *DBConfig) Dsn() string {
+	uri := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,
+		c.User, c.Password, c.Host, c.Port, c.Database, c.Location)
+	return uri
+}
+
 //CacheConfig 缓存配置
 type CacheConfig struct {
 	Host             string        `yaml:"host" json:"host"`                         //Redis IP
 	Port             int           `yaml:"port" json:"port"`                         //Redis 端口
 	Pwd              string        `yaml:"pwd" json:"pwd"`                           //密码
-	MaxFreeConnCount int           `json:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数量
-	MaxOpenConnCount int           `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数量
+	MaxFreeConnCount int           `json:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数
+	MaxOpenConnCount int           `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数
 	FreeMaxLifetime  time.Duration `json:"freeMaxLifetime" yaml:"freeMaxLifetime"`   //闲置连接存活的最大时间, 单位: 分钟
 	Database         int           `yaml:"database" json:"database"`                 //数据库
 	ConnectTimeout   time.Duration `yaml:"connectTimeout" json:"connectTimeout"`     //连接Redis超时时间, 单位: 秒

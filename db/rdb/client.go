@@ -1,88 +1,63 @@
-package util
+package rdb
 
 import (
 	"errors"
 	"fmt"
-	"ginLearn/enum"
 	"ginLearn/log"
 	"ginLearn/util/strutils"
 	"gorm.io/gorm"
 	"strings"
-	"time"
 )
 
-type DBClient struct {
-	dbImpl DBInterface
-	db     *gorm.DB
-}
+const (
+	//ASC 正序
+	ASC = "asc"
+	//DESC 倒序
+	DESC = "desc"
+)
 
-type DBClientOption func(client *DBClient)
+const (
+	Eq    = "="
+	Nq    = "!="
+	Gte   = ">="
+	Gt    = ">"
+	Lte   = "<="
+	Lt    = "<"
+	In    = "in"
+	NotIn = "not in"
+	Like  = "like"
+)
 
-func NewDBClient(args ...DBClientOption) (client *DBClient) {
-	client = &DBClient{}
-	for _, arg := range args {
-		arg(client)
+const (
+	Mysql = iota
+	Postgresql
+	Sqlite
+)
+
+type (
+	DBClient struct {
+		db *gorm.DB
+		//DbType 数据库类型
+		DbType int
 	}
+
+	Where struct {
+		//Column 字段名
+		Column string
+		//Value 值
+		Value interface{}
+		//Sign 符号
+		Sign string
+	}
+)
+
+func NewDBClient(db *gorm.DB, dbType int) (client *DBClient) {
+	client = &DBClient{
+		db:     db,
+		DbType: dbType,
+	}
+
 	return client
-}
-
-func DBClientWithDB(db *gorm.DB) DBClientOption {
-	return func(client *DBClient) {
-		client.db = db
-	}
-}
-
-func DBClientWithDBImpl(dbImpl DBInterface) DBClientOption {
-	return func(client *DBClient) {
-		client.dbImpl = dbImpl
-	}
-}
-
-//DBConfig 数据库配置
-type DBConfig struct {
-	Host             string           `yaml:"host" json:"host"`                         //DB IP
-	Port             int              `yaml:"port" json:"port"`                         //DB 端口
-	User             string           `yaml:"user" json:"user"`                         //用户名
-	Password         string           `yaml:"password" json:"password"`                 //密码
-	DBType           string           `yaml:"dbType" json:"dbType"`                     //数据库类型
-	Database         string           `yaml:"database" json:"database"`                 //数据库名
-	Location         string           `yaml:"location" json:"location"`                 //时区
-	TablePrefix      string           `yaml:"tablePrefix" json:"tablePrefix"`           //表前缀
-	SingularTable    bool             `yaml:"singularTable" json:"singularTable"`       //表复数禁用
-	CreateBatchSize  int              `yaml:"createBatchSize" json:"createBatchSize"`   //批量创建数量
-	EnableRawSQL     bool             `yaml:"enableRawSql" json:"enableRawSql"`         //打印原生SQL
-	MaxFreeConnCount int              `yaml:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数量
-	MaxOpenConnCount int              `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数量
-	FreeMaxLifetime  time.Duration    `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`   //闲置连接最大存活时间, 单位: 分钟
-	TimeFunc         func() time.Time //设置当前时间函数
-}
-
-//Dsn 连接URL
-func (c *DBConfig) Dsn() string {
-	uri := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,
-		c.User, c.Password, c.Host, c.Port, c.Database, c.Location)
-	return uri
-}
-
-type DBConfigOption func(*DBConfig)
-
-func NewDBConfig(args ...DBConfigOption) (dbConfig *DBConfig) {
-	dbConfig = &DBConfig{}
-
-	for _, arg := range args {
-		arg(dbConfig)
-	}
-
-	return dbConfig
-}
-
-type Where struct {
-	//Column 字段名
-	Column string
-	//Value 值
-	Value interface{}
-	//符号
-	Sign string
 }
 
 func NewWhere(column string, value interface{}, sign string) *Where {
@@ -90,39 +65,50 @@ func NewWhere(column string, value interface{}, sign string) *Where {
 }
 
 func NewEqWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.Eq}
+	return &Where{Column: column, Value: value, Sign: Eq}
 }
 
 func NewNotEqWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.NotEq}
+	return &Where{Column: column, Value: value, Sign: Nq}
 }
 
 func NewGtWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.Gt}
+	return &Where{Column: column, Value: value, Sign: Gt}
 }
 
 func NewGteWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.Gte}
+	return &Where{Column: column, Value: value, Sign: Gte}
 }
 
 func NewLteWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.Lte}
+	return &Where{Column: column, Value: value, Sign: Lte}
 }
 
 func NewLtWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.Lt}
+	return &Where{Column: column, Value: value, Sign: Lt}
 }
 
 func NewInWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.In}
+	return &Where{Column: column, Value: value, Sign: In}
 }
 
 func NewNotInWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.NotIn}
+	return &Where{Column: column, Value: value, Sign: NotIn}
 }
 
+//NewLikeWhere TODO 模糊查询 格式化值
 func NewLikeWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: enum.Like}
+	return &Where{Column: column, Value: value, Sign: Like}
+}
+
+//NewLeftLikeWhere TODO 模糊查询 格式化值
+func NewLeftLikeWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: Like}
+}
+
+//NewRightLikeWhere TODO 模糊查询 格式化值
+func NewRightLikeWhere(column string, value interface{}) *Where {
+	return &Where{Column: column, Value: value, Sign: Like}
 }
 
 //ForWhere 获取SQL
@@ -139,21 +125,14 @@ type Order struct {
 	Sort string
 }
 
-func NewOrder(column string, args ...OrderOpt) (order *Order) {
-	order = &Order{Column: column, Sort: enum.ASC}
-	for _, arg := range args {
-		arg(order)
-	}
-
+func NewOrder(column string) (order *Order) {
+	order = &Order{Column: column, Sort: ASC}
 	return order
 }
 
-type OrderOpt func(order *Order)
-
-func OrderWithSort(sort string) OrderOpt {
-	return func(order *Order) {
-		order.Sort = sort
-	}
+func NewDescOrder(column string) (order *Order) {
+	order = &Order{Column: column, Sort: DESC}
+	return order
 }
 
 //Description 获取排序SQL
@@ -300,51 +279,6 @@ func (qc *QueryCondition) Limit() (limit int) {
 	return qc.PageSize
 }
 
-//DBInterface 不同的数据库需要实现的接口
-type DBInterface interface {
-	initDB(config *DBConfig) (*gorm.DB, error)
-
-	close(db *gorm.DB) error
-}
-
-//ParseDBType 解析使用数据库类型
-func ParseDBType(dbType string) DBInterface {
-	switch strings.ToLower(dbType) {
-	case "mysql":
-		return NewMysql()
-	case "postgresql":
-		panic("Unsupported postgresql")
-	case "sqlite":
-		panic("Unsupported sqlite")
-	default:
-		panic("Unsupported db type")
-	}
-}
-
-//InitDB 初始化DB
-func InitDB(dbConfig *DBConfig) (client *DBClient, err error) {
-	dbImpl := ParseDBType(dbConfig.DBType)
-
-	gormDB, err := dbImpl.initDB(dbConfig)
-
-	if err != nil {
-		return nil, err
-	}
-
-	client = NewDBClient(DBClientWithDB(gormDB), DBClientWithDBImpl(dbImpl))
-
-	return client, nil
-}
-
-//Close 关闭数据库连接
-func (c *DBClient) Close() error {
-	if c.dbImpl == nil {
-		return nil
-	}
-
-	return c.dbImpl.close(c.db)
-}
-
 //occurErr 判断是否发生报错
 func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 
@@ -437,18 +371,15 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 		db = db.Count(&totalCount)
 	}
 
-	orderStr := condition.OrderStr()
-	if strutils.IsNotEmptyStr(orderStr) {
+	if orderStr := condition.OrderStr(); strutils.IsNotEmptyStr(orderStr) {
 		db = db.Order(orderStr)
 	}
 
-	limit := condition.Limit()
-	if limit >= 0 {
+	if limit := condition.Limit(); limit >= 0 {
 		db = db.Limit(limit)
 	}
 
-	offset := condition.Offset()
-	if offset >= 0 {
+	if offset := condition.Offset(); offset >= 0 {
 		db = db.Offset(offset)
 	}
 
@@ -468,8 +399,8 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition) (coun
 
 	if condition.Where != nil {
 		for _, where := range condition.Where {
-			query, args := where.ForWhere()
-			db = db.Where(query, args)
+			query, arg := where.ForWhere()
+			db = db.Where(query, arg)
 		}
 	}
 
@@ -590,4 +521,27 @@ func (c *DBClient) Save(ptr interface{}) error {
 func (c *DBClient) DB() *gorm.DB {
 	db := c.db
 	return db
+}
+
+//Close 关闭连接池
+func (c *DBClient) Close() error {
+	if c.db == nil {
+		return nil
+	}
+
+	s, err := c.db.DB()
+	if err != nil {
+		log.Errorf("Close conn; get db failed!, err: %v", err)
+		return err
+	}
+
+	err = s.Close()
+
+	if err != nil {
+		log.Errorl("Close mysql failed!")
+	} else {
+		log.Infol("Close mysql success!")
+	}
+
+	return err
 }

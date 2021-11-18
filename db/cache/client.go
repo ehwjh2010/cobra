@@ -1,49 +1,28 @@
-package util
+package cache
 
 import (
 	"encoding/json"
 	"errors"
-	myRedis "ginLearn/db/redis"
 	"ginLearn/log"
 	"ginLearn/types"
 	"ginLearn/util/jsonutils"
 	"github.com/gomodule/redigo/redis"
-	"time"
 )
 
 const DefaultTimeOut = 60 * 5 //5分钟
-
-//CacheConfig 缓存配置
-type CacheConfig struct {
-	Host             string        `yaml:"host" json:"host"`                         //Redis IP
-	Port             int           `yaml:"port" json:"port"`                         //Redis 端口
-	Pwd              string        `yaml:"pwd" json:"pwd"`                           //密码
-	MaxFreeConnCount int           `json:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数量
-	MaxOpenConnCount int           `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数量
-	FreeMaxLifetime  time.Duration `json:"freeMaxLifetime" yaml:"freeMaxLifetime"`   //闲置连接存活的最大时间, 单位: 分钟
-	Database         int           `yaml:"database" json:"database"`                 //数据库
-	ConnectTimeout   time.Duration `yaml:"connectTimeout" json:"connectTimeout"`     //连接Redis超时时间, 单位: 秒
-	ReadTimeout      time.Duration `yaml:"readTimeout" json:"readTimeout"`           //读取超时时间, 单位: 秒
-	WriteTimeout     time.Duration `yaml:"writeTimeout" json:"writeTimeout"`         //写超时时间, 单位: 秒
-	DefaultTimeOut   int           `yaml:"defaultTimeOut" json:"defaultTimeOut"`     //默认缓存时间, 单位: 秒
-}
-
-func NewCacheConfig() *CacheConfig {
-	return &CacheConfig{}
-}
-
-type RedisConfigOption func(*CacheConfig)
 
 type RedisClient struct {
 	//pool redis连接池
 	pool *redis.Pool
 
-	//defaultTimeOut 默认超时时间
+	//defaultTimeOut 默认过期时间
 	defaultTimeOut int
 }
 
 func NewRedisClient(args ...RedisClientOption) (client *RedisClient) {
-	client = &RedisClient{}
+	client = &RedisClient{
+		defaultTimeOut: DefaultTimeOut,
+	}
 	for _, arg := range args {
 		arg(client)
 	}
@@ -67,22 +46,6 @@ func RedisClientWithDefaultTimeOut(defaultTimeOut int) RedisClientOption {
 
 		client.defaultTimeOut = timeout
 	}
-}
-
-//InitCache 初始化缓存
-func InitCache(config *CacheConfig) (client *RedisClient, err error) {
-	pool, err := myRedis.InitCacheWithRedisGo(config)
-	if err != nil {
-		return nil, err
-	}
-
-	client = NewRedisClient(RedisClientWithPool(pool), RedisClientWithDefaultTimeOut(config.DefaultTimeOut))
-	return client, err
-}
-
-//Close 关闭连接池
-func (c *RedisClient) Close() error {
-	return myRedis.CloseCacheWithRedisGo(c.pool)
 }
 
 //Set 如果ex小于0, 则使用默认超时时间, ex 单位: 秒

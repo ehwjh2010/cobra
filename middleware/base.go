@@ -1,13 +1,13 @@
 package middleware
 
 import (
+	"ginLearn/enum"
 	"github.com/gin-gonic/gin"
 )
 
 const (
-	TimeFormat = "2006-01-02T15:04:05.000Z0700"
-	UTC        = false
-	Stack      = true
+	UTC   = false
+	Stack = true
 )
 
 //MiddleConfig 中间件配置
@@ -27,7 +27,7 @@ type MiddleConfig struct {
 
 func NewMiddleConfig(args ...MiddleConfigOption) (config *MiddleConfig) {
 	config = &MiddleConfig{
-		TimeFormat: TimeFormat,
+		TimeFormat: enum.DefaultTimePattern,
 		UTC:        UTC,
 		SkipPaths:  nil,
 		Stack:      Stack,
