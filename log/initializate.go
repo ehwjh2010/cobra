@@ -1,9 +1,9 @@
 package log
 
 import (
-	"ginLearn/util/fileutils"
-	"ginLearn/util/pathutils"
-	"ginLearn/util/strutils"
+	"cobra/util/fileutils"
+	"cobra/util/pathutils"
+	"cobra/util/strutils"
 	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"

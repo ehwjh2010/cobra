@@ -1,13 +1,13 @@
 package controller
 
 //import (
-//	"ginLearn/conf"
-//	"ginLearn/enum"
-//	dao2 "ginLearn/example/src/dao"
-//	model2 "ginLearn/example/src/dao/model"
-//	"ginLearn/log"
-//	"ginLearn/types"
-//	"ginLearn/util"
+//	"cobra/conf"
+//	"cobra/enum"
+//	dao2 "cobra/example/src/dao"
+//	model2 "cobra/example/src/dao/model"
+//	"cobra/log"
+//	"cobra/types"
+//	"cobra/util"
 //	"github.com/gin-gonic/gin"
 //	"strconv"
 //)

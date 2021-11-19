@@ -1,7 +1,7 @@
 package model
 
 import (
-	"ginLearn/types"
+	"cobra/types"
 )
 
 type Product struct {

@@ -2,10 +2,10 @@ package conf
 
 import (
 	"fmt"
-	"ginLearn/client"
-	"ginLearn/util/fileutils"
-	"ginLearn/util/pathutils"
-	"ginLearn/util/strutils"
+	"cobra/client"
+	"cobra/util/fileutils"
+	"cobra/util/pathutils"
+	"cobra/util/strutils"
 	"gopkg.in/yaml.v2"
 	"log"
 	"os"

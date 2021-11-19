@@ -1,7 +1,7 @@
 package model
 
 import (
-	"ginLearn/types"
+	"cobra/types"
 )
 
 //BaseModel 表通用字段

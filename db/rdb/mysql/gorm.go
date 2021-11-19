@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"ginLearn/client"
+	"cobra/client"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

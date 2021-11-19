@@ -1,10 +1,10 @@
 package dao
 
 import (
-	"ginLearn/client"
-	"ginLearn/db/cache"
-	"ginLearn/db/rdb"
-	"ginLearn/db/rdb/mysql"
+	"cobra/client"
+	"cobra/db/cache"
+	"cobra/db/rdb"
+	"cobra/db/rdb/mysql"
 	"log"
 )
 

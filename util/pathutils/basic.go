@@ -3,7 +3,7 @@ package pathutils
 import (
 	"errors"
 	"fmt"
-	"ginLearn/util/strutils"
+	"cobra/util/strutils"
 	"os"
 	"path/filepath"
 )

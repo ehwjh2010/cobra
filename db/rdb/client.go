@@ -3,8 +3,8 @@ package rdb
 import (
 	"errors"
 	"fmt"
-	"ginLearn/log"
-	"ginLearn/util/strutils"
+	"cobra/log"
+	"cobra/util/strutils"
 	"gorm.io/gorm"
 	"strings"
 )

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"ginLearn/log"
+	"cobra/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net"

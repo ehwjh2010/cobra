@@ -1,8 +1,8 @@
 package mysql
 
 import (
-	"ginLearn/client"
-	"ginLearn/db/rdb"
+	"cobra/client"
+	"cobra/db/rdb"
 )
 
 //InitMysql 初始化Mysql

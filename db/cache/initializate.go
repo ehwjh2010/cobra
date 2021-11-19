@@ -1,6 +1,6 @@
 package cache
 
-import "ginLearn/client"
+import "cobra/client"
 
 //InitCache 初始化缓存
 func InitCache(config *client.CacheConfig) (client *RedisClient, err error) {

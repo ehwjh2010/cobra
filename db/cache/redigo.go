@@ -2,7 +2,7 @@ package cache
 
 import (
 	"fmt"
-	"ginLearn/client"
+	"cobra/client"
 	"github.com/gomodule/redigo/redis"
 	"log"
 	"time"

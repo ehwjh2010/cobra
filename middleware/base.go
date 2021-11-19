@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"ginLearn/enum"
+	"cobra/enum"
 	"github.com/gin-gonic/gin"
 )
 

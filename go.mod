@@ -1,4 +1,4 @@
-module ginLearn
+module cobra
 
 go 1.17
 
@@ -9,7 +9,6 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	go.uber.org/zap v1.19.1
-	gopkg.in/guregu/null.v4 v4.0.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.1.3
 	gorm.io/gorm v1.22.2
