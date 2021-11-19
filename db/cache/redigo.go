@@ -2,7 +2,7 @@ package cache
 
 import (
 	"fmt"
-	"cobra/client"
+	"github.com/ehwjh2010/cobra/client"
 	"github.com/gomodule/redigo/redis"
 	"log"
 	"time"

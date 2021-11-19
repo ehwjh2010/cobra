@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"cobra/log"
+	"github.com/ehwjh2010/cobra/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"time"
