@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"fmt"
 	"github.com/ehwjh2010/cobra/client"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -12,12 +13,9 @@ import (
 
 const DefaultCreateBatchSize = 1000
 
-func DefaultTimeFunc() time.Time {
-	return time.Now().In(time.UTC)
-}
-
-func InitMysqlWithGorm(dbConfig *client.DBConfig) (*gorm.DB, error) {
-	dsn := dbConfig.Dsn()
+func InitMysqlWithGorm(dbConfig *client.DB) (*gorm.DB, error) {
+	dsn := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,
+		dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database, dbConfig.Location)
 
 	var sqlLogger = logger.Silent
 	if dbConfig.EnableRawSQL {
@@ -29,13 +27,7 @@ func InitMysqlWithGorm(dbConfig *client.DBConfig) (*gorm.DB, error) {
 		createBatchSize = dbConfig.CreateBatchSize
 	}
 
-	timeFunc := dbConfig.TimeFunc
-	if timeFunc == nil {
-		timeFunc = DefaultTimeFunc
-	}
-
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		NowFunc: timeFunc,
 		//打印SQL
 		Logger: logger.Default.LogMode(sqlLogger),
 		NamingStrategy: schema.NamingStrategy{

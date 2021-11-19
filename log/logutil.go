@@ -89,7 +89,7 @@ func Panic(args ...interface{}) {
 	sugaredLogger.Panic(args...)
 }
 
-//PanicF 格式化打印Panic级别日志
-func PanicF(format string, args ...interface{}) {
+//Panicf 格式化打印Panic级别日志
+func Panicf(format string, args ...interface{}) {
 	sugaredLogger.Panicf(format, args...)
 }

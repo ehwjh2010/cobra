@@ -3,8 +3,8 @@ package rdb
 import (
 	"errors"
 	"fmt"
-	"github.com/ehwjh2010/cobralog"
-	"github.com/ehwjh2010/cobrautil/strutils"
+	"github.com/ehwjh2010/cobra/log"
+	"github.com/ehwjh2010/cobra/util/strutils"
 	"gorm.io/gorm"
 	"strings"
 )

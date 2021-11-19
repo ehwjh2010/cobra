@@ -8,14 +8,17 @@ import (
 	"time"
 )
 
-//GinZap 使用ZAP接管GIN相关日志
+//CobraZap 使用ZAP接管GIN相关日志
 //timeFormat 时间格式
 //utc 是否使用UTC时间
 //skipPath 不记录日志的url
-func GinZap(conf *MiddleConfig) gin.HandlerFunc {
+func CobraZap(skipPath []string, utc bool, timeFormat string) gin.HandlerFunc {
 	fmt.Println("Use ginzap middleware")
-	skipPaths := make(map[string]bool, len(conf.SkipPaths))
-	for _, path := range conf.SkipPaths {
+	if skipPath == nil {
+		skipPath = []string{}
+	}
+	skipPaths := make(map[string]bool, len(skipPath))
+	for _, path := range skipPath {
 		skipPaths[path] = true
 	}
 
@@ -29,7 +32,7 @@ func GinZap(conf *MiddleConfig) gin.HandlerFunc {
 		if _, ok := skipPaths[path]; !ok {
 			end := time.Now()
 			latency := end.Sub(start)
-			if conf.UTC {
+			if utc {
 				end = end.UTC()
 			}
 
@@ -46,7 +49,7 @@ func GinZap(conf *MiddleConfig) gin.HandlerFunc {
 					zap.String("query", query),
 					zap.String("ip", c.ClientIP()),
 					zap.String("user-agent", c.Request.UserAgent()),
-					zap.String("time", end.Format(conf.TimeFormat)),
+					zap.String("time", end.Format(timeFormat)),
 					zap.Duration("latency", latency),
 				)
 			}

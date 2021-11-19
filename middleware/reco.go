@@ -11,7 +11,6 @@ import (
 	"os"
 	"runtime/debug"
 	"strings"
-	"time"
 )
 
 // RecoveryWithZap returns a gin.HandlerFunc (middleware)
@@ -19,7 +18,7 @@ import (
 // All errors are logged using zap.Error().
 // stack means whether output the stack info.
 // The stack info is easy to find where the error occurs but the stack info is too large.
-func RecoveryWithZap(conf *MiddleConfig) gin.HandlerFunc {
+func RecoveryWithZap() gin.HandlerFunc {
 	fmt.Println("Use recoveryWithZap middleware")
 	return func(c *gin.Context) {
 		defer func() {
@@ -47,16 +46,7 @@ func RecoveryWithZap(conf *MiddleConfig) gin.HandlerFunc {
 					c.Abort()
 					return
 				}
-
-				if conf.Stack {
-					log.Errorf("| %v | %v%v", err, string(httpRequest), string(debug.Stack()))
-				} else {
-					log.Errorl("[Recovery from panic]",
-						zap.Time("time", time.Now()),
-						zap.Any("error", err),
-						zap.String("request", string(httpRequest)),
-					)
-				}
+				log.Errorf("| %v | %v%v", err, string(httpRequest), string(debug.Stack()))
 				c.AbortWithStatus(http.StatusInternalServerError)
 			}
 		}()

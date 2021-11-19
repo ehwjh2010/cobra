@@ -5,7 +5,7 @@ import (
 )
 
 //InitCache 初始化缓存
-func InitCache(config *client.CacheConfig) (client *RedisClient, err error) {
+func InitCache(config *client.Cache) (client *RedisClient, err error) {
 	pool, err := InitCacheWithRedisGo(config)
 	if err != nil {
 		return nil, err

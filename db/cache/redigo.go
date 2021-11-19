@@ -11,7 +11,7 @@ import (
 const network = "tcp"
 
 //InitCacheWithRedisGo 使用RedisGo初始化
-func InitCacheWithRedisGo(redisConfig *client.CacheConfig) (*redis.Pool, error) {
+func InitCacheWithRedisGo(redisConfig *client.Cache) (*redis.Pool, error) {
 
 	if redisConfig == nil {
 		return nil, nil

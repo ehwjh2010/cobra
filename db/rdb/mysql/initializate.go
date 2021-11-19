@@ -6,7 +6,7 @@ import (
 )
 
 //InitMysql 初始化Mysql
-func InitMysql(dbConfig *client.DBConfig) (client *rdb.DBClient, err error) {
+func InitMysql(dbConfig *client.DB) (client *rdb.DBClient, err error) {
 
 	db, err := InitMysqlWithGorm(dbConfig)
 

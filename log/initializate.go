@@ -1,6 +1,7 @@
 package log
 
 import (
+	"github.com/ehwjh2010/cobra/client"
 	"github.com/ehwjh2010/cobra/util/fileutils"
 	"github.com/ehwjh2010/cobra/util/pathutils"
 	"github.com/ehwjh2010/cobra/util/strutils"
@@ -15,59 +16,23 @@ import (
 
 const filename = "application.log"
 
-var sugaredLogger *zap.SugaredLogger
-var zLogger *zap.Logger
-
-//LogConfig 日志配置
-type LogConfig struct {
-	//Level 日志级别
-	Level string `json:"level" yaml:"level"`
-
-	//EnableConsole 日志是否输出到终端
-	EnableConsole bool `yaml:"enableConsole" json:"enableConsole"`
-
-	//Rotated 日志是否被分割
-	Rotated bool `json:"rotated" yaml:"rotated"`
-
-	//FileDir 日志文件所在目录
-	FileDir string `json:"fileDir" yaml:"fileDir"`
-
-	//MaxSize 每个日志文件长度的最大大小，默认100M
-	MaxSize int `json:"maxSize" yaml:"maxSize"`
-
-	//MaxAge 日志保留的最大天数(只保留最近多少天的日志)
-	MaxAge int `json:"maxAge" yaml:"maxAge"`
-
-	//MaxBackups 只保留最近多少个日志文件，用于控制程序总日志的大小
-	MaxBackups int `json:"maxBackups" yaml:"maxBackups"`
-
-	//LocalTime 是否使用本地时间，默认使用UTC时间
-	LocalTime bool `json:"localtime" yaml:"localtime"`
-
-	//Compress 是否压缩日志文件，压缩方法gzip
-	Compress bool `json:"compress" yaml:"compress"`
-}
-
-func NewLogConfig() *LogConfig {
-	return &LogConfig{}
-}
-
-func (conf *LogConfig) RealLogDir(application string) string {
-	return pathutils.PathJoin(conf.FileDir, application)
-}
-
-func (conf *LogConfig) FileName(application string) string {
-	return pathutils.PathJoin(conf.FileDir, application, filename)
-}
+var sugaredLogger = zap.S()
+var zLogger = zap.L()
 
 // InitLog 初始化Logger
-func InitLog(config *LogConfig, application string) (err error) {
+func InitLog(config *client.Log, application string) (err error) {
+	if config == nil {
+		return
+	}
+
 	var writeSyncer zapcore.WriteSyncer
 
 	writeSyncer = getWriters(config, application)
 
 	if strutils.IsNotEmptyStr(config.FileDir) {
-		if err = pathutils.MakeDirs(config.RealLogDir(application)); err != nil {
+		// TODO 确认日志目录逻辑
+		realLogDir := pathutils.PathJoin(config.FileDir, application)
+		if err = pathutils.MakeDirs(realLogDir); err != nil {
 			return
 		}
 	}
@@ -97,7 +62,7 @@ func getEncoder() zapcore.Encoder {
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
-func getWriters(conf *LogConfig, application string) zapcore.WriteSyncer {
+func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
 	var writers []io.Writer
 
 	if conf.EnableConsole {
@@ -105,9 +70,11 @@ func getWriters(conf *LogConfig, application string) zapcore.WriteSyncer {
 	}
 
 	if strutils.IsNotEmptyStr(conf.FileDir) {
+		// TODO 确认日志文件逻辑
+		filePath := pathutils.PathJoin(conf.FileDir, application, filename)
 		if conf.Rotated {
 			writer := getRotedLogWriter(
-				conf.FileName(application),
+				filePath,
 				conf.MaxSize,
 				conf.MaxBackups,
 				conf.MaxAge,
@@ -115,7 +82,7 @@ func getWriters(conf *LogConfig, application string) zapcore.WriteSyncer {
 				conf.Compress)
 			writers = append(writers, writer)
 		} else {
-			writer := getLogWriter(conf.FileName(application))
+			writer := getLogWriter(filePath)
 			writers = append(writers, writer)
 		}
 	}
