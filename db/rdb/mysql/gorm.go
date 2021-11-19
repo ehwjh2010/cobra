@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"cobra/client"
+	"github.com/ehwjh2010/cobra/client"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

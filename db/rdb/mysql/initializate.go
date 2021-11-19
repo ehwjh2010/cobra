@@ -1,8 +1,8 @@
 package mysql
 
 import (
-	"cobra/client"
-	"cobra/db/rdb"
+	"github.com/ehwjh2010/cobra/client"
+	"github.com/ehwjh2010/cobra/db/rdb"
 )
 
 //InitMysql 初始化Mysql

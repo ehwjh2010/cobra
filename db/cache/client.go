@@ -3,9 +3,9 @@ package cache
 import (
 	"encoding/json"
 	"errors"
-	"cobra/log"
-	"cobra/types"
-	"cobra/util/jsonutils"
+	"github.com/ehwjh2010/cobralog"
+	"github.com/ehwjh2010/cobratypes"
+	"github.com/ehwjh2010/cobrautil/jsonutils"
 	"github.com/gomodule/redigo/redis"
 )
 

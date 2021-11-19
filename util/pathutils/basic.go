@@ -3,7 +3,7 @@ package pathutils
 import (
 	"errors"
 	"fmt"
-	"cobra/util/strutils"
+	"github.com/ehwjh2010/cobra/util/strutils"
 	"os"
 	"path/filepath"
 )

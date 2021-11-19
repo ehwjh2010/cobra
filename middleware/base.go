@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"cobra/enum"
+	"github.com/ehwjh2010/cobra/enum"
 	"github.com/gin-gonic/gin"
 )
 

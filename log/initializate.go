@@ -1,9 +1,9 @@
 package log
 
 import (
-	"cobra/util/fileutils"
-	"cobra/util/pathutils"
-	"cobra/util/strutils"
+	"github.com/ehwjh2010/cobra/util/fileutils"
+	"github.com/ehwjh2010/cobra/util/pathutils"
+	"github.com/ehwjh2010/cobra/util/strutils"
 	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"

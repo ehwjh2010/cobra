@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"cobra/enum"
-	"cobra/util/intutils"
-	"cobra/util/jsonutils"
+	"github.com/ehwjh2010/cobra/enum"
+	"github.com/ehwjh2010/cobra/util/intutils"
+	"github.com/ehwjh2010/cobra/util/jsonutils"
 	"time"
 )
 
