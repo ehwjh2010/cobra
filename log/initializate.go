@@ -24,16 +24,16 @@ func InitLog(config *client.Log, application string) (err error) {
 		return
 	}
 
-	var writeSyncer zapcore.WriteSyncer
-
-	writeSyncer = getWriters(config, application)
-
 	if strutils.IsNotEmptyStr(config.FileDir) {
 		realLogDir := pathutils.PathJoin(config.FileDir, application)
 		if err = pathutils.MakeDirs(realLogDir); err != nil {
 			return
 		}
 	}
+
+	var writeSyncer zapcore.WriteSyncer
+
+	writeSyncer = getWriters(config, application)
 
 	encoder := getEncoder()
 	var l = new(zapcore.Level)
