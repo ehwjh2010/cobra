@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func invokeFunc(functions []func() error) *types.MultiErr {
+func invokeFunc(functions []func() error) error {
 	if functions == nil {
 		return nil
 	}
@@ -24,6 +24,10 @@ func invokeFunc(functions []func() error) *types.MultiErr {
 		if err := function(); err != nil {
 			multiErr.AddErr(err)
 		}
+	}
+
+	if multiErr.IsEmpty() {
+		return nil
 	}
 
 	return &multiErr
@@ -44,7 +48,7 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []fun
 	}
 
 	//Invoke OnStartUp
-	if multiErr := invokeFunc(onStartUp); multiErr.IsNotEmpty() {
+	if multiErr := invokeFunc(onStartUp); multiErr != nil {
 		log.Fatalf("Invoke start function failed!, %v", multiErr.Error())
 	}
 
@@ -54,7 +58,7 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []fun
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			multiErr := invokeFunc(onShutDown)
 
-			if multiErr.IsNotEmpty() {
+			if multiErr != nil {
 				log.Fatalf("Listen: %s, resource: %s", err, multiErr.Error())
 			} else {
 				log.Fatalf("Listen: %s", err)
@@ -75,15 +79,15 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []fun
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		multiErr := invokeFunc(onShutDown)
-		if multiErr.IsNotEmpty() {
-			log.Fatalf("Server forced to shutdown: err: %v, resource: %s\n", err, multiErr.Error())
+		if multiErr != nil {
+			log.Fatalf("Server forced to shutdown: err: %v, resource: %s", err, multiErr.Error())
 		} else {
 			log.Fatal("Server forced to shutdown: ", err)
 		}
 	}
 
 	multiErr := invokeFunc(onShutDown)
-	if multiErr.IsNotEmpty() {
+	if multiErr != nil {
 		log.Errorf("Server exiting, resource: %s", multiErr.Error())
 	} else {
 		log.Debug("Server exiting")
