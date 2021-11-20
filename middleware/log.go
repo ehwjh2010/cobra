@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -13,7 +12,7 @@ import (
 //utc 是否使用UTC时间
 //skipPath 不记录日志的url
 func CobraZap(skipPath []string, utc bool, timeFormat string) gin.HandlerFunc {
-	fmt.Println("Use ginzap middleware")
+	log.Debug("Use ginzap middleware")
 	if skipPath == nil {
 		skipPath = []string{}
 	}
