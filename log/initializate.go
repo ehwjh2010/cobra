@@ -92,6 +92,7 @@ func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
 	w := io.MultiWriter(writers...)
 
 	gin.DefaultWriter = w
+	gin.DisableConsoleColor()
 
 	return zapcore.AddSync(w)
 }
