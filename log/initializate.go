@@ -43,7 +43,7 @@ func InitLog(config *client.Log, application string) (err error) {
 	}
 	core := zapcore.NewCore(encoder, writeSyncer, l)
 
-	lg := zap.New(core, zap.AddCaller())
+	lg := zap.New(core, zap.AddCallerSkip(1))
 	zap.ReplaceGlobals(lg) // 替换zap包中全局的logger实例，后续在其他包中只需使用zap.S()调用即可
 	sugaredLogger = zap.S()
 	zLogger = zap.L()
