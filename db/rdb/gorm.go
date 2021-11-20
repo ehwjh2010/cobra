@@ -1,21 +1,20 @@
-package mysql
+package rdb
 
 import (
 	"fmt"
 	"github.com/ehwjh2010/cobra/client"
+	"github.com/ehwjh2010/cobra/log"
 	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-	"log"
 	"time"
 )
 
 const DefaultCreateBatchSize = 1000
 
-func InitMysqlWithGorm(dbConfig *client.DB) (*gorm.DB, error) {
-	dsn := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,
-		dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database, dbConfig.Location)
+func InitDBWithGorm(dbConfig *client.DB, dbType int) (*gorm.DB, error) {
 
 	var sqlLogger = logger.Silent
 	if dbConfig.EnableRawSQL {
@@ -27,7 +26,7 @@ func InitMysqlWithGorm(dbConfig *client.DB) (*gorm.DB, error) {
 		createBatchSize = dbConfig.CreateBatchSize
 	}
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	db, err := gorm.Open(getDialector(dbConfig, dbType), &gorm.Config{
 		//打印SQL
 		Logger: logger.Default.LogMode(sqlLogger),
 		NamingStrategy: schema.NamingStrategy{
@@ -45,7 +44,7 @@ func InitMysqlWithGorm(dbConfig *client.DB) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	log.Println("Connect mysql success!")
+	log.Debug("Connect mysql success!")
 
 	sqlDB, err := db.DB()
 
@@ -64,4 +63,23 @@ func InitMysqlWithGorm(dbConfig *client.DB) (*gorm.DB, error) {
 	sqlDB.SetConnMaxIdleTime(dbConfig.FreeMaxLifetime * time.Minute)
 
 	return db, nil
+}
+
+func getDialector(dbConfig *client.DB, dbType int) gorm.Dialector {
+	switch dbType {
+	case Mysql:
+		dsn := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,
+			dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database, dbConfig.Location)
+		return mysql.Open(dsn)
+
+	case Postgresql:
+		dsn := fmt.Sprintf(`host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=%s`,
+			dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.Database, dbConfig.Port, dbConfig.Location)
+
+		return postgres.Open(dsn)
+	default:
+		log.Panic("only support mysql, postgresql")
+	}
+
+	return nil
 }

@@ -2,11 +2,14 @@ package pathutils
 
 import (
 	"errors"
-	"fmt"
 	"github.com/ehwjh2010/cobra/util/strutils"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
+
+var ErrPathAlreadyExist = errors.New("path no exist")
+var ErrInvalidPath = errors.New("invalid path")
 
 //EnsurePathExist 确认文件或文件夹是否存在
 func EnsurePathExist(path string) (bool, error) {
@@ -15,7 +18,7 @@ func EnsurePathExist(path string) (bool, error) {
 		return true, nil
 	}
 
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		return false, nil
 	}
 
@@ -25,29 +28,26 @@ func EnsurePathExist(path string) (bool, error) {
 //MakeDir 创建单一目录, 不支持创建多级目录
 //@param path 路径
 //@param exist_no_error 路径已存在时是否返回错误
-func MakeDir(path string, existReturnError bool) error {
+func MakeDir(path string, existReturnError bool) (err error) {
 	if strutils.IsEmptyStr(path) {
-		return errors.New("invalid path")
+		return ErrInvalidPath
 	}
 
 	exist, err := EnsurePathExist(path)
 	if err != nil {
-		return err
+		return
 	}
 
 	if exist {
 		if existReturnError {
-			return errors.New(fmt.Sprintf("%s had exist!!!", path))
+			return ErrPathAlreadyExist
 		} else {
-			return nil
+			return
 		}
 	} else {
-		err := os.Mkdir(path, 0777)
-		if err != nil {
-			return err
-		}
-		return nil
+		err = os.Mkdir(path, 0777)
 	}
+	return
 }
 
 //MakeDirIfNotPresent 目录不存在, 则创建; 存在则不操作
@@ -61,7 +61,7 @@ func MakeDirIfNotPresent(path string) error {
 //@param noExistReturnError 路径不存在时是否返回错误
 func RemovePath(path string, noExistReturnError bool) (bool, error) {
 	if strutils.IsEmptyStr(path) {
-		return false, errors.New("invalid path")
+		return false, ErrInvalidPath
 	}
 
 	exist, err := EnsurePathExist(path)
@@ -71,7 +71,7 @@ func RemovePath(path string, noExistReturnError bool) (bool, error) {
 
 	if !exist {
 		if noExistReturnError {
-			return false, errors.New("path no exist")
+			return false, ErrPathAlreadyExist
 		} else {
 			return true, nil
 		}

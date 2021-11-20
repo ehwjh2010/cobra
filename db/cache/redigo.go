@@ -3,8 +3,8 @@ package cache
 import (
 	"fmt"
 	"github.com/ehwjh2010/cobra/client"
+	"github.com/ehwjh2010/cobra/log"
 	"github.com/gomodule/redigo/redis"
-	"log"
 	"time"
 )
 
@@ -41,7 +41,7 @@ func InitCacheWithRedisGo(redisConfig *client.Cache) (*redis.Pool, error) {
 		},
 	}
 
-	log.Println("Connect redis success!")
+	log.Debug("Connect redis success!")
 
 	return redisClient, nil
 }
@@ -54,9 +54,9 @@ func CloseCacheWithRedisGo(redisClient *redis.Pool) error {
 
 	err := redisClient.Close()
 	if err != nil {
-		log.Printf("Close redis failed, err: %v", err)
+		log.Errorf("Close redis failed, err: %v", err)
 	} else {
-		log.Println("Close redis success!")
+		log.Debug("Close redis success!")
 	}
 
 	return err

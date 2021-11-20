@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"
-	"log"
 	"os"
 )
 
@@ -30,7 +29,6 @@ func InitLog(config *client.Log, application string) (err error) {
 	writeSyncer = getWriters(config, application)
 
 	if strutils.IsNotEmptyStr(config.FileDir) {
-		// TODO 确认日志目录逻辑
 		realLogDir := pathutils.PathJoin(config.FileDir, application)
 		if err = pathutils.MakeDirs(realLogDir); err != nil {
 			return
@@ -70,7 +68,6 @@ func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
 	}
 
 	if strutils.IsNotEmptyStr(conf.FileDir) {
-		// TODO 确认日志文件逻辑
 		filePath := pathutils.PathJoin(conf.FileDir, application, filename)
 		if conf.Rotated {
 			writer := getRotedLogWriter(
@@ -88,7 +85,7 @@ func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
 	}
 
 	if writers == nil {
-		log.Println("No set log output, Use stdout as log output")
+		Warn("No set log output, Use stdout as log output")
 		writers = append(writers, os.Stdout)
 	}
 
