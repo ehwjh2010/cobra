@@ -3,9 +3,9 @@ package cache
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ehwjh2010/cobralog"
-	"github.com/ehwjh2010/cobratypes"
-	"github.com/ehwjh2010/cobrautil/jsonutils"
+	"github.com/ehwjh2010/cobra/log"
+	"github.com/ehwjh2010/cobra/types"
+	"github.com/ehwjh2010/cobra/util/jsonutils"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -519,8 +519,7 @@ func (c *RedisClient) Del(key string) error {
 		}
 	}()
 
-	_, err := conn.Do("DEL", key)
-	if err != nil {
+	if _, err := conn.Do("DEL", key); err != nil {
 		log.Error(err)
 		return err
 	}

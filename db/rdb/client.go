@@ -538,9 +538,9 @@ func (c *DBClient) Close() error {
 	err = s.Close()
 
 	if err != nil {
-		log.Errorl("Close mysql failed!")
+		log.Error("Close mysql failed!")
 	} else {
-		log.Infol("Close mysql success!")
+		log.Debug("Close mysql success!")
 	}
 
 	return err
