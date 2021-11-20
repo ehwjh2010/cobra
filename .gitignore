@@ -7,4 +7,4 @@ output/
 autoreload_run.sh
 bin/
 gin-bin
-example/
+cobra-example/
