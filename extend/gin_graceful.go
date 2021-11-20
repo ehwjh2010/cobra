@@ -7,6 +7,7 @@ import (
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/types"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -49,7 +50,7 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []fun
 
 	//Invoke OnStartUp
 	if multiErr := invokeFunc(onStartUp); multiErr != nil {
-		log.Fatalf("Invoke start function failed!, %v", multiErr.Error())
+		log.Fatal("Invoke start function failed!!!", zap.String("multiErr", multiErr.Error()))
 	}
 
 	// Initializing the server in a goroutine so that
@@ -59,9 +60,9 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []fun
 			multiErr := invokeFunc(onShutDown)
 
 			if multiErr != nil {
-				log.Fatalf("Listen: %s, resource: %s", err, multiErr.Error())
+				log.Fatal("Listen!!!", zap.String("err", err.Error()), zap.String("multiErr", multiErr.Error()))
 			} else {
-				log.Fatalf("Listen: %s", err)
+				log.Fatal("Listen err!!!", zap.String("err", err.Error()))
 			}
 
 		}
@@ -71,7 +72,7 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []fun
 
 	// Restore default behavior on the interrupt signal and notify user of shutdown.
 	stop()
-	log.Debug("Shutting down gracefully, press Ctrl+C again to force")
+	log.Info("Shutting down gracefully, press Ctrl+C again to force")
 
 	// The context is used to inform the server it has 5 seconds to finish
 	// the request it is currently handling
@@ -80,16 +81,17 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []fun
 	if err := srv.Shutdown(ctx); err != nil {
 		multiErr := invokeFunc(onShutDown)
 		if multiErr != nil {
-			log.Fatalf("Server forced to shutdown: err: %v, resource: %s", err, multiErr.Error())
+			log.Fatal("Server forced to shutdown!!!", zap.String("serverErr", err.Error()),
+				zap.String("mulErr", multiErr.Error()))
 		} else {
-			log.Fatal("Server forced to shutdown: ", err)
+			log.Fatal("Server forced to shutdown: ", zap.String("err", err.Error()))
 		}
 	}
 
 	multiErr := invokeFunc(onShutDown)
 	if multiErr != nil {
-		log.Errorf("Server exiting, resource: %s", multiErr.Error())
+		log.Error("Server exiting", zap.String("multiErr", multiErr.Error()))
 	} else {
-		log.Debug("Server exiting")
+		log.Info("Server exiting")
 	}
 }

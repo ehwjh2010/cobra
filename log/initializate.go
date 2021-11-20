@@ -2,6 +2,7 @@ package log
 
 import (
 	"github.com/ehwjh2010/cobra/client"
+	"github.com/ehwjh2010/cobra/enum"
 	"github.com/ehwjh2010/cobra/util/fileutils"
 	"github.com/ehwjh2010/cobra/util/pathutils"
 	"github.com/ehwjh2010/cobra/util/strutils"
@@ -14,9 +15,6 @@ import (
 )
 
 const filename = "application.log"
-
-var sugaredLogger = zap.S()
-var zLogger = zap.L()
 
 // InitLog 初始化Logger
 func InitLog(config *client.Log, application string) (err error) {
@@ -32,7 +30,6 @@ func InitLog(config *client.Log, application string) (err error) {
 	}
 
 	var writeSyncer zapcore.WriteSyncer
-
 	writeSyncer = getWriters(config, application)
 
 	encoder := getEncoder()
@@ -43,16 +40,17 @@ func InitLog(config *client.Log, application string) (err error) {
 	}
 	core := zapcore.NewCore(encoder, writeSyncer, l)
 
-	lg := zap.New(core, zap.AddCallerSkip(1))
+	//由于外部使用的都是包装后的方法, 需要加上AddCallerSkip(1),
+	//zap.AddStacktrace(zapcore.WarnLevel) 这个函数的行为会一旦打印指定级别及以上的日志时, 自动打印堆栈
+	//lg := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.WarnLevel))
+	lg := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 	zap.ReplaceGlobals(lg) // 替换zap包中全局的logger实例，后续在其他包中只需使用zap.S()调用即可
-	sugaredLogger = zap.S()
-	zLogger = zap.L()
 	return
 }
 
 func getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(enum.DefaultTimePattern)
 	encoderConfig.TimeKey = "time"
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.EncodeDuration = zapcore.SecondsDurationEncoder

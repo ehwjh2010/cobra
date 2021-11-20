@@ -36,7 +36,7 @@ func RecoveryWithZap() gin.HandlerFunc {
 
 				httpRequest, _ := httputil.DumpRequest(c.Request, false)
 				if brokenPipe {
-					log.Errorl(c.Request.URL.Path,
+					log.Error(c.Request.URL.Path,
 						zap.Any("error", err),
 						zap.String("request", string(httpRequest)),
 					)
@@ -45,7 +45,8 @@ func RecoveryWithZap() gin.HandlerFunc {
 					c.Abort()
 					return
 				}
-				log.Errorf("| %v | %v%v", err, string(httpRequest), string(debug.Stack()))
+				//log.Errorf("| %v | %v%v", string(httpRequest), err, string(debug.Stack()))
+				log.Error(string(debug.Stack()))
 				c.AbortWithStatus(http.StatusInternalServerError)
 			}
 		}()

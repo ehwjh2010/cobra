@@ -41,7 +41,7 @@ func CobraZap(skipPath []string, utc bool, timeFormat string) gin.HandlerFunc {
 					log.Error(e)
 				}
 			} else {
-				log.Infol(path,
+				log.Info(path,
 					zap.Int("status", c.Writer.Status()),
 					zap.String("method", c.Request.Method),
 					zap.String("path", path),

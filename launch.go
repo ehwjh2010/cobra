@@ -13,7 +13,7 @@ const version = "v1.0.8"
 
 func Launch(application string, mode string, logConfig client.Log, middlewares []gin.HandlerFunc) *gin.Engine {
 	if err := log.InitLog(&logConfig, application); err != nil {
-		log.Fatalf("Init log failed! %v", err)
+		log.Fatal(err.Error())
 	}
 
 	gin.SetMode(mode)
