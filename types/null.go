@@ -7,6 +7,7 @@ import (
 	"github.com/ehwjh2010/cobra/config"
 	"github.com/ehwjh2010/cobra/util/intutils"
 	"github.com/ehwjh2010/cobra/util/jsonutils"
+	"github.com/ehwjh2010/cobra/util/timeutils"
 	"time"
 )
 
@@ -434,7 +435,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.Format(config.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.In(timeutils.GetBJLocation()).Format(config.DefaultTimePattern))
 	return []byte(val), nil
 }
 
