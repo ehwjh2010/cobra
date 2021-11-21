@@ -7,8 +7,8 @@ import (
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/middleware"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"go.uber.org/zap"
 )
 
@@ -49,10 +49,12 @@ func (app *App) Run() {
 
 	log.Info(SIGN)
 
-	log.Info("Use swagger, url: " +
-		fmt.Sprintf(
-			"http://%s:%d%s",
-			app.setting.Host, app.setting.Port, "/swagger/index.html"))
+	if app.setting.Swagger {
+		log.Info("Use swagger, url: " +
+			fmt.Sprintf(
+				"http://%s:%d%s",
+				app.setting.Host, app.setting.Port, "/swagger/index.html"))
+	}
 
 	extend.GraceServer(
 		app.Engine,

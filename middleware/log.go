@@ -14,7 +14,7 @@ import (
 //skipPath 不记录日志的url
 func CobraZap(skipPaths []string, utc bool, timeFormat string) gin.HandlerFunc {
 	log.Debug("Use ginzap middleware")
-	//skipPaths = append(skipPaths, "/swagger")
+	skipPaths = append(skipPaths, "/swagger")
 
 	return func(c *gin.Context) {
 		start := time.Now()

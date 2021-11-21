@@ -1,27 +1,111 @@
 package middleware
 
 import (
+	"github.com/ehwjh2010/cobra/util/structutils"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
-//Cors 处理跨域请求,支持options访问
-func Cors() gin.HandlerFunc {
-	// TODO 优化跨域中间件
-	return func(c *gin.Context) {
-		method := c.Request.Method
-		c.Header("Access-Control-Allow-Origin", "*")   // 可将将 * 替换为指定的域名
-		c.Header("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization")    //你想放行的header也可以在后面自行添加
-		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")      //我自己只使用 get post 所以只放行它
-		//c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
-		c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
-		c.Header("Access-Control-Allow-Credentials", "true")
+type CorsConfig struct {
+	AllowOrigins []string //允许哪些源 源: 协议+域名+端口 -> http://example.com
 
-		// 放行所有OPTIONS方法
-		if method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-		}
-		// 处理请求
-		c.Next()
+	AllowMethods []string //允许哪些请求方式
+
+	AllowHeaders []string //允许哪些请求头
+
+	AllowCredentials bool //是否允许传输Cookie
+
+	ExposeHeaders []string //请求方可以拿到哪些请求头
+
+	MaxAge time.Duration //本次预检请求的有效期
+
+	AllowWildcard bool
+}
+
+type CorsOpt func(config *CorsConfig)
+
+func OriginOpt(origin ...string) CorsOpt {
+	return func(config *CorsConfig) {
+		config.AllowOrigins = append(config.AllowOrigins, origin...)
 	}
+}
+
+func MethodOpt(method ...string) CorsOpt {
+	return func(config *CorsConfig) {
+		config.AllowMethods = append(config.AllowMethods, method...)
+	}
+}
+
+func HeaderOpt(header ...string) CorsOpt {
+	return func(config *CorsConfig) {
+		config.AllowHeaders = append(config.AllowHeaders, header...)
+	}
+}
+
+func CookieOpt(allow bool) CorsOpt {
+	return func(config *CorsConfig) {
+		config.AllowCredentials = allow
+	}
+}
+
+func ExHeaderOpt(header ...string) CorsOpt {
+	return func(config *CorsConfig) {
+		config.ExposeHeaders = append(config.ExposeHeaders, header...)
+	}
+}
+
+func MaxAgeOpt(maxAge time.Duration) CorsOpt {
+	return func(config *CorsConfig) {
+		config.MaxAge = maxAge
+	}
+}
+
+func Cors(args ...CorsOpt) gin.HandlerFunc {
+
+	config := &CorsConfig{
+		AllowOrigins: nil,
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodHead,
+			http.MethodHead,
+			http.MethodOptions,
+			http.MethodDelete,
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Length",
+			"Content-Type",
+			"X-CSRF-Token",
+			"Authorization",
+			"Token",
+			"Session",
+		},
+		AllowCredentials: true,
+		ExposeHeaders: []string{
+			"Content-Length",
+			"Content-Type",
+			"Authorization",
+			"Token",
+			"Session",
+			"Access-Control-Allow-Origin",
+			"Access-Control-Allow-Headers",
+		},
+		MaxAge:        time.Hour * 24,
+		AllowWildcard: true,
+	}
+
+	for _, arg := range args {
+		arg(config)
+	}
+
+	c := &cors.Config{}
+
+	structutils.CopyProperties(config, c)
+
+	return cors.New(*c)
 }
