@@ -6,12 +6,12 @@ import "go.uber.org/zap"
 
 //Debug 打印Debug级别日志
 func Debug(msg string, args ...zap.Field) {
-	zap.L().Debug(msg, args...)
+	logger.Debug(msg, args...)
 }
 
 //Debugf 格式化打印Debug级别日志
 func Debugf(format string, args ...interface{}) {
-	zap.S().Debugf(format, args...)
+	sugaredLogger.Debugf(format, args...)
 }
 
 //-----------------------------------------------------------
@@ -20,12 +20,12 @@ func Debugf(format string, args ...interface{}) {
 
 //Info 打印info级别日志
 func Info(msg string, args ...zap.Field) {
-	zap.L().Info(msg, args...)
+	logger.Info(msg, args...)
 }
 
 //Infof 打印info级别日志
 func Infof(template string, args ...interface{}) {
-	zap.S().Infof(template, args...)
+	sugaredLogger.Infof(template, args...)
 }
 
 //-----------------------------------------------------------
@@ -34,12 +34,12 @@ func Infof(template string, args ...interface{}) {
 
 //Warn 打印Warn级别日志
 func Warn(msg string, args ...zap.Field) {
-	zap.L().Warn(msg, args...)
+	logger.Warn(msg, args...)
 }
 
 //Warnf 格式化打印Warn级别日志
 func Warnf(template string, args ...interface{}) {
-	zap.S().Warnf(template, args...)
+	sugaredLogger.Warnf(template, args...)
 }
 
 //-----------------------------------------------------------
@@ -48,12 +48,12 @@ func Warnf(template string, args ...interface{}) {
 
 //Error 打印Error级别日志
 func Error(msg string, args ...zap.Field) {
-	zap.L().Error(msg, args...)
+	logger.Error(msg, args...)
 }
 
 //Errorf 格式化打印Error级别日志
 func Errorf(template string, args ...interface{}) {
-	zap.S().Errorf(template, args...)
+	sugaredLogger.Errorf(template, args...)
 }
 
 //-----------------------------------------------------------
@@ -62,12 +62,12 @@ func Errorf(template string, args ...interface{}) {
 
 //Fatal 打印Fatal级别日志
 func Fatal(msg string, args ...zap.Field) {
-	zap.L().Fatal(msg, args...)
+	logger.Fatal(msg, args...)
 }
 
 //Fatalf 格式化打印Fatal级别日志
 func Fatalf(template string, args ...interface{}) {
-	zap.S().Fatalf(template, args...)
+	sugaredLogger.Fatalf(template, args...)
 }
 
 //-----------------------------------------------------------
@@ -76,10 +76,10 @@ func Fatalf(template string, args ...interface{}) {
 
 //Panic 打印Panic级别日志
 func Panic(msg string, args ...zap.Field) {
-	zap.L().Panic(msg, args...)
+	logger.Panic(msg, args...)
 }
 
 //Panicf 格式化打印Panic级别日志
 func Panicf(template string, args ...interface{}) {
-	zap.S().Panicf(template, args...)
+	sugaredLogger.Panicf(template, args...)
 }

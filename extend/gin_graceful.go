@@ -22,6 +22,10 @@ func invokeFunc(functions []func() error) error {
 	var multiErr types.MultiErr
 
 	for _, function := range functions {
+		if function == nil {
+			continue
+		}
+
 		if err := function(); err != nil {
 			multiErr.AddErr(err)
 		}
@@ -34,7 +38,7 @@ func invokeFunc(functions []func() error) error {
 	return &multiErr
 }
 
-func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []func() error, onShutDown []func() error) {
+func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp func() error, onShutDown []func() error) {
 	// Create context that listens for the interrupt signal from the OS.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -49,8 +53,8 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp []fun
 	}
 
 	//Invoke OnStartUp
-	if multiErr := invokeFunc(onStartUp); multiErr != nil {
-		log.Fatal("Invoke start function failed!!!", zap.String("multiErr", multiErr.Error()))
+	if err := onStartUp(); err != nil {
+		log.Fatal("Invoke start function failed!!!", zap.String("err", err.Error()))
 	}
 
 	// Initializing the server in a goroutine so that

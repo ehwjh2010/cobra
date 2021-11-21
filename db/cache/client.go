@@ -1,15 +1,21 @@
 package cache
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/ehwjh2010/cobra/config"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/types"
 	"github.com/ehwjh2010/cobra/util/jsonutils"
 	"github.com/gomodule/redigo/redis"
+	"go.uber.org/zap"
 )
 
 const DefaultTimeOut = 60 * 5 //5分钟
+
+
+var ErrNullValue = errors.New("dest value is null")
 
 type RedisClient struct {
 	//pool redis连接池
@@ -48,7 +54,7 @@ func RedisClientWithDefaultTimeOut(defaultTimeOut int) RedisClientOption {
 	}
 }
 
-//Set 如果ex小于0, 则使用默认超时时间, ex 单位: 秒
+//Set 如果timeout小于等于0, 则使用默认超时时间, ex 单位: 秒
 func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
 	if value == nil {
 		return nil
@@ -59,7 +65,7 @@ func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
@@ -72,7 +78,7 @@ func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
 	}
 
 	if err != nil {
-		log.Error("set error", err.Error())
+		log.Error("Command set", zap.Error(err), zap.String("key", key))
 		return err
 	}
 	return nil
@@ -95,7 +101,7 @@ func (c *RedisClient) GetString(key string) (types.NullString, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
@@ -118,7 +124,7 @@ func (c *RedisClient) GetBool(key string) (types.NullBool, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
@@ -141,13 +147,13 @@ func (c *RedisClient) SetExp(key string, ex int) error {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	_, err := conn.Do("EXPIRE", key, ex)
 	if err != nil {
-		log.Errorf("set error, %v", err.Error())
+		log.Error("Command expire", zap.Error(err))
 		return err
 	}
 	return nil
@@ -160,18 +166,23 @@ func (c *RedisClient) GetJson(key string, data interface{}) error {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	bv, err := redis.Bytes(conn.Do("GET", key))
 	if err != nil {
-		log.Error("get json error", err.Error())
+		log.Error("Command get json", zap.Error(err))
 		return err
 	}
+
+	if bytes.Equal(bv, config.NullBytes) {
+		return ErrNullValue
+	}
+
 	errJson := jsonutils.Unmarshal(bv, data)
 	if errJson != nil {
-		log.Error("json nil", err.Error())
+		log.Error("Json unmarshal failed", zap.String("err", errJson.Error()))
 		return err
 	}
 	return nil
@@ -188,13 +199,13 @@ func (c *RedisClient) HSet(key string, field string, data interface{}) error {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	_, err := conn.Do("HSET", key, field, data)
 	if err != nil {
-		log.Error("hSet error", err.Error())
+		log.Error("Command hset", zap.Error(err))
 		return err
 	}
 	return nil
@@ -207,7 +218,7 @@ func (c *RedisClient) HGetStr(key, field string) (types.NullString, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
@@ -229,7 +240,7 @@ func (c *RedisClient) HGetInt(key, field string) (types.NullInt, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
@@ -252,7 +263,7 @@ func (c *RedisClient) HGetInt64(key, field string) (types.NullInt64, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
@@ -275,7 +286,7 @@ func (c *RedisClient) HGetBool(key, field string) (types.NullBool, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
@@ -297,21 +308,21 @@ func (c *RedisClient) HGetAll(key string) (map[string]interface{}, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
-	var val map[string]interface{}
-
 	tmp, err := redis.Bytes(conn.Do("HGETALL", key))
 	if err != nil {
-		log.Error("hGetAll error", err.Error())
+		log.Error("Command hgetall", zap.Error(err))
 		return nil, err
 	}
 
+	var val map[string]interface{}
+
 	err = json.Unmarshal(tmp, &val)
 	if err != nil {
-		log.Error("json nil, ", err.Error())
+		log.Error("Json unmarshal failed, ", zap.Error(err))
 		return nil, err
 	}
 	return val, nil
@@ -324,13 +335,13 @@ func (c *RedisClient) Incr(key string) (int, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	val, err := redis.Int(conn.Do("INCR", key))
 	if err != nil {
-		log.Error("INCR error, ", err.Error())
+		log.Error("Command incr", zap.Error(err))
 		return 0, err
 	}
 	return val, nil
@@ -344,13 +355,13 @@ func (c *RedisClient) IncrBy(key string, n int) (int, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	val, err := redis.Int(conn.Do("INCRBY", key, n))
 	if err != nil {
-		log.Error("INCRBY error", err.Error())
+		log.Error("Command incrby", zap.Error(err))
 		return 0, err
 	}
 	return val, nil
@@ -363,13 +374,13 @@ func (c *RedisClient) Decr(key string) (int, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	val, err := redis.Int(conn.Do("DECR", key))
 	if err != nil {
-		log.Error("DECR error", err.Error())
+		log.Error("Command desr",  zap.Error(err))
 		return 0, err
 	}
 	return val, nil
@@ -382,13 +393,13 @@ func (c *RedisClient) DecrBy(key string, n int) (int, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	val, err := redis.Int(conn.Do("DECRBY", key, n))
 	if err != nil {
-		log.Error("DECRBY error", err.Error())
+		log.Error("Command decrby",  zap.Error(err))
 		return 0, err
 	}
 	return val, nil
@@ -401,13 +412,13 @@ func (c *RedisClient) SAdd(key string, v interface{}) error {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	_, err := conn.Do("SADD", key, v)
 	if err != nil {
-		log.Error("SADD error", err.Error())
+		log.Error("Command sadd", zap.Error(err))
 		return err
 	}
 	return nil
@@ -420,13 +431,13 @@ func (c *RedisClient) SMembersStr(key string) ([]string, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	val, err := redis.Strings(conn.Do("SMEMBERS", key))
 	if err != nil {
-		log.Error("json nil", err)
+		log.Error("Command smembers str", zap.Error(err))
 		return nil, err
 	}
 	return val, nil
@@ -439,13 +450,13 @@ func (c *RedisClient) SMembersInt(key string) ([]int, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	val, err := redis.Ints(conn.Do("SMEMBERS", key))
 	if err != nil {
-		log.Error("json nil", err)
+		log.Error("Command smembers int", zap.Error(err))
 		return nil, err
 	}
 	return val, nil
@@ -458,32 +469,36 @@ func (c *RedisClient) SMembersInt64(key string) ([]int64, error) {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	val, err := redis.Int64s(conn.Do("SMEMBERS", key))
 	if err != nil {
-		log.Error("json nil", err)
+		log.Error("Command smembers int64s", zap.Error(err), zap.String("key", key))
 		return nil, err
 	}
 	return val, nil
 }
 
 //SISMembers 对应sismembers命令
-func (c *RedisClient) SISMembers(key, v string) bool {
+func (c *RedisClient) SISMembers(key, value string) bool {
 	conn := c.pool.Get()
 
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
-	val, err := redis.Bool(conn.Do("SISMEMBER", key, v))
+	val, err := redis.Bool(conn.Do("SISMEMBER", key, value))
 	if err != nil {
-		log.Error("SISMEMBER error", err.Error())
+		log.Error(
+			"Command sismember",
+			zap.Error(err),
+			zap.String("key", key),
+			zap.String("value", value))
 		return false
 	}
 	return val
@@ -496,13 +511,13 @@ func (c *RedisClient) Exist(key string) bool {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	val, err := redis.Bool(conn.Do("EXISTS", key))
 	if err != nil {
-		log.Error(err)
+		log.Error("Command exist", zap.Error(err), zap.String("key", key))
 		return false
 	}
 	return val
@@ -515,12 +530,12 @@ func (c *RedisClient) Del(key string) error {
 	defer func() {
 		err := conn.Close()
 		if err != nil {
-			log.Errorf("Redis conn close failed, %v", err)
+			log.Error("Redis conn close failed", zap.Error(err))
 		}
 	}()
 
 	if _, err := conn.Do("DEL", key); err != nil {
-		log.Error(err)
+		log.Error("Command del", zap.Error(err), zap.String("key", key))
 		return err
 	}
 	return nil

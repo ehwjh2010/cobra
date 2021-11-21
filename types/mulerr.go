@@ -21,12 +21,14 @@ func (m *MultiErr) Error() string {
 }
 
 //AddErr 添加错误
-func (m *MultiErr) AddErr(err ...error) {
-	if err == nil {
-		return
-	}
+func (m *MultiErr) AddErr(args ...error) {
+	for _, err := range args{
+		if err == nil {
+			continue
+		}
 
-	m.Errs = append(m.Errs, err...)
+		m.Errs = append(m.Errs, err)
+	}
 }
 
 //IsEmpty 是否为空

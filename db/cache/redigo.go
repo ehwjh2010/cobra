@@ -5,6 +5,7 @@ import (
 	"github.com/ehwjh2010/cobra/client"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/gomodule/redigo/redis"
+	"go.uber.org/zap"
 	"time"
 )
 
@@ -54,7 +55,7 @@ func CloseCacheWithRedisGo(redisClient *redis.Pool) error {
 
 	err := redisClient.Close()
 	if err != nil {
-		log.Errorf("Close redis failed, err: %v", err)
+		log.Error("Close redis failed", zap.String("err", err.Error()))
 	} else {
 		log.Debug("Close redis success!")
 	}
