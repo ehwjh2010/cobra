@@ -3,7 +3,6 @@ package extend
 import (
 	"context"
 	"fmt"
-	"github.com/ehwjh2010/cobra/client"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/types"
 	"github.com/gin-gonic/gin"
@@ -38,12 +37,10 @@ func invokeFunc(functions []func() error) error {
 	return &multiErr
 }
 
-func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp func() error, onShutDown []func() error) {
+func GraceServer(engine *gin.Engine, host string, port, timeout int, onStartUp func() error, onShutDown []func() error) {
 	// Create context that listens for the interrupt signal from the OS.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
-
-	host, port, timeout := serverConfig.Host, serverConfig.Port, serverConfig.ShutDownTimeout
 
 	addr := fmt.Sprintf("%s:%d", host, port)
 
@@ -80,7 +77,7 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp func(
 
 	// The context is used to inform the server it has 5 seconds to finish
 	// the request it is currently handling
-	ctx, cancel := context.WithTimeout(context.Background(), timeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		multiErr := invokeFunc(onShutDown)
