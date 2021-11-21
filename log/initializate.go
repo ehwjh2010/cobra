@@ -26,9 +26,13 @@ func InitLog(config *client.Log, application string) (err error) {
 	}
 
 	if strutils.IsNotEmptyStr(config.FileDir) {
-		realLogDir := pathutils.PathJoin(config.FileDir, application)
-		if err = pathutils.MakeDirs(realLogDir); err != nil {
-			return
+		path, err := pathutils.Relative2Abs(config.FileDir)
+		if err != nil {
+			return err
+		}
+		realLogDir := pathutils.PathJoin(path, application)
+		if err := pathutils.MakeDirs(realLogDir); err != nil {
+			return err
 		}
 	}
 
@@ -70,7 +74,8 @@ func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
 	}
 
 	if strutils.IsNotEmptyStr(conf.FileDir) {
-		filePath := pathutils.PathJoin(conf.FileDir, application, filename)
+		path, _ := pathutils.Relative2Abs(conf.FileDir)
+		filePath := pathutils.PathJoin(path, application, filename)
 		if conf.Rotated {
 			writer := getRotedLogWriter(
 				filePath,

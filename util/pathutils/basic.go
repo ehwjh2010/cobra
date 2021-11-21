@@ -2,10 +2,11 @@ package pathutils
 
 import (
 	"errors"
-	"github.com/ehwjh2010/cobra/util/strutils"
+	"github.com/ehwjh2010/cobra/config"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var ErrPathAlreadyExist = errors.New("path no exist")
@@ -29,7 +30,7 @@ func EnsurePathExist(path string) (bool, error) {
 //@param path 路径
 //@param exist_no_error 路径已存在时是否返回错误
 func MakeDir(path string, existReturnError bool) (err error) {
-	if strutils.IsEmptyStr(path) {
+	if path == "" {
 		return ErrInvalidPath
 	}
 
@@ -60,7 +61,7 @@ func MakeDirIfNotPresent(path string) error {
 //@param path 路径
 //@param noExistReturnError 路径不存在时是否返回错误
 func RemovePath(path string, noExistReturnError bool) (bool, error) {
-	if strutils.IsEmptyStr(path) {
+	if path == "" {
 		return false, ErrInvalidPath
 	}
 
@@ -92,8 +93,18 @@ func PathJoin(paths ...string) string {
 	return p
 }
 
-//RelativePath2AbsPath 相对路径转化绝对路径
-func RelativePath2AbsPath(relativePath string) (string, error) {
+//Relative2Abs 相对路径转化绝对路径
+func Relative2Abs(relativePath string) (string, error) {
+
+	if relativePath == "" {
+		return "", nil
+	}
+
+	if strings.HasPrefix(relativePath, config.HomeShortCut) {
+		home := os.Getenv("HOME")
+		relativePath = strings.Replace(relativePath, config.HomeShortCut, home, 1)
+	}
+
 	absPath, err := filepath.Abs(relativePath)
 
 	if err != nil {
@@ -114,7 +125,7 @@ func PathSplit(path string) (string, string) {
 func MakeDirs(path ...string) error {
 	tmp := PathJoin(path...)
 
-	if strutils.IsEmptyStr(tmp) {
+	if tmp == "" {
 		return nil
 	}
 
