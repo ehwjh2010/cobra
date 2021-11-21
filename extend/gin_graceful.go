@@ -54,7 +54,7 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp func(
 
 	//Invoke OnStartUp
 	if err := onStartUp(); err != nil {
-		log.Fatal("Invoke start function failed!!!", zap.String("err", err.Error()))
+		log.Fatal("Invoke start function failed!!!", zap.Error(err))
 	}
 
 	// Initializing the server in a goroutine so that
@@ -64,9 +64,9 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp func(
 			multiErr := invokeFunc(onShutDown)
 
 			if multiErr != nil {
-				log.Fatal("Listen!!!", zap.String("err", err.Error()), zap.String("multiErr", multiErr.Error()))
+				log.Fatal("Listen!!!", zap.Error(err), zap.String("multiErr", multiErr.Error()))
 			} else {
-				log.Fatal("Listen err!!!", zap.String("err", err.Error()))
+				log.Fatal("Listen err!!!", zap.Error(err))
 			}
 
 		}
@@ -88,13 +88,13 @@ func GraceServer(engine *gin.Engine, serverConfig client.Server, onStartUp func(
 			log.Fatal("Server forced to shutdown!!!", zap.String("serverErr", err.Error()),
 				zap.String("mulErr", multiErr.Error()))
 		} else {
-			log.Fatal("Server forced to shutdown: ", zap.String("err", err.Error()))
+			log.Fatal("Server forced to shutdown: ", zap.Error(err))
 		}
 	}
 
 	multiErr := invokeFunc(onShutDown)
 	if multiErr != nil {
-		log.Error("Server exiting", zap.String("multiErr", multiErr.Error()))
+		log.Error("Server exiting", zap.Error(multiErr))
 	} else {
 		log.Info("Server exiting")
 	}
