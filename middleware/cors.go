@@ -65,7 +65,7 @@ func MaxAgeOpt(maxAge time.Duration) CorsOpt {
 func Cors(args ...CorsOpt) gin.HandlerFunc {
 
 	config := &CorsConfig{
-		AllowOrigins: nil,
+		AllowOrigins: []string{"*"},
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
