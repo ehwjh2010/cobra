@@ -1,0 +1,111 @@
+package middleware
+
+import (
+	"github.com/ehwjh2010/cobra/util/structutils"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"time"
+)
+
+type CorsConfig struct {
+	AllowOrigins []string //允许哪些源 源: 协议+域名+端口 -> http://example.com
+
+	AllowMethods []string //允许哪些请求方式
+
+	AllowHeaders []string //允许哪些请求头
+
+	AllowCredentials bool //是否允许传输Cookie
+
+	ExposeHeaders []string //请求方可以拿到哪些请求头
+
+	MaxAge time.Duration //本次预检请求的有效期
+
+	AllowWildcard bool
+}
+
+type CorsOpt func(config *CorsConfig)
+
+func OriginOpt(origin ...string) CorsOpt {
+	return func(config *CorsConfig) {
+		config.AllowOrigins = append(config.AllowOrigins, origin...)
+	}
+}
+
+func MethodOpt(method ...string) CorsOpt {
+	return func(config *CorsConfig) {
+		config.AllowMethods = append(config.AllowMethods, method...)
+	}
+}
+
+func HeaderOpt(header ...string) CorsOpt {
+	return func(config *CorsConfig) {
+		config.AllowHeaders = append(config.AllowHeaders, header...)
+	}
+}
+
+func CookieOpt(allow bool) CorsOpt {
+	return func(config *CorsConfig) {
+		config.AllowCredentials = allow
+	}
+}
+
+func ExHeaderOpt(header ...string) CorsOpt {
+	return func(config *CorsConfig) {
+		config.ExposeHeaders = append(config.ExposeHeaders, header...)
+	}
+}
+
+func MaxAgeOpt(maxAge time.Duration) CorsOpt {
+	return func(config *CorsConfig) {
+		config.MaxAge = maxAge
+	}
+}
+
+func Cors(args ...CorsOpt) gin.HandlerFunc {
+
+	config := &CorsConfig{
+		AllowOrigins: nil,
+		AllowMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodHead,
+			http.MethodHead,
+			http.MethodOptions,
+			http.MethodDelete,
+		},
+		AllowHeaders: []string{
+			"Origin",
+			"Content-Length",
+			"Content-Type",
+			"X-CSRF-Token",
+			"Authorization",
+			"Token",
+			"Session",
+		},
+		AllowCredentials: true,
+		ExposeHeaders: []string{
+			"Content-Length",
+			"Content-Type",
+			"Authorization",
+			"Token",
+			"Session",
+			"Access-Control-Allow-Origin",
+			"Access-Control-Allow-Headers",
+		},
+		MaxAge:        time.Hour * 24,
+		AllowWildcard: true,
+	}
+
+	for _, arg := range args {
+		arg(config)
+	}
+
+	c := &cors.Config{}
+
+	structutils.CopyProperties(config, c)
+
+	return cors.New(*c)
+}

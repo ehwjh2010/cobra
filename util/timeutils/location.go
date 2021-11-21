@@ -8,20 +8,20 @@ const BJ = "Asia/Shanghai"
 
 var BJZone *time.Location
 
-//GetBJLocation 获取北京时区
-func GetBJLocation() (*time.Location, error) {
+//GetBJLocation 东八区
+func GetBJLocation() *time.Location {
 	if BJZone != nil {
-		return BJZone, nil
+		return BJZone
 	}
 
-	location, err := time.LoadLocation(BJ)
+	location, _ := time.LoadLocation(BJ)
 	BJZone = location
 
-	return BJZone, err
+	return BJZone
 }
 
-//GetUtcLocation 获取UTC时区
-func GetUtcLocation() *time.Location {
+//GetUTCLocation 获取UTC时区
+func GetUTCLocation() *time.Location {
 	return time.UTC
 }
 

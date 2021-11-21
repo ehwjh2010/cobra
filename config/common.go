@@ -1,5 +1,9 @@
 package config
 
+var NullBytes = []byte("null")
+
+const HomeShortCut = "~"
+
 
 //常用时间 以下时间都是以秒为单位
 const (
@@ -7,7 +11,7 @@ const (
 	ThreeSecond = 3
 	FiveSecond  = 5
 	TenSecond   = 10
-	HalfMinute  = 30
+	HalfMinute = 30
 
 	OneMinute   = 60 * OneSecond
 	ThreeMinute = 3 * OneMinute

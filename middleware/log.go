@@ -4,6 +4,7 @@ import (
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 
@@ -11,15 +12,9 @@ import (
 //timeFormat 时间格式
 //utc 是否使用UTC时间
 //skipPath 不记录日志的url
-func CobraZap(skipPath []string, utc bool, timeFormat string) gin.HandlerFunc {
+func CobraZap(skipPaths []string, utc bool, timeFormat string) gin.HandlerFunc {
 	log.Debug("Use ginzap middleware")
-	if skipPath == nil {
-		skipPath = []string{}
-	}
-	skipPaths := make(map[string]bool, len(skipPath))
-	for _, path := range skipPath {
-		skipPaths[path] = true
-	}
+	skipPaths = append(skipPaths, "/swagger")
 
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -28,7 +23,16 @@ func CobraZap(skipPath []string, utc bool, timeFormat string) gin.HandlerFunc {
 		query := c.Request.URL.RawQuery
 		c.Next()
 
-		if _, ok := skipPaths[path]; !ok {
+		echo := true
+
+		for _, skipPath := range skipPaths {
+			if strings.HasPrefix(path, skipPath) {
+				echo = false
+				break
+			}
+		}
+
+		if echo {
 			end := time.Now()
 			latency := end.Sub(start)
 			if utc {
