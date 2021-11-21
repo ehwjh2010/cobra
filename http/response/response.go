@@ -56,9 +56,11 @@ func (r *Response) AddHeaders(headers map[string]string) *Response {
 }
 
 //AddCookie 添加Cookie
-func (r *Response) AddCookie(cookie ...*http.Cookie) *Response {
-	if cookie != nil {
-		r.Cookies = append(r.Cookies, cookie...)
+func (r *Response) AddCookie(cookies ...*http.Cookie) *Response {
+	for _, cookie := range cookies {
+		if cookie != nil {
+			r.Cookies = append(r.Cookies, cookie)
+		}
 	}
 
 	return r

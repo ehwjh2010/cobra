@@ -8,25 +8,45 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const sign = "\n .----------------.  .----------------.  .----------------.  .----------------.  .----------------.\n| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |\n| |     ______   | || |     ____     | || |   ______     | || |  _______     | || |      __      | |\n| |   .' ___  |  | || |   .'    `.   | || |  |_   _ \\    | || | |_   __ \\    | || |     /  \\     | |\n| |  / .'   \\_|  | || |  /  .--.  \\  | || |    | |_) |   | || |   | |__) |   | || |    / /\\ \\    | |\n| |  | |         | || |  | |    | |  | || |    |  __'.   | || |   |  __ /    | || |   / ____ \\   | |\n| |  \\ `.___.'\\  | || |  \\  `--'  /  | || |   _| |__) |  | || |  _| |  \\ \\_  | || | _/ /    \\ \\_ | |\n| |   `._____.'  | || |   `.____.'   | || |  |_______/   | || | |____| |___| | || ||____|  |____|| |\n| |              | || |              | || |              | || |              | || |              | |\n| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |\n '----------------'  '----------------'  '----------------'  '----------------'  '----------------'"
-const version = "v1.0.8"
+const SIGN = "\n .----------------.  .----------------.  .----------------.  .----------------.  .----------------.\n| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |\n| |     ______   | || |     ____     | || |   ______     | || |  _______     | || |      __      | |\n| |   .' ___  |  | || |   .'    `.   | || |  |_   _ \\    | || | |_   __ \\    | || |     /  \\     | |\n| |  / .'   \\_|  | || |  /  .--.  \\  | || |    | |_) |   | || |   | |__) |   | || |    / /\\ \\    | |\n| |  | |         | || |  | |    | |  | || |    |  __'.   | || |   |  __ /    | || |   / ____ \\   | |\n| |  \\ `.___.'\\  | || |  \\  `--'  /  | || |   _| |__) |  | || |  _| |  \\ \\_  | || | _/ /    \\ \\_ | |\n| |   `._____.'  | || |   `.____.'   | || |  |_______/   | || | |____| |___| | || ||____|  |____|| |\n| |              | || |              | || |              | || |              | || |              | |\n| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |\n '----------------'  '----------------'  '----------------'  '----------------'  '----------------'"
+const VERSION = "v1.0.9"
 
-func Launch(application string, mode string, logConfig client.Log, middlewares []gin.HandlerFunc) *gin.Engine {
+type App struct {
+	Engine *gin.Engine
+	Application string
+}
+
+
+func Cobra(application string, debug bool, logConfig client.Log, middlewares []gin.HandlerFunc) *App {
 	if err := log.InitLog(&logConfig, application); err != nil {
-		log.Fatalf("Init log failed! %v", err)
+		log.Fatal(err.Error())
 	}
 
-	gin.SetMode(mode)
+	SetMode(debug)
 
-	log.Info(sign)
+	log.Info(SIGN)
 
 	engine := gin.New()
 
 	middleware.UseMiddlewares(engine, middlewares...)
 
-	return engine
+	app := &App{
+		Engine:      engine,
+		Application: application,
+	}
+
+	return app
 }
 
-func Run(engine *gin.Engine, serverConfig client.Server, onStartUp []func() error, onShutDown []func() error) {
-	extend.GraceServer(engine, serverConfig, onStartUp, onShutDown)
+//Run 启动
+func (app *App) Run(serverConfig client.Server, onStartUp func() error, onShutDown []func() error) {
+	extend.GraceServer(app.Engine, serverConfig, onStartUp, onShutDown)
+}
+
+func SetMode(debug bool) {
+	if debug {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 }

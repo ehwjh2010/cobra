@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/util/strutils"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"strings"
 )
@@ -304,7 +305,7 @@ func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
 
 	if c.occurErr(tx, excludeErr...) {
-		log.Errorf("Query db occur err, err: %v", tx.Error)
+		log.Error("Query db occur err", zap.Error(tx.Error))
 		return false, tx.Error
 	}
 
@@ -531,7 +532,7 @@ func (c *DBClient) Close() error {
 
 	s, err := c.db.DB()
 	if err != nil {
-		log.Errorf("Close conn; get db failed!, err: %v", err)
+		log.Error("Close conn; get db failed!", zap.Error(err))
 		return err
 	}
 

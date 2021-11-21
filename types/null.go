@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"github.com/ehwjh2010/cobra/enum"
+	"github.com/ehwjh2010/cobra/config"
 	"github.com/ehwjh2010/cobra/util/intutils"
 	"github.com/ehwjh2010/cobra/util/jsonutils"
 	"time"
 )
-
-var nullBytes = []byte("null")
 
 //********************int64*****************************
 
@@ -76,7 +74,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 
 //UnmarshalJSON for NullInt64
 func (ni *NullInt64) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, nullBytes) {
+	if bytes.Equal(b, config.NullBytes) {
 		ni.Valid = false
 		return nil
 	}
@@ -151,7 +149,7 @@ func (ni NullInt) MarshalJSON() ([]byte, error) {
 
 //UnmarshalJSON for NullInt
 func (ni *NullInt) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, nullBytes) {
+	if bytes.Equal(b, config.NullBytes) {
 		ni.Valid = false
 		return nil
 	}
@@ -230,7 +228,7 @@ func NewBoolNull() NullBool {
 
 //UnmarshalJSON for NullBool
 func (nb *NullBool) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, nullBytes) {
+	if bytes.Equal(b, config.NullBytes) {
 		nb.Valid = false
 		return nil
 	}
@@ -309,7 +307,7 @@ func NewFloat64Null() *NullFloat64 {
 
 // UnmarshalJSON for NullFloat64
 func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, nullBytes) {
+	if bytes.Equal(b, config.NullBytes) {
 		nf.Valid = false
 		return nil
 	}
@@ -392,7 +390,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullString
 func (ns *NullString) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, nullBytes) {
+	if bytes.Equal(b, config.NullBytes) {
 		ns.Valid = false
 		return nil
 	}
@@ -436,7 +434,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.Format(enum.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.Format(config.DefaultTimePattern))
 	return []byte(val), nil
 }
 
@@ -474,7 +472,7 @@ func NewTimeNull() *NullTime {
 
 // UnmarshalJSON for NullTime
 func (nt *NullTime) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, nullBytes) {
+	if bytes.Equal(b, config.NullBytes) {
 		nt.Valid = false
 		return nil
 	}

@@ -5,11 +5,11 @@ import (
 )
 
 func UseMiddlewares(engine *gin.Engine, middlewares ...gin.HandlerFunc) {
-	if middlewares == nil {
-		return
-	}
 
 	for _, middleware := range middlewares {
+		if middleware == nil {
+			continue
+		}
 		engine.Use(middleware)
 	}
 }

@@ -1,6 +1,5 @@
-package enum
+package config
 
-const DefaultTimePattern = "2006-01-02T15:04:05.000Z0700"
 
 //常用时间 以下时间都是以秒为单位
 const (
@@ -23,3 +22,5 @@ const (
 	HalfDay = TwelveHour
 	OneDay  = 24 * OneHour
 )
+
+const DefaultTimePattern = "2006-01-02T15:04:05.000Z0700"
