@@ -25,22 +25,22 @@ type Result struct {
 
 type Pageable struct {
 	//TotalCount 总数量
-	TotalCount int
+	TotalCount int64 `json:"totalCount"`
 
 	//TotalPage 总页数
-	TotalPage int
+	TotalPage int `json:"totalPage"`
 
 	//Page 当前页数
-	Page int
+	Page int `json:"page"`
 
 	//PageSize 每页数量
-	PageSize int
+	PageSize int `json:"pageSize"`
 
 	//Rows 记录
-	Rows interface{}
+	Rows interface{} `json:"rows"`
 
 	//HasNext 是否还有下一页
-	HasNext bool
+	HasNext bool `json:"hasNext"`
 }
 
 func NewResult(data interface{}, args ...ResultOpt) *Result {
@@ -93,7 +93,7 @@ func PageableWithPageSize(pageSize int) PageableOpt {
 }
 
 //PageableWithTotalCount 设置总数量
-func PageableWithTotalCount(totalCount int) PageableOpt {
+func PageableWithTotalCount(totalCount int64) PageableOpt {
 	return func(pageable *Pageable) {
 		pageable.TotalCount = totalCount
 	}
