@@ -413,12 +413,10 @@ func (ns *NullString) Equal(v NullString) bool {
 
 //********************time*****************************
 
-//NullTime is an alias for mysql.NullTime data type
+// NullTime is an alias for mysql.NullTime data type
 type NullTime struct {
 	sql.NullTime
 }
-
-//type NullTime sql.NullTime
 
 //IsNil 是否是Nil
 func (nt *NullTime) IsNil() bool {

@@ -27,8 +27,8 @@ func EnsurePathExist(path string) (bool, error) {
 }
 
 //MakeDir 创建单一目录, 不支持创建多级目录
-//@param path 路径
-//@param exist_no_error 路径已存在时是否返回错误
+//path 路径
+//exist_no_error 路径已存在时是否返回错误
 func MakeDir(path string, existReturnError bool) (err error) {
 	if path == "" {
 		return ErrInvalidPath
@@ -52,14 +52,14 @@ func MakeDir(path string, existReturnError bool) (err error) {
 }
 
 //MakeDirIfNotPresent 目录不存在, 则创建; 存在则不操作
-//@param path 路径
+//path 路径
 func MakeDirIfNotPresent(path string) error {
 	return MakeDir(path, false)
 }
 
 //RemovePath 完全删除文件夹或文件, 对于文件夹包括子文件以及子文件夹
-//@param path 路径
-//@param noExistReturnError 路径不存在时是否返回错误
+//path 路径
+//noExistReturnError 路径不存在时是否返回错误
 func RemovePath(path string, noExistReturnError bool) (bool, error) {
 	if path == "" {
 		return false, ErrInvalidPath

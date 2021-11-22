@@ -8,9 +8,14 @@ const (
 )
 
 type Result struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	//Code 业务状态码
+	Code int `json:"code" example:"0" swaggertype:"integer"`
+
+	//Message 信息
+	Message string `json:"message" example:"Success" swaggertype:"string"`
+
+	//Data 数据
+	Data interface{} `json:"data"`
 }
 
 func NewResult(data interface{}, args ...ResultOpt) *Result {
