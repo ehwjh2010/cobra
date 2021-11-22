@@ -25,35 +25,6 @@ type RedisClient struct {
 	defaultTimeOut int
 }
 
-func NewRedisClient(args ...RedisClientOption) (client *RedisClient) {
-	client = &RedisClient{
-		defaultTimeOut: DefaultTimeOut,
-	}
-	for _, arg := range args {
-		arg(client)
-	}
-	return client
-}
-
-type RedisClientOption func(client *RedisClient)
-
-func RedisClientWithPool(pool *redis.Pool) RedisClientOption {
-	return func(client *RedisClient) {
-		client.pool = pool
-	}
-}
-
-func RedisClientWithDefaultTimeOut(defaultTimeOut int) RedisClientOption {
-	return func(client *RedisClient) {
-		timeout := defaultTimeOut
-		if timeout <= 0 {
-			timeout = DefaultTimeOut
-		}
-
-		client.defaultTimeOut = timeout
-	}
-}
-
 //Set 如果timeout小于等于0, 则使用默认超时时间, ex 单位: 秒
 func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
 	if value == nil {

@@ -11,9 +11,15 @@ func InitCache(config *client.Cache) (client *RedisClient, err error) {
 		return nil, err
 	}
 
-	client = NewRedisClient(
-		RedisClientWithPool(pool),
-		RedisClientWithDefaultTimeOut(config.DefaultTimeOut))
+	if config.DefaultTimeOut <= 0 {
+		config.DefaultTimeOut = DefaultTimeOut
+	}
+
+	client = &RedisClient{
+		pool:           pool,
+		defaultTimeOut: config.DefaultTimeOut,
+	}
+
 	return client, err
 }
 

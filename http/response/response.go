@@ -30,7 +30,7 @@ func NewResp(result *Result, args ...RespOpt) *Response {
 //NewCustomResp 自定义返回, 配合 CustomResponse 使用
 func NewCustomResp(statusCode int, code int, message string, data interface{}) *Response {
 	result := NewResult(data, ResultWithCode(code), ResultWithMessage(message))
-	response := NewResp(result, RespWithStatusCode(statusCode))
+	response := NewResp(result, RespWithStatus(statusCode))
 	return response
 }
 
@@ -87,8 +87,8 @@ func RespWithCookies(cookies ...*http.Cookie) RespOpt {
 	}
 }
 
-//RespWithStatusCode 设置状态码
-func RespWithStatusCode(statusCode int) RespOpt {
+//RespWithStatus 设置状态码
+func RespWithStatus(statusCode int) RespOpt {
 	return func(response *Response) {
 		response.StatusCode = statusCode
 	}
@@ -107,7 +107,7 @@ func Success(c *gin.Context, data interface{}, args ...RespOpt) {
 func InvalidRequest(c *gin.Context, message string) {
 	result := NewResult(nil, ResultWithMessage(message), ResultWithCode(InvalidParams))
 
-	response := NewResp(result, RespWithStatusCode(http.StatusBadRequest))
+	response := NewResp(result, RespWithStatus(http.StatusBadRequest))
 
 	baseResponse(c, response)
 }
@@ -116,7 +116,7 @@ func InvalidRequest(c *gin.Context, message string) {
 func InvalidRequestWithData(c *gin.Context, message string, data interface{}) {
 	result := NewResult(data, ResultWithMessage(message), ResultWithCode(InvalidParams))
 
-	response := NewResp(result, RespWithStatusCode(http.StatusBadRequest))
+	response := NewResp(result, RespWithStatus(http.StatusBadRequest))
 
 	baseResponse(c, response)
 }

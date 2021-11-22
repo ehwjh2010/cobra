@@ -70,53 +70,30 @@ func ResultWithMessage(msg string) ResultOpt {
 	}
 }
 
-func ResultWithData(data interface{}) ResultOpt {
-	return func(response *Result) {
-		response.Data = data
+func NewPageable(rows interface{}, page int, pageSize int, totalCount int64) *Pageable {
+	if page <= 0 {
+		page = config.DefaultPage
 	}
-}
 
-type PageableOpt func(pageable *Pageable)
-
-//PageableWithPage 设置页数, 页数必须大于0
-func PageableWithPage(page int) PageableOpt {
-	return func(pageable *Pageable) {
-		pageable.Page = page
+	if pageSize <= 0 {
+		pageSize = config.DefaultPageSize
 	}
-}
 
-//PageableWithPageSize 设置每页数量, 页数必须大于0
-func PageableWithPageSize(pageSize int) PageableOpt {
-	return func(pageable *Pageable) {
-		pageable.PageSize = pageSize
+	if totalCount < 0 {
+		totalCount = 0
 	}
-}
 
-//PageableWithTotalCount 设置总数量
-func PageableWithTotalCount(totalCount int64) PageableOpt {
-	return func(pageable *Pageable) {
-		pageable.TotalCount = totalCount
-	}
-}
+	totalPage := int(math.Ceil(float64(totalCount) / float64(pageSize)))
+	hasNext := totalPage > page
 
-//NewPageable 默认页数为1, 每页数量15
-func NewPageable(rows interface{}, args ...PageableOpt) *Pageable {
 	pageable := &Pageable{
 		Rows:     rows,
-		Page:     config.DefaultPage,
-		PageSize: config.DefaultPageSize,
+		Page:     page,
+		PageSize: pageSize,
+		TotalCount: totalCount,
+		TotalPage: totalPage,
+		HasNext: hasNext,
 	}
-
-	for _, arg := range args {
-		arg(pageable)
-	}
-
-	if pageable.PageSize > 0 {
-		totalPage := int(math.Ceil(float64(pageable.TotalCount) / float64(pageable.PageSize)))
-		pageable.TotalPage = totalPage
-	}
-
-	pageable.HasNext = pageable.TotalPage > pageable.Page
 
 	return pageable
 }
