@@ -8,8 +8,10 @@ import (
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/types"
 	"github.com/ehwjh2010/cobra/util/jsonutils"
+	"github.com/ehwjh2010/cobra/util/timeutils"
 	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
+	"time"
 )
 
 const DefaultTimeOut = 60 * 5 //5分钟
@@ -24,6 +26,8 @@ type RedisClient struct {
 	//defaultTimeOut 默认过期时间
 	defaultTimeOut int
 }
+
+//===============================Command Set===================================
 
 //Set 如果timeout小于等于0, 则使用默认超时时间, ex 单位: 秒
 func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
@@ -54,6 +58,15 @@ func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
 	}
 	return nil
 }
+
+//SetTime 设置时间
+func (c *RedisClient) SetTime(key string, t time.Time, timeout int) error {
+	format := timeutils.Time2Str(t)
+
+	return c.Set(key, format, timeout)
+}
+
+//===============================Command Get===================================
 
 //SetJson 设置json
 func (c *RedisClient) SetJson(key string, data interface{}, timeout int) error {
@@ -132,6 +145,34 @@ func (c *RedisClient) GetInt(key string) (types.NullInt, error) {
 	}
 
 	return types.NewInt(val), nil
+}
+
+//GetTime redis get
+func (c *RedisClient) GetTime(key string) (types.NullTime, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Error("Redis conn close failed", zap.Error(err))
+		}
+	}()
+
+	val, err := redis.String(conn.Do("GET", key))
+	if err != nil {
+		if errors.Is(err, redis.ErrNil) {
+			return types.NewTimeNull(), nil
+		} else {
+			return types.NewTimeNull(), err
+		}
+	}
+
+	t, err := timeutils.Str2Time(val)
+	if err != nil {
+		return types.NewTimeNull(), err
+	}
+
+	return types.NewTime(t), nil
 }
 
 //GetInt64 redis get
@@ -228,6 +269,8 @@ func (c *RedisClient) GetJson(key string, data interface{}) error {
 	return nil
 }
 
+//===============================Command HSet===================================
+
 //HSet 对应hset命令
 func (c *RedisClient) HSet(key string, field string, data interface{}) error {
 	if data == nil {
@@ -250,6 +293,30 @@ func (c *RedisClient) HSet(key string, field string, data interface{}) error {
 	}
 	return nil
 }
+
+//HSetTime 对应hset命令
+func (c *RedisClient) HSetTime(key string, field string, t time.Time) error {
+
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Error("Redis conn close failed", zap.Error(err))
+		}
+	}()
+
+	data := timeutils.Time2Str(t)
+
+	_, err := conn.Do("HSET", key, field, data)
+	if err != nil {
+		log.Error("Command hset", zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+//===============================Command HGet===================================
 
 //HGetStr 对应hget命令
 func (c *RedisClient) HGetStr(key, field string) (types.NullString, error) {
@@ -341,6 +408,55 @@ func (c *RedisClient) HGetBool(key, field string) (types.NullBool, error) {
 	return types.NewBool(val), nil
 }
 
+func (c *RedisClient) HGetTime(key, field string) (types.NullTime, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Error("Redis conn close failed", zap.Error(err))
+		}
+	}()
+
+	val, err := redis.String(conn.Do("HGET", key, field))
+	if err != nil {
+		if errors.Is(err, redis.ErrNil) {
+			return types.NewTimeNull(), nil
+		} else {
+			return types.NewTimeNull(), err
+		}
+	}
+
+	t, err := timeutils.Str2Time(val)
+
+	if err != nil {
+		return types.NewTimeNull(), err
+	}
+
+	return types.NewTime(t), nil
+}
+
+func (c *RedisClient) HGetFloat64(key, field string) (types.NullFloat64, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Error("Redis conn close failed", zap.Error(err))
+		}
+	}()
+
+	val, err := redis.Float64(conn.Do("HGET", key, field))
+	if err != nil {
+		if errors.Is(err, redis.ErrNil) {
+			return types.NewFloat64Null(), nil
+		} else {
+			return types.NewFloat64Null(), err
+		}
+	}
+	return types.NewFloat64(val), nil
+}
+
 //HGetAll 对应hgetall命令
 func (c *RedisClient) HGetAll(key string) (map[string]interface{}, error) {
 	conn := c.pool.Get()
@@ -367,6 +483,8 @@ func (c *RedisClient) HGetAll(key string) (map[string]interface{}, error) {
 	}
 	return val, nil
 }
+
+//===============================Command Incr===================================
 
 //Incr 对应incr命令
 func (c *RedisClient) Incr(key string) (int, error) {
@@ -407,6 +525,8 @@ func (c *RedisClient) IncrBy(key string, n int) (int, error) {
 	return val, nil
 }
 
+//===============================Command Decr===================================
+
 //Decr 对应decr命令
 func (c *RedisClient) Decr(key string) (int, error) {
 	conn := c.pool.Get()
@@ -445,8 +565,12 @@ func (c *RedisClient) DecrBy(key string, n int) (int, error) {
 	return val, nil
 }
 
+
+// TODO 待测试
+//===============================Command SAdd===================================
+
 //SAdd 对应sadd命令
-func (c *RedisClient) SAdd(key string, v ...interface{}) error {
+func (c *RedisClient) SAdd(key string, v ...string) error {
 	conn := c.pool.Get()
 
 	defer func() {

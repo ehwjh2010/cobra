@@ -33,36 +33,15 @@ func (ni *NullInt64) GetValue() int64 {
 	return ni.Int64
 }
 
-type nullInt64Opt func(nullInt64 *NullInt64)
-
-func newInt64WithInt64(v int64) nullInt64Opt {
-	return func(nullInt64 *NullInt64) {
-		nullInt64.Int64 = v
-	}
-}
-
-func newInt64WithValid(valid bool) nullInt64Opt {
-	return func(nullInt64 *NullInt64) {
-		nullInt64.NullInt64.Valid = valid
-	}
-}
-
-func newNullInt64(args ...nullInt64Opt) *NullInt64 {
-	nt := &NullInt64{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
-}
-
 func NewInt64(v int64) NullInt64 {
-	return *newNullInt64(newInt64WithInt64(v), newInt64WithValid(true))
+	return NullInt64{NullInt64: sql.NullInt64{
+		Int64: v,
+		Valid: true,
+	}}
 }
 
 func NewInt64Null() NullInt64 {
-	return *newNullInt64()
+	return NullInt64{}
 }
 
 // MarshalJSON for NullInt64
@@ -108,36 +87,15 @@ func (ni *NullInt) GetValue() int {
 	return intutils.Int64ToInt(ni.Int64)
 }
 
-type nullIntOpt func(nullInt *NullInt)
-
-func newIntWithInt(v int) nullIntOpt {
-	return func(nullInt *NullInt) {
-		nullInt.Int64 = int64(v)
-	}
-}
-
-func newIntWithValid(valid bool) nullIntOpt {
-	return func(nullInt *NullInt) {
-		nullInt.Valid = valid
-	}
-}
-
-func newNullInt(args ...nullIntOpt) *NullInt {
-	nt := &NullInt{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
-}
-
 func NewInt(v int) NullInt {
-	return *newNullInt(newIntWithInt(v), newIntWithValid(true))
+	return NullInt{NullInt64: sql.NullInt64{
+		Int64: int64(v),
+		Valid: true,
+	}}
 }
 
 func NewIntNull() NullInt {
-	return *newNullInt()
+	return NullInt{}
 }
 
 // MarshalJSON for NullInt
@@ -195,36 +153,15 @@ func (nb NullBool) MarshalJSON() ([]byte, error) {
 	return jsonutils.Marshal(nb.Bool)
 }
 
-type nullBoolOpt func(nullBool *NullBool)
-
-func newBoolWithBool(v bool) nullBoolOpt {
-	return func(nullBool *NullBool) {
-		nullBool.NullBool.Bool = v
-	}
-}
-
-func newBoolWithValid(valid bool) nullBoolOpt {
-	return func(nullBool *NullBool) {
-		nullBool.NullBool.Valid = valid
-	}
-}
-
-func newNullBool(args ...nullBoolOpt) *NullBool {
-	nt := &NullBool{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
-}
-
 func NewBool(v bool) NullBool {
-	return *newNullBool(newBoolWithBool(v), newBoolWithValid(true))
+	return NullBool{NullBool: sql.NullBool{
+		Bool:  v,
+		Valid: true,
+	}}
 }
 
 func NewBoolNull() NullBool {
-	return *newNullBool()
+	return NullBool{}
 }
 
 //UnmarshalJSON for NullBool
@@ -274,36 +211,15 @@ func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 	return jsonutils.Marshal(nf.Float64)
 }
 
-type nullFloat64Opt func(nullFloat64 *NullFloat64)
-
-func newFloat64WithFloat64(v float64) nullFloat64Opt {
-	return func(nullFloat64 *NullFloat64) {
-		nullFloat64.NullFloat64.Float64 = v
-	}
+func NewFloat64(v float64) NullFloat64 {
+	return NullFloat64{NullFloat64: sql.NullFloat64{
+		Float64: v,
+		Valid:   true,
+	}}
 }
 
-func newFloat64WithValid(valid bool) nullFloat64Opt {
-	return func(nullFloat64 *NullFloat64) {
-		nullFloat64.NullFloat64.Valid = valid
-	}
-}
-
-func newNullFloat64(args ...nullFloat64Opt) *NullFloat64 {
-	nt := &NullFloat64{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
-}
-
-func NewFloat64(v float64) *NullFloat64 {
-	return newNullFloat64(newFloat64WithFloat64(v), newFloat64WithValid(true))
-}
-
-func NewFloat64Null() *NullFloat64 {
-	return newNullFloat64()
+func NewFloat64Null() NullFloat64 {
+	return NullFloat64{}
 }
 
 // UnmarshalJSON for NullFloat64
@@ -345,40 +261,22 @@ func (ns *NullString) GetValue() string {
 	return ns.NullString.String
 }
 
-type nullStrOpt func(ns *NullString)
-
-func nullStrWithStr(s string) nullStrOpt {
-	return func(ns *NullString) {
-		ns.NullString.String = s
-	}
-}
-
-func nullStrWithValid(valid bool) nullStrOpt {
-	return func(ns *NullString) {
-		ns.NullString.Valid = valid
-	}
-}
-
-func newNullString(args ...nullStrOpt) *NullString {
-	ns := &NullString{}
-
-	for _, arg := range args {
-		arg(ns)
-	}
-
-	return ns
-}
-
 func NewStr(str string) NullString {
-	return *newNullString(nullStrWithStr(str), nullStrWithValid(true))
+	return NullString{NullString: sql.NullString{
+		String: str,
+		Valid:  true,
+	}}
 }
 
 func NewEmptyStr() NullString {
-	return *newNullString(nullStrWithValid(true))
+	return NullString{NullString: sql.NullString{
+		String: "",
+		Valid:  true,
+	}}
 }
 
 func NewStrNull() NullString {
-	return *newNullString()
+	return NullString{}
 }
 
 // MarshalJSON for NullString
@@ -437,36 +335,15 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	return []byte(val), nil
 }
 
-type nullTimeOpt func(nullTime *NullTime)
-
-func newTimeWithTime(v time.Time) nullTimeOpt {
-	return func(nullTime *NullTime) {
-		nullTime.Time = v
-	}
+func NewTime(t time.Time) NullTime {
+	return NullTime{NullTime: sql.NullTime{
+		Time:  t,
+		Valid: true,
+	}}
 }
 
-func newTimeWithValid(valid bool) nullTimeOpt {
-	return func(nullTime *NullTime) {
-		nullTime.Valid = valid
-	}
-}
-
-func newNullTime(args ...nullTimeOpt) *NullTime {
-	nt := &NullTime{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
-}
-
-func NewTime(t time.Time) *NullTime {
-	return newNullTime(newTimeWithTime(t), newTimeWithValid(true))
-}
-
-func NewTimeNull() *NullTime {
-	return newNullTime()
+func NewTimeNull() NullTime {
+	return NullTime{}
 }
 
 // UnmarshalJSON for NullTime
