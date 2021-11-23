@@ -111,6 +111,75 @@ func (c *RedisClient) GetBool(key string) (types.NullBool, error) {
 	return types.NewBool(val), nil
 }
 
+//GetInt redis get
+func (c *RedisClient) GetInt(key string) (types.NullInt, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Error("Redis conn close failed", zap.Error(err))
+		}
+	}()
+
+	val, err := redis.Int(conn.Do("GET", key))
+	if err != nil {
+		if errors.Is(err, redis.ErrNil) {
+			return types.NewIntNull(), nil
+		} else {
+			return types.NewIntNull(), err
+		}
+	}
+
+	return types.NewInt(val), nil
+}
+
+//GetInt64 redis get
+func (c *RedisClient) GetInt64(key string) (types.NullInt64, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Error("Redis conn close failed", zap.Error(err))
+		}
+	}()
+
+	val, err := redis.Int64(conn.Do("GET", key))
+	if err != nil {
+		if errors.Is(err, redis.ErrNil) {
+			return types.NewInt64Null(), nil
+		} else {
+			return types.NewInt64Null(), err
+		}
+	}
+
+	return types.NewInt64(val), nil
+}
+
+//GetFloat64 redis get
+func (c *RedisClient) GetFloat64(key string) (types.NullFloat64, error) {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Error("Redis conn close failed", zap.Error(err))
+		}
+	}()
+
+	val, err := redis.Float64(conn.Do("GET", key))
+	if err != nil {
+		if errors.Is(err, redis.ErrNil) {
+			return types.NewFloat64Null(), nil
+		} else {
+			return types.NewFloat64Null(), err
+		}
+	}
+
+	return types.NewFloat64(val), nil
+}
+
 //SetExp 设置过期时间
 func (c *RedisClient) SetExp(key string, ex int) error {
 	conn := c.pool.Get()
@@ -377,7 +446,7 @@ func (c *RedisClient) DecrBy(key string, n int) (int, error) {
 }
 
 //SAdd 对应sadd命令
-func (c *RedisClient) SAdd(key string, v interface{}) error {
+func (c *RedisClient) SAdd(key string, v ...interface{}) error {
 	conn := c.pool.Get()
 
 	defer func() {
@@ -389,7 +458,7 @@ func (c *RedisClient) SAdd(key string, v interface{}) error {
 
 	_, err := conn.Do("SADD", key, v)
 	if err != nil {
-		log.Error("Command sadd", zap.Error(err))
+		log.Error("Command sadd", zap.Error(err), zap.Any("value", v))
 		return err
 	}
 	return nil
@@ -507,6 +576,24 @@ func (c *RedisClient) Del(key string) error {
 
 	if _, err := conn.Do("DEL", key); err != nil {
 		log.Error("Command del", zap.Error(err), zap.String("key", key))
+		return err
+	}
+	return nil
+}
+
+//LPush 对应lpush命令
+func (c *RedisClient) LPush(key string, args ...interface{}) error {
+	conn := c.pool.Get()
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Error("Redis conn close failed", zap.Error(err))
+		}
+	}()
+
+	if _, err := conn.Do("LPUSH", key, args); err != nil {
+		log.Error("Command lpush", zap.Error(err), zap.String("key", key), zap.Any("value", args))
 		return err
 	}
 	return nil
