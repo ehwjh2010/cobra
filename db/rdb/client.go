@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ehwjh2010/cobra/log"
-	"github.com/ehwjh2010/cobra/util/strutils"
+	"github.com/ehwjh2010/cobra/util/str"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"strings"
@@ -372,7 +372,7 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 		db = db.Count(&totalCount)
 	}
 
-	if orderStr := condition.OrderStr(); strutils.IsNotEmptyStr(orderStr) {
+	if orderStr := condition.OrderStr(); str.IsNotEmptyStr(orderStr) {
 		db = db.Order(orderStr)
 	}
 
@@ -518,8 +518,8 @@ func (c *DBClient) Save(ptr interface{}) error {
 	return tx.Error
 }
 
-//DB 获取原生DB对象
-func (c *DBClient) DB() *gorm.DB {
+//GetConn 获取原生DB对象
+func (c *DBClient) GetConn() *gorm.DB {
 	db := c.db
 	return db
 }

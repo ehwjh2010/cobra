@@ -3,9 +3,9 @@ package log
 import (
 	"github.com/ehwjh2010/cobra/client"
 	"github.com/ehwjh2010/cobra/config"
-	"github.com/ehwjh2010/cobra/util/fileutils"
-	"github.com/ehwjh2010/cobra/util/pathutils"
-	"github.com/ehwjh2010/cobra/util/strutils"
+	"github.com/ehwjh2010/cobra/util/file"
+	"github.com/ehwjh2010/cobra/util/path"
+	"github.com/ehwjh2010/cobra/util/str"
 	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
@@ -25,13 +25,13 @@ func InitLog(config *client.Log, application string) (err error) {
 		return
 	}
 
-	if strutils.IsNotEmptyStr(config.FileDir) {
-		path, err := pathutils.Relative2Abs(config.FileDir)
+	if str.IsNotEmptyStr(config.FileDir) {
+		logFilePath, err := path.Relative2Abs(config.FileDir)
 		if err != nil {
 			return err
 		}
-		realLogDir := pathutils.PathJoin(path, application)
-		if err := pathutils.MakeDirs(realLogDir); err != nil {
+		realLogDir := path.PathJoin(logFilePath, application)
+		if err := path.MakeDirs(realLogDir); err != nil {
 			return err
 		}
 	}
@@ -73,9 +73,9 @@ func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
 		writers = append(writers, os.Stdout)
 	}
 
-	if strutils.IsNotEmptyStr(conf.FileDir) {
-		path, _ := pathutils.Relative2Abs(conf.FileDir)
-		filePath := pathutils.PathJoin(path, application, filename)
+	if str.IsNotEmptyStr(conf.FileDir) {
+		absPath, _ := path.Relative2Abs(conf.FileDir)
+		filePath := path.PathJoin(absPath, application, filename)
 		if conf.Rotated {
 			writer := getRotedLogWriter(
 				filePath,
@@ -118,6 +118,6 @@ func getRotedLogWriter(filename string, maxSize, maxBackup, maxAge int, localTim
 }
 
 func getLogWriter(filename string) io.Writer {
-	file, _ := fileutils.OpenFileWithAppend(filename)
-	return file
+	f, _ := file.OpenFileWithAppend(filename)
+	return f
 }

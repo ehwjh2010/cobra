@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/ehwjh2010/cobra/config"
-	"github.com/ehwjh2010/cobra/util/intutils"
-	"github.com/ehwjh2010/cobra/util/jsonutils"
-	"github.com/ehwjh2010/cobra/util/timeutils"
+	"github.com/ehwjh2010/cobra/util/integer"
+	"github.com/ehwjh2010/cobra/util/serialize"
+	"github.com/ehwjh2010/cobra/util/timer"
 	"time"
 )
 
@@ -49,7 +49,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(ni.Int64)
+	return serialize.Marshal(ni.Int64)
 }
 
 //UnmarshalJSON for NullInt64
@@ -59,7 +59,7 @@ func (ni *NullInt64) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &ni.Int64)
+	err := serialize.Unmarshal(b, &ni.Int64)
 
 	if err != nil {
 		ni.Valid = false
@@ -84,7 +84,7 @@ func (ni *NullInt) IsNil() bool {
 
 //GetValue 获取值
 func (ni *NullInt) GetValue() int {
-	return intutils.Int64ToInt(ni.Int64)
+	return integer.Int64ToInt(ni.Int64)
 }
 
 func NewInt(v int) NullInt {
@@ -103,7 +103,7 @@ func (ni NullInt) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(intutils.Int64ToInt(ni.Int64))
+	return serialize.Marshal(integer.Int64ToInt(ni.Int64))
 }
 
 //UnmarshalJSON for NullInt
@@ -113,7 +113,7 @@ func (ni *NullInt) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &ni.Int64)
+	err := serialize.Unmarshal(b, &ni.Int64)
 	if err != nil {
 		ni.Valid = false
 	} else {
@@ -150,7 +150,7 @@ func (nb NullBool) MarshalJSON() ([]byte, error) {
 	if !nb.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(nb.Bool)
+	return serialize.Marshal(nb.Bool)
 }
 
 func NewBool(v bool) NullBool {
@@ -171,7 +171,7 @@ func (nb *NullBool) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &nb.Bool)
+	err := serialize.Unmarshal(b, &nb.Bool)
 	if err != nil {
 		nb.Valid = false
 	} else {
@@ -208,7 +208,7 @@ func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 	if !nf.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(nf.Float64)
+	return serialize.Marshal(nf.Float64)
 }
 
 func NewFloat64(v float64) NullFloat64 {
@@ -229,7 +229,7 @@ func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &nf.Float64)
+	err := serialize.Unmarshal(b, &nf.Float64)
 	if err != nil {
 		nf.Valid = false
 	} else {
@@ -284,7 +284,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 	if !ns.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(ns.String)
+	return serialize.Marshal(ns.String)
 }
 
 // UnmarshalJSON for NullString
@@ -294,7 +294,7 @@ func (ns *NullString) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &ns.String)
+	err := serialize.Unmarshal(b, &ns.String)
 	if err != nil {
 		ns.Valid = false
 	} else {
@@ -331,7 +331,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.In(timeutils.GetBJLocation()).Format(config.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.In(timer.GetBJLocation()).Format(config.DefaultTimePattern))
 	return []byte(val), nil
 }
 
@@ -353,7 +353,7 @@ func (nt *NullTime) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &nt.Time)
+	err := serialize.Unmarshal(b, &nt.Time)
 	if err != nil {
 		nt.Valid = false
 	} else {

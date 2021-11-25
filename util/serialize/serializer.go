@@ -1,4 +1,4 @@
-package jsonutils
+package serialize
 
 import (
 	"github.com/json-iterator/go"

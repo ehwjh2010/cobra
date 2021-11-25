@@ -7,15 +7,14 @@ import (
 	"github.com/ehwjh2010/cobra/config"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/types"
-	"github.com/ehwjh2010/cobra/util/jsonutils"
-	"github.com/ehwjh2010/cobra/util/timeutils"
+	"github.com/ehwjh2010/cobra/util/serialize"
+	"github.com/ehwjh2010/cobra/util/timer"
 	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 	"time"
 )
 
 const DefaultTimeOut = 60 * 5 //5分钟
-
 
 var ErrNullValue = errors.New("dest value is null")
 
@@ -61,7 +60,7 @@ func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
 
 //SetTime 设置时间
 func (c *RedisClient) SetTime(key string, t time.Time, timeout int) error {
-	format := timeutils.Time2Str(t)
+	format := timer.Time2Str(t)
 
 	return c.Set(key, format, timeout)
 }
@@ -74,7 +73,7 @@ func (c *RedisClient) SetJson(key string, data interface{}, timeout int) error {
 		return nil
 	}
 
-	value, _ := jsonutils.Marshal(data)
+	value, _ := serialize.Marshal(data)
 	return c.Set(key, value, timeout)
 }
 
@@ -167,7 +166,7 @@ func (c *RedisClient) GetTime(key string) (types.NullTime, error) {
 		}
 	}
 
-	t, err := timeutils.Str2Time(val)
+	t, err := timer.Str2Time(val)
 	if err != nil {
 		return types.NewTimeNull(), err
 	}
@@ -261,7 +260,7 @@ func (c *RedisClient) GetJson(key string, data interface{}) error {
 		return ErrNullValue
 	}
 
-	errJson := jsonutils.Unmarshal(bv, data)
+	errJson := serialize.Unmarshal(bv, data)
 	if errJson != nil {
 		log.Error("Json unmarshal failed", zap.String("err", errJson.Error()))
 		return err
@@ -306,7 +305,7 @@ func (c *RedisClient) HSetTime(key string, field string, t time.Time) error {
 		}
 	}()
 
-	data := timeutils.Time2Str(t)
+	data := timer.Time2Str(t)
 
 	_, err := conn.Do("HSET", key, field, data)
 	if err != nil {
@@ -427,7 +426,7 @@ func (c *RedisClient) HGetTime(key, field string) (types.NullTime, error) {
 		}
 	}
 
-	t, err := timeutils.Str2Time(val)
+	t, err := timer.Str2Time(val)
 
 	if err != nil {
 		return types.NewTimeNull(), err
@@ -540,7 +539,7 @@ func (c *RedisClient) Decr(key string) (int, error) {
 
 	val, err := redis.Int(conn.Do("DECR", key))
 	if err != nil {
-		log.Error("Command desr",  zap.Error(err))
+		log.Error("Command desr", zap.Error(err))
 		return 0, err
 	}
 	return val, nil
@@ -559,12 +558,11 @@ func (c *RedisClient) DecrBy(key string, n int) (int, error) {
 
 	val, err := redis.Int(conn.Do("DECRBY", key, n))
 	if err != nil {
-		log.Error("Command decrby",  zap.Error(err))
+		log.Error("Command decrby", zap.Error(err))
 		return 0, err
 	}
 	return val, nil
 }
-
 
 // TODO 待测试
 //===============================Command SAdd===================================

@@ -1,4 +1,4 @@
-package timeutils
+package timer
 
 import (
 	"github.com/ehwjh2010/cobra/config"
