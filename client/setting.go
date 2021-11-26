@@ -7,6 +7,7 @@ import (
 type Setting struct {
 	Host            string            `json:"host" yaml:"host"`                       //地址
 	Port            int               `json:"port" yaml:"port"`                       //端口
+	Language        string            `json:"language" yaml:"language"`               //校验错误返回的语言
 	ShutDownTimeout int               `json:"shutDownTimeout" yaml:"shutDownTimeout"` //优雅重启, 接收到相关信号后, 处理请求的最长时间, 单位: 秒， 默认5s
 	Application     string            `json:"application" yaml:"application"`         //应用名
 	Debug           bool              `json:"debug" yaml:"debug"`                     //debug

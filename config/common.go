@@ -2,8 +2,7 @@ package config
 
 var NullBytes = []byte("null")
 
-const HomeShortCut = "~"
-
+const HomeShortCut = "~" //类Unix系统home路径的短符号
 
 //常用时间 以下时间都是以秒为单位
 const (
@@ -11,7 +10,7 @@ const (
 	ThreeSecond = 3
 	FiveSecond  = 5
 	TenSecond   = 10
-	HalfMinute = 30
+	HalfMinute  = 30
 
 	OneMinute   = 60 * OneSecond
 	ThreeMinute = 3 * OneMinute
@@ -27,9 +26,14 @@ const (
 	OneDay  = 24 * OneHour
 )
 
-const DefaultTimePattern = "2006-01-02T15:04:05.000Z0700"
+const DefaultTimePattern = "2006-01-02T15:04:05.000Z0700" //默认时间格式
 
 const (
-	DefaultPage = 1
-	DefaultPageSize = 15
+	DefaultPage     = 1  //默认页数
+	DefaultPageSize = 15 //默认每页数据
+)
+
+const (
+	CN = "cn" //中文
+	EN = "en" //英文
 )

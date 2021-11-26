@@ -6,6 +6,7 @@ import (
 	"github.com/ehwjh2010/cobra/extend"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/middleware"
+	"github.com/ehwjh2010/cobra/util/validator"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -16,12 +17,20 @@ const SIGN = "\n .----------------.  .----------------.  .----------------.  .--
 const VERSION = "v1.0.9"
 
 type App struct {
-	Engine      *gin.Engine
-	setting     client.Setting
+	engine  *gin.Engine
+	setting client.Setting
 }
 
 func Cobra(settings client.Setting) *App {
 	SetMode(settings.Debug)
+
+	if err := log.InitLog(&settings.LogConfig, settings.Application); err != nil {
+		log.Fatal("Log init failed", zap.Error(err))
+	}
+
+	if err := validator.RegisterTrans(settings.Language); err != nil {
+		log.Fatal("Register validator translator failed, ", zap.Error(err))
+	}
 
 	engine := gin.New()
 
@@ -34,7 +43,7 @@ func Cobra(settings client.Setting) *App {
 	}
 
 	app := &App{
-		Engine:  engine,
+		engine:  engine,
 		setting: settings,
 	}
 	return app
@@ -42,12 +51,7 @@ func Cobra(settings client.Setting) *App {
 
 //Run 启动
 func (app *App) Run() {
-
-	if err := log.InitLog(&app.setting.LogConfig, app.setting.Application); err != nil {
-		log.Fatal("Log init failed", zap.Error(err))
-	}
-
-	log.Info(SIGN)
+	log.Info(SIGN, zap.String("Version", "\n"+VERSION))
 
 	if app.setting.Swagger {
 		log.Info("Use swagger, url: " +
@@ -57,7 +61,7 @@ func (app *App) Run() {
 	}
 
 	extend.GraceServer(
-		app.Engine,
+		app.engine,
 		app.setting.Host,
 		app.setting.Port,
 		app.setting.ShutDownTimeout,
@@ -71,4 +75,9 @@ func SetMode(debug bool) {
 	} else {
 		gin.SetMode(gin.ReleaseMode)
 	}
+}
+
+//Engine 返回引擎
+func (app *App) Engine() *gin.Engine {
+	return app.engine
 }

@@ -2,22 +2,23 @@ package cache
 
 import (
 	"github.com/ehwjh2010/cobra/client"
+	"github.com/ehwjh2010/cobra/config"
 )
 
 //InitCache 初始化缓存
-func InitCache(config *client.Cache) (client *RedisClient, err error) {
-	pool, err := InitCacheWithRedisGo(config)
+func InitCache(conf *client.Cache) (client *RedisClient, err error) {
+	pool, err := InitCacheWithRedisGo(conf)
 	if err != nil {
 		return nil, err
 	}
 
-	if config.DefaultTimeOut <= 0 {
-		config.DefaultTimeOut = DefaultTimeOut
+	if conf.DefaultTimeOut <= 0 {
+		conf.DefaultTimeOut = config.FiveMinute
 	}
 
 	client = &RedisClient{
 		pool:           pool,
-		defaultTimeOut: config.DefaultTimeOut,
+		defaultTimeOut: conf.DefaultTimeOut,
 	}
 
 	return client, err

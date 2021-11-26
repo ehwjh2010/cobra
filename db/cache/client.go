@@ -14,8 +14,6 @@ import (
 	"time"
 )
 
-const DefaultTimeOut = 60 * 5 //5分钟
-
 var ErrNullValue = errors.New("dest value is null")
 
 type RedisClient struct {
