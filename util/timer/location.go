@@ -1,17 +1,16 @@
 package timer
 
 import (
+	"github.com/ehwjh2010/cobra/config"
 	"strings"
 	"time"
 )
-
-const BJ = "Asia/Shanghai"
 
 var locationMap = map[string]*time.Location{"UTC": time.UTC}
 
 //GetBJLocation 东八区
 func GetBJLocation() *time.Location {
-	location, _ := GetLocationByName(BJ)
+	location, _ := GetLocationByName(config.BJ)
 	return location
 }
 

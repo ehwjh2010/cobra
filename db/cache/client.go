@@ -566,7 +566,7 @@ func (c *RedisClient) DecrBy(key string, n int) (int, error) {
 //===============================Command SAdd===================================
 
 //SAdd 对应sadd命令
-func (c *RedisClient) SAdd(key string, v ...string) error {
+func (c *RedisClient) SAdd(key string, args ...string) {
 	conn := c.pool.Get()
 
 	defer func() {
@@ -576,12 +576,9 @@ func (c *RedisClient) SAdd(key string, v ...string) error {
 		}
 	}()
 
-	_, err := conn.Do("SADD", key, v)
-	if err != nil {
-		log.Error("Command sadd", zap.Error(err), zap.Any("value", v))
-		return err
+	for _, arg := range args {
+		conn.Do("SADD", key, arg)
 	}
-	return nil
 }
 
 //SMembersStr 对应smembers命令

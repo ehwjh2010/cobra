@@ -8,6 +8,7 @@ import (
 	"github.com/ehwjh2010/cobra/util/integer"
 	"github.com/ehwjh2010/cobra/util/serialize"
 	"github.com/ehwjh2010/cobra/util/timer"
+	"strconv"
 	"time"
 )
 
@@ -18,9 +19,17 @@ type NullInt64 struct {
 	sql.NullInt64
 }
 
+func (ni *NullInt64) String() string {
+	if !ni.Valid {
+		return config.NullStr
+	}
+
+	return strconv.FormatInt(ni.Int64, 10)
+}
+
 //IsNil 是否是Nil
 func (ni *NullInt64) IsNil() bool {
-	return !ni.NullInt64.Valid
+	return !ni.Valid
 }
 
 //Equal 比较是否相等
@@ -75,6 +84,14 @@ func (ni *NullInt64) UnmarshalJSON(b []byte) error {
 // NullInt is an alias for sql.NullInt64 data type
 type NullInt struct {
 	sql.NullInt64
+}
+
+func (ni *NullInt) String() string {
+	if !ni.Valid {
+		return config.NullStr
+	}
+
+	return strconv.FormatInt(ni.Int64, 10)
 }
 
 //IsNil 是否是Nil
@@ -135,6 +152,14 @@ type NullBool struct {
 	sql.NullBool
 }
 
+func (nb *NullBool) String() string {
+	if !nb.Valid {
+		return config.NullStr
+	}
+
+	return strconv.FormatBool(nb.Bool)
+}
+
 //IsNil 是否是Nil
 func (nb *NullBool) IsNil() bool {
 	return !nb.NullBool.Valid
@@ -191,6 +216,14 @@ func (nb *NullBool) Equal(v NullBool) bool {
 // NullFloat64 is an alias for sql.NullFloat64 data type
 type NullFloat64 struct {
 	sql.NullFloat64
+}
+
+func (nf *NullFloat64) String() string {
+	if !nf.Valid {
+		return config.NullStr
+	}
+
+	return strconv.FormatFloat(nf.Float64, 'E', -1, 64)
 }
 
 //IsNil 是否是Nil
@@ -251,6 +284,14 @@ type NullString struct {
 	sql.NullString
 }
 
+func (ns *NullString) String() string {
+	if !ns.Valid {
+		return config.NullStr
+	}
+
+	return ns.NullString.String
+}
+
 //IsNil 是否是Nil
 func (ns *NullString) IsNil() bool {
 	return !ns.NullString.Valid
@@ -294,7 +335,7 @@ func (ns *NullString) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := serialize.Unmarshal(b, &ns.String)
+	err := serialize.Unmarshal(b, &ns.NullString.String)
 	if err != nil {
 		ns.Valid = false
 	} else {
@@ -306,7 +347,7 @@ func (ns *NullString) UnmarshalJSON(b []byte) error {
 
 //Equal 比较是否相等
 func (ns *NullString) Equal(v NullString) bool {
-	return ns.Valid == v.Valid && (!ns.Valid || ns.String == v.String)
+	return ns.Valid == v.Valid && (!ns.Valid || ns.NullString.String == v.NullString.String)
 }
 
 //********************time*****************************
@@ -314,6 +355,14 @@ func (ns *NullString) Equal(v NullString) bool {
 // NullTime is an alias for mysql.NullTime data type
 type NullTime struct {
 	sql.NullTime
+}
+
+func (nt *NullTime) String() string {
+	if !nt.Valid {
+		return config.NullStr
+	}
+
+	return nt.Time.Format(config.DefaultTimePattern)
 }
 
 //IsNil 是否是Nil

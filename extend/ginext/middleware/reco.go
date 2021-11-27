@@ -46,7 +46,7 @@ func RecoveryWithZap() gin.HandlerFunc {
 					return
 				}
 				//log.Errorf("| %v | %v%v", string(httpRequest), err, string(debug.Stack()))
-				log.Error(string(debug.Stack()))
+				log.Error(string(debug.Stack()), zap.Any("err", err))
 				c.AbortWithStatus(http.StatusInternalServerError)
 			}
 		}()

@@ -14,7 +14,7 @@ type Setting struct {
 	Swagger         bool              `json:"swagger" yaml:"swagger"`                 //是否启动swagger
 	LogConfig       Log               `json:"log" yaml:"log"`                         //日志配置
 	Middlewares     []gin.HandlerFunc //中间件
-	OnStartUp       func() error      //项目启动前执行函数
+	OnStartUp       []func() error    //项目启动前执行函数
 	OnShutDown      []func() error    //项目关闭前执行函数
 }
 

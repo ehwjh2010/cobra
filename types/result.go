@@ -1,6 +1,7 @@
-package response
+package types
 
 import (
+	"fmt"
 	"github.com/ehwjh2010/cobra/config"
 	"math"
 )
@@ -23,6 +24,10 @@ type Result struct {
 	Data interface{} `json:"data"`
 }
 
+func (r *Result) String() string {
+	return fmt.Sprintf("Result(code=%d, message=%s, data=%+v)", r.Code, r.Message, r.Data)
+}
+
 type Pageable struct {
 	//TotalCount 总数量
 	TotalCount int64 `json:"totalCount"`
@@ -41,6 +46,12 @@ type Pageable struct {
 
 	//HasNext 是否还有下一页
 	HasNext bool `json:"hasNext"`
+}
+
+func (p *Pageable) String() string {
+	return fmt.Sprintf("Pageable(totalCount=%d, totalPage=%d, page=%d, pageSize=%d, rows=%+v, hasNext=%v)",
+			p.TotalCount, p.TotalPage, p.Page, p.PageSize, p.Rows, p.HasNext,
+		)
 }
 
 func NewResult(data interface{}, args ...ResultOpt) *Result {

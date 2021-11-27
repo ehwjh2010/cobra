@@ -2,6 +2,12 @@ package config
 
 var NullBytes = []byte("null")
 
+const SwaggerAPIUrl = "/swagger/index.html"
+
+const BJ = "Asia/Shanghai"
+
+const NullStr = "null"
+
 const HomeShortCut = "~" //类Unix系统home路径的短符号
 
 //常用时间 以下时间都是以秒为单位
