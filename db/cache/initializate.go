@@ -7,7 +7,7 @@ import (
 
 //InitCache 初始化缓存
 func InitCache(conf *client.Cache) (client *RedisClient, err error) {
-	pool, err := InitCacheWithRedisGo(conf)
+	c, err := InitCacheWithGoRedis(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -16,15 +16,7 @@ func InitCache(conf *client.Cache) (client *RedisClient, err error) {
 		conf.DefaultTimeOut = config.FiveMinute
 	}
 
-	client = &RedisClient{
-		pool:           pool,
-		defaultTimeOut: conf.DefaultTimeOut,
-	}
+	client = NewRedisClient(c, conf.DefaultTimeOut)
 
-	return client, err
-}
-
-//Close 关闭连接池
-func (c *RedisClient) Close() error {
-	return CloseCacheWithRedisGo(c.pool)
+	return client, nil
 }
