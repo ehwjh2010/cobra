@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.9.0
+	github.com/go-redis/redis/v8 v8.11.4
 	github.com/gomodule/redigo v1.8.5
 	github.com/jinzhu/copier v0.3.2
 	github.com/json-iterator/go v1.1.12
@@ -33,7 +34,6 @@ require (
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
-	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
