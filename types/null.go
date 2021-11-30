@@ -325,7 +325,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 	if !ns.Valid {
 		return []byte("null"), nil
 	}
-	return serialize.Marshal(ns.String)
+	return serialize.Marshal(ns.NullString.String)
 }
 
 // UnmarshalJSON for NullString

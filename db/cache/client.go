@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/ehwjh2010/cobra/types"
 	"github.com/ehwjh2010/cobra/util/serialize"
-	"github.com/ehwjh2010/cobra/util/timer"
 	"github.com/go-redis/redis/v8"
 	wrapErr "github.com/pkg/errors"
 	"time"
@@ -43,8 +42,8 @@ func (r *RedisClient) Set(key string, value interface{}, exp int) (err error) {
 	return nil
 }
 
-//SetNoExpire redis命令SET, 没有过期时间
-func (r *RedisClient) SetNoExpire(key string, value interface{}) (err error) {
+//SetWithNoExpire redis命令SET, 永久存储
+func (r *RedisClient) SetWithNoExpire(key string, value interface{}) (err error) {
 	ctx := context.Background()
 
 	if err = r.client.Set(ctx, key, value, 0).Err(); err != nil {
@@ -54,14 +53,7 @@ func (r *RedisClient) SetNoExpire(key string, value interface{}) (err error) {
 	return nil
 }
 
-//SetTime 设置时间
-func (r *RedisClient) SetTime(key string, value time.Time, exp int) (err error) {
-	str := timer.Time2Str(value)
-
-	return r.Set(key, str, exp)
-}
-
-//SetJson 设置Json
+//SetJson 设置Json, exp 单位: 秒
 func (r *RedisClient) SetJson(key string, value interface{}, exp int) (err error) {
 
 	str, err := serialize.MarshalStr(value)
