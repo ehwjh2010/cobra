@@ -1,5 +1,7 @@
 package config
 
+import "time"
+
 var NullBytes = []byte("null")
 
 const SwaggerAPIUrl = "/swagger/index.html"
@@ -32,7 +34,7 @@ const (
 	OneDay  = 24 * OneHour
 )
 
-const DefaultTimePattern = "2006-01-02T15:04:05.000Z0700" //默认时间格式
+const DefaultTimePattern = time.RFC3339 //默认时间格式
 
 const (
 	DefaultPage     = 1  //默认页数

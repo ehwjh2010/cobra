@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/types"
 	"github.com/ehwjh2010/cobra/util/serialize"
 	"github.com/go-redis/redis/v8"
@@ -22,7 +23,13 @@ func NewRedisClient(client *redis.Client, defaultTimeOut int) *RedisClient {
 
 // Close 关闭连接池
 func (r *RedisClient) Close() error {
-	return r.client.Close()
+	err := r.client.Close()
+	if err != nil {
+		return err
+	} else {
+		log.Debug("Close redis success!")
+		return nil
+	}
 }
 
 //===============================Command Set===================================
@@ -158,7 +165,7 @@ func (r *RedisClient) GetBool(key string) (types.NullBool, error) {
 	return types.NewBool(result), nil
 }
 
-//GetTime GetTime TODO 待测试
+//GetTime GetTime
 func (r *RedisClient) GetTime(key string) (types.NullTime, error) {
 	ctx := context.Background()
 
@@ -175,17 +182,25 @@ func (r *RedisClient) GetTime(key string) (types.NullTime, error) {
 	return types.NewTime(result), nil
 }
 
-//GetJson GetJson TODO 待测试
-func (r *RedisClient) GetJson(key string, dst interface{}) error {
+//GetJson GetJson
+func (r *RedisClient) GetJson(key string, dst interface{}) (bool, error) {
 	ctx := context.Background()
 
 	result, err := r.client.Get(ctx, key).Bytes()
 
 	if err != nil {
-		return err
+		if errors.Is(err, redis.Nil) {
+			return false, nil
+		} else {
+			return false, err
+		}
 	}
 
-	return serialize.Unmarshal(result, dst)
+	if err = serialize.Unmarshal(result, dst); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 //===============================Command Count===================================
@@ -243,6 +258,7 @@ func (r *RedisClient) DecrBy(key string, decr int64) (int64, error) {
 }
 
 //===============================Command list===================================
+// TODO 待测试
 
 //LPush 往列表插入值
 func (r *RedisClient) LPush(key string, value ...interface{}) error {
@@ -258,7 +274,9 @@ func (r *RedisClient) RPush(key string, value ...interface{}) error {
 	return r.client.RPush(ctx, key, value...).Err()
 }
 
-//LAllMemberStr 获取列表全部内容
+// TODO LALL各种类型
+
+// LAllMemberStr 获取列表全部内容
 func (r *RedisClient) LAllMemberStr(key string) ([]string, error) {
 	ctx := context.Background()
 

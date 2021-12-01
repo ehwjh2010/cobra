@@ -10,7 +10,6 @@ import (
 	enTran "github.com/go-playground/validator/v10/translations/en"
 	zhTran "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/pkg/errors"
-	"reflect"
 	"strings"
 	"sync"
 )
@@ -41,13 +40,13 @@ func RegisterTrans(language string) (err error) {
 		// 获取json tag中的字段名
 		// TODO fix 如果是表单数据, 则会有问题, 查询字符串 待查看
 		// TODO 添加常见的tag解析
-		v.RegisterTagNameFunc(func(fld reflect.StructField) string {
-			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-			if name == "-" {
-				return ""
-			}
-			return name
-		})
+		//v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		//	name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		//	if name == "-" {
+		//		return ""
+		//	}
+		//	return name
+		//})
 
 		switch language {
 		case config.EN:
