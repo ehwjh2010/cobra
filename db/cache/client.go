@@ -291,14 +291,33 @@ func (r *RedisClient) LAllMemberStr(key string) ([]string, error) {
 	return r.LMembersStr(key, 0, -1)
 }
 
-// LAllMembersInt 获取列表全部内容
-func (r *RedisClient) LAllMembersInt(key string) ([]int, error) {
+// LMembersInt 获取列表全部内容
+func (r *RedisClient) LMembersInt(key string, start, end int) ([]int, error) {
 	ctx := context.Background()
 
 	result := make([]int, 0)
 
-	err := r.client.LRange(ctx, key, 0, -1).ScanSlice(&result)
+	err := r.client.LRange(ctx, key, int64(start), int64(end)).ScanSlice(&result)
 
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// LAllMemberInt 获取列表全部内容
+func (r *RedisClient) LAllMemberInt(key string) ([]int, error) {
+	return r.LMembersInt(key, 0, -1)
+}
+
+// LMembersInt64 获取列表全部内容
+func (r *RedisClient) LMembersInt64(key string, start, end int) ([]int64, error) {
+	ctx := context.Background()
+
+	result := make([]int64, 0)
+
+	err := r.client.LRange(ctx, key, int64(start), int64(end)).ScanSlice(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -308,11 +327,16 @@ func (r *RedisClient) LAllMembersInt(key string) ([]int, error) {
 
 // LAllMemberInt64 获取列表全部内容
 func (r *RedisClient) LAllMemberInt64(key string) ([]int64, error) {
+	return r.LMembersInt64(key, 0, -1)
+}
+
+// LMembersFloat64 获取列表全部内容
+func (r *RedisClient) LMembersFloat64(key string, start, end int) ([]float64, error) {
 	ctx := context.Background()
 
-	result := make([]int64, 0)
+	result := make([]float64, 0)
 
-	result, err := r.client.LRange(ctx, key, 0, -1).Result()
+	err := r.client.LRange(ctx, key, int64(start), int64(end)).ScanSlice(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -321,27 +345,70 @@ func (r *RedisClient) LAllMemberInt64(key string) ([]int64, error) {
 }
 
 // LAllMemberFloat64 获取列表全部内容
-func (r *RedisClient) LAllMembersFloat64(key string) ([]string, error) {
-	ctx := context.Background()
-
-	result, err := r.client.LRange(ctx, key, 0, -1).Result()
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
+func (r *RedisClient) LAllMemberFloat64(key string) ([]int64, error) {
+	return r.LMembersInt64(key, 0, -1)
 }
 
-// LMemberFloat64 获取列表全部内容
-func (r *RedisClient) LMemberFloats64(key string) ([]string, error) {
-	ctx := context.Background()
+// TODO 待测试, 核心测试: key不存在时, 会是什么结果
 
-	result, err := r.client.LRange(ctx, key, 0, -1).Result()
+func (r *RedisClient) LFirstMemberStr(key string) (types.NullString, error) {
+
+	result, err := r.LMembersStr(key, 0, 0)
+
 	if err != nil {
-		return nil, err
+		return types.NewStrNull(), err
 	}
 
-	return result, nil
+	if len(result) > 0 {
+		return types.NewStr(result[0]), nil
+	}
+
+	return types.NewStrNull(), nil
+}
+
+func (r *RedisClient) LFirstMemberInt(key string) (types.NullInt, error) {
+
+	result, err := r.LMembersInt(key, 0, 0)
+
+	if err != nil {
+		return types.NewIntNull(), err
+	}
+
+	if len(result) > 0 {
+		return types.NewInt(result[0]), nil
+	}
+
+	return types.NewIntNull(), nil
+}
+
+func (r *RedisClient) LFirstMemberInt64(key string) (types.NullInt64, error) {
+
+	result, err := r.LMembersInt64(key, 0, 0)
+
+	if err != nil {
+		return types.NewInt64Null(), err
+	}
+
+	if len(result) > 0 {
+		return types.NewInt64(result[0]), nil
+	}
+
+	return types.NewInt64Null(), nil
+}
+
+func (r *RedisClient) LFirstMemberFloat64(key string) (types.NullFloat64, error) {
+
+	result, err := r.LMembersFloat64(key, 0, 0)
+
+	if err != nil {
+		return types.NewFloat64Null(), err
+	}
+
+	if len(result) > 0 {
+		return types.NewFloat64(result[0]), nil
+	}
+
+	return types.NewFloat64Null(), nil
 }
 
 //LPop 从末端删除元素
@@ -355,4 +422,44 @@ func (r *RedisClient) LPop(key string) (string, error) {
 	}
 
 	return result, nil
+}
+
+//LLen 列表长度
+func (r *RedisClient) LLen(key string) (int64, error) {
+	ctx := context.Background()
+
+	result, err := r.client.LLen(ctx, key).Result()
+
+	return result, err
+}
+
+//TODO rpoplpush
+
+//LRem 删除列表中所有与value相等的元素
+func (r *RedisClient) LRem(key string, value interface{}) error {
+	return r.LRemWithCount(key, value, 0)
+}
+
+//LRemFirstOne 从头部开始删除第一个value相等的元素
+func (r *RedisClient) LRemFirstOne(key string, value interface{}) error {
+	return r.LRemWithCount(key, value, 1)
+}
+
+//LRemLastOne 从尾部开始删除第一个value相等的元素
+func (r *RedisClient) LRemLastOne(key string, value interface{}) error {
+	return r.LRemWithCount(key, value, -1)
+}
+
+//LRemWithCount 删除列表中与value相等的元素, 删除个数为count
+func (r *RedisClient) LRemWithCount(key string, value interface{}, count int) error {
+	ctx := context.Background()
+	_, err := r.client.LRem(ctx, key, int64(count), value).Result()
+	return err
+}
+
+// LTrim 保留start, end 范围的元素
+func (r *RedisClient) LTrim(key string, start, end int) error {
+	ctx := context.Background()
+	_, err := r.client.LTrim(ctx, key, int64(start), int64(end)).Result()
+	return err
 }
