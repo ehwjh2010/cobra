@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/ehwjh2010/cobra/client"
-	"github.com/ehwjh2010/cobra/log"
 	"github.com/go-redis/redis/v8"
 	"time"
 )
@@ -31,6 +30,5 @@ func InitCacheWithGoRedis(redisConfig *client.Cache) (*redis.Client, error) {
 		return nil, err
 	}
 
-	log.Debug("Connect redis success")
 	return redisClient, nil
 }

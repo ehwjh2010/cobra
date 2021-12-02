@@ -274,10 +274,66 @@ func (r *RedisClient) RPush(key string, value ...interface{}) error {
 	return r.client.RPush(ctx, key, value...).Err()
 }
 
-// TODO LALL各种类型
+// LMembersStr 获取列表全部内容
+func (r *RedisClient) LMembersStr(key string, start, end int) ([]string, error) {
+	ctx := context.Background()
+
+	result, err := r.client.LRange(ctx, key, int64(start), int64(end)).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
 
 // LAllMemberStr 获取列表全部内容
 func (r *RedisClient) LAllMemberStr(key string) ([]string, error) {
+	return r.LMembersStr(key, 0, -1)
+}
+
+// LAllMembersInt 获取列表全部内容
+func (r *RedisClient) LAllMembersInt(key string) ([]int, error) {
+	ctx := context.Background()
+
+	result := make([]int, 0)
+
+	err := r.client.LRange(ctx, key, 0, -1).ScanSlice(&result)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// LAllMemberInt64 获取列表全部内容
+func (r *RedisClient) LAllMemberInt64(key string) ([]int64, error) {
+	ctx := context.Background()
+
+	result := make([]int64, 0)
+
+	result, err := r.client.LRange(ctx, key, 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// LAllMemberFloat64 获取列表全部内容
+func (r *RedisClient) LAllMembersFloat64(key string) ([]string, error) {
+	ctx := context.Background()
+
+	result, err := r.client.LRange(ctx, key, 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// LMemberFloat64 获取列表全部内容
+func (r *RedisClient) LMemberFloats64(key string) ([]string, error) {
 	ctx := context.Background()
 
 	result, err := r.client.LRange(ctx, key, 0, -1).Result()
