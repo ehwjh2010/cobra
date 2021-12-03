@@ -258,7 +258,6 @@ func (r *RedisClient) DecrBy(key string, decr int64) (int64, error) {
 }
 
 //===============================Command list===================================
-// TODO 待测试
 
 //LPush 往列表插入值
 func (r *RedisClient) LPush(key string, value ...interface{}) error {
