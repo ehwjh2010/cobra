@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/ehwjh2010/cobra/config"
-	"github.com/ehwjh2010/cobra/util/intutils"
-	"github.com/ehwjh2010/cobra/util/jsonutils"
-	"github.com/ehwjh2010/cobra/util/timeutils"
+	"github.com/ehwjh2010/cobra/util/integer"
+	"github.com/ehwjh2010/cobra/util/serialize"
+	"github.com/ehwjh2010/cobra/util/timer"
+	"strconv"
 	"time"
 )
 
@@ -18,9 +19,17 @@ type NullInt64 struct {
 	sql.NullInt64
 }
 
+func (ni *NullInt64) String() string {
+	if !ni.Valid {
+		return config.NullStr
+	}
+
+	return strconv.FormatInt(ni.Int64, 10)
+}
+
 //IsNil 是否是Nil
 func (ni *NullInt64) IsNil() bool {
-	return !ni.NullInt64.Valid
+	return !ni.Valid
 }
 
 //Equal 比较是否相等
@@ -33,36 +42,15 @@ func (ni *NullInt64) GetValue() int64 {
 	return ni.Int64
 }
 
-type nullInt64Opt func(nullInt64 *NullInt64)
-
-func newInt64WithInt64(v int64) nullInt64Opt {
-	return func(nullInt64 *NullInt64) {
-		nullInt64.Int64 = v
-	}
-}
-
-func newInt64WithValid(valid bool) nullInt64Opt {
-	return func(nullInt64 *NullInt64) {
-		nullInt64.NullInt64.Valid = valid
-	}
-}
-
-func newNullInt64(args ...nullInt64Opt) *NullInt64 {
-	nt := &NullInt64{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
-}
-
 func NewInt64(v int64) NullInt64 {
-	return *newNullInt64(newInt64WithInt64(v), newInt64WithValid(true))
+	return NullInt64{NullInt64: sql.NullInt64{
+		Int64: v,
+		Valid: true,
+	}}
 }
 
 func NewInt64Null() NullInt64 {
-	return *newNullInt64()
+	return NullInt64{}
 }
 
 // MarshalJSON for NullInt64
@@ -70,7 +58,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(ni.Int64)
+	return serialize.Marshal(ni.Int64)
 }
 
 //UnmarshalJSON for NullInt64
@@ -80,7 +68,7 @@ func (ni *NullInt64) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &ni.Int64)
+	err := serialize.Unmarshal(b, &ni.Int64)
 
 	if err != nil {
 		ni.Valid = false
@@ -98,6 +86,14 @@ type NullInt struct {
 	sql.NullInt64
 }
 
+func (ni *NullInt) String() string {
+	if !ni.Valid {
+		return config.NullStr
+	}
+
+	return strconv.FormatInt(ni.Int64, 10)
+}
+
 //IsNil 是否是Nil
 func (ni *NullInt) IsNil() bool {
 	return !ni.Valid
@@ -105,39 +101,18 @@ func (ni *NullInt) IsNil() bool {
 
 //GetValue 获取值
 func (ni *NullInt) GetValue() int {
-	return intutils.Int64ToInt(ni.Int64)
-}
-
-type nullIntOpt func(nullInt *NullInt)
-
-func newIntWithInt(v int) nullIntOpt {
-	return func(nullInt *NullInt) {
-		nullInt.Int64 = int64(v)
-	}
-}
-
-func newIntWithValid(valid bool) nullIntOpt {
-	return func(nullInt *NullInt) {
-		nullInt.Valid = valid
-	}
-}
-
-func newNullInt(args ...nullIntOpt) *NullInt {
-	nt := &NullInt{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
+	return integer.Int64ToInt(ni.Int64)
 }
 
 func NewInt(v int) NullInt {
-	return *newNullInt(newIntWithInt(v), newIntWithValid(true))
+	return NullInt{NullInt64: sql.NullInt64{
+		Int64: int64(v),
+		Valid: true,
+	}}
 }
 
 func NewIntNull() NullInt {
-	return *newNullInt()
+	return NullInt{}
 }
 
 // MarshalJSON for NullInt
@@ -145,7 +120,7 @@ func (ni NullInt) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(intutils.Int64ToInt(ni.Int64))
+	return serialize.Marshal(integer.Int64ToInt(ni.Int64))
 }
 
 //UnmarshalJSON for NullInt
@@ -155,7 +130,7 @@ func (ni *NullInt) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &ni.Int64)
+	err := serialize.Unmarshal(b, &ni.Int64)
 	if err != nil {
 		ni.Valid = false
 	} else {
@@ -177,6 +152,14 @@ type NullBool struct {
 	sql.NullBool
 }
 
+func (nb *NullBool) String() string {
+	if !nb.Valid {
+		return config.NullStr
+	}
+
+	return strconv.FormatBool(nb.Bool)
+}
+
 //IsNil 是否是Nil
 func (nb *NullBool) IsNil() bool {
 	return !nb.NullBool.Valid
@@ -192,39 +175,18 @@ func (nb NullBool) MarshalJSON() ([]byte, error) {
 	if !nb.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(nb.Bool)
-}
-
-type nullBoolOpt func(nullBool *NullBool)
-
-func newBoolWithBool(v bool) nullBoolOpt {
-	return func(nullBool *NullBool) {
-		nullBool.NullBool.Bool = v
-	}
-}
-
-func newBoolWithValid(valid bool) nullBoolOpt {
-	return func(nullBool *NullBool) {
-		nullBool.NullBool.Valid = valid
-	}
-}
-
-func newNullBool(args ...nullBoolOpt) *NullBool {
-	nt := &NullBool{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
+	return serialize.Marshal(nb.Bool)
 }
 
 func NewBool(v bool) NullBool {
-	return *newNullBool(newBoolWithBool(v), newBoolWithValid(true))
+	return NullBool{NullBool: sql.NullBool{
+		Bool:  v,
+		Valid: true,
+	}}
 }
 
 func NewBoolNull() NullBool {
-	return *newNullBool()
+	return NullBool{}
 }
 
 //UnmarshalJSON for NullBool
@@ -234,7 +196,7 @@ func (nb *NullBool) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &nb.Bool)
+	err := serialize.Unmarshal(b, &nb.Bool)
 	if err != nil {
 		nb.Valid = false
 	} else {
@@ -256,6 +218,14 @@ type NullFloat64 struct {
 	sql.NullFloat64
 }
 
+func (nf *NullFloat64) String() string {
+	if !nf.Valid {
+		return config.NullStr
+	}
+
+	return strconv.FormatFloat(nf.Float64, 'E', -1, 64)
+}
+
 //IsNil 是否是Nil
 func (nf *NullFloat64) IsNil() bool {
 	return !nf.NullFloat64.Valid
@@ -271,39 +241,18 @@ func (nf NullFloat64) MarshalJSON() ([]byte, error) {
 	if !nf.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(nf.Float64)
+	return serialize.Marshal(nf.Float64)
 }
 
-type nullFloat64Opt func(nullFloat64 *NullFloat64)
-
-func newFloat64WithFloat64(v float64) nullFloat64Opt {
-	return func(nullFloat64 *NullFloat64) {
-		nullFloat64.NullFloat64.Float64 = v
-	}
+func NewFloat64(v float64) NullFloat64 {
+	return NullFloat64{NullFloat64: sql.NullFloat64{
+		Float64: v,
+		Valid:   true,
+	}}
 }
 
-func newFloat64WithValid(valid bool) nullFloat64Opt {
-	return func(nullFloat64 *NullFloat64) {
-		nullFloat64.NullFloat64.Valid = valid
-	}
-}
-
-func newNullFloat64(args ...nullFloat64Opt) *NullFloat64 {
-	nt := &NullFloat64{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
-}
-
-func NewFloat64(v float64) *NullFloat64 {
-	return newNullFloat64(newFloat64WithFloat64(v), newFloat64WithValid(true))
-}
-
-func NewFloat64Null() *NullFloat64 {
-	return newNullFloat64()
+func NewFloat64Null() NullFloat64 {
+	return NullFloat64{}
 }
 
 // UnmarshalJSON for NullFloat64
@@ -313,7 +262,7 @@ func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &nf.Float64)
+	err := serialize.Unmarshal(b, &nf.Float64)
 	if err != nil {
 		nf.Valid = false
 	} else {
@@ -335,6 +284,14 @@ type NullString struct {
 	sql.NullString
 }
 
+func (ns *NullString) String() string {
+	if !ns.Valid {
+		return config.NullStr
+	}
+
+	return ns.NullString.String
+}
+
 //IsNil 是否是Nil
 func (ns *NullString) IsNil() bool {
 	return !ns.NullString.Valid
@@ -345,40 +302,22 @@ func (ns *NullString) GetValue() string {
 	return ns.NullString.String
 }
 
-type nullStrOpt func(ns *NullString)
-
-func nullStrWithStr(s string) nullStrOpt {
-	return func(ns *NullString) {
-		ns.NullString.String = s
-	}
-}
-
-func nullStrWithValid(valid bool) nullStrOpt {
-	return func(ns *NullString) {
-		ns.NullString.Valid = valid
-	}
-}
-
-func newNullString(args ...nullStrOpt) *NullString {
-	ns := &NullString{}
-
-	for _, arg := range args {
-		arg(ns)
-	}
-
-	return ns
-}
-
 func NewStr(str string) NullString {
-	return *newNullString(nullStrWithStr(str), nullStrWithValid(true))
+	return NullString{NullString: sql.NullString{
+		String: str,
+		Valid:  true,
+	}}
 }
 
 func NewEmptyStr() NullString {
-	return *newNullString(nullStrWithValid(true))
+	return NullString{NullString: sql.NullString{
+		String: "",
+		Valid:  true,
+	}}
 }
 
 func NewStrNull() NullString {
-	return *newNullString()
+	return NullString{}
 }
 
 // MarshalJSON for NullString
@@ -386,7 +325,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 	if !ns.Valid {
 		return []byte("null"), nil
 	}
-	return jsonutils.Marshal(ns.String)
+	return serialize.Marshal(ns.NullString.String)
 }
 
 // UnmarshalJSON for NullString
@@ -396,7 +335,7 @@ func (ns *NullString) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &ns.String)
+	err := serialize.Unmarshal(b, &ns.NullString.String)
 	if err != nil {
 		ns.Valid = false
 	} else {
@@ -408,17 +347,23 @@ func (ns *NullString) UnmarshalJSON(b []byte) error {
 
 //Equal 比较是否相等
 func (ns *NullString) Equal(v NullString) bool {
-	return ns.Valid == v.Valid && (!ns.Valid || ns.String == v.String)
+	return ns.Valid == v.Valid && (!ns.Valid || ns.NullString.String == v.NullString.String)
 }
 
 //********************time*****************************
 
-//NullTime is an alias for mysql.NullTime data type
+// NullTime is an alias for mysql.NullTime data type
 type NullTime struct {
 	sql.NullTime
 }
 
-//type NullTime sql.NullTime
+func (nt *NullTime) String() string {
+	if !nt.Valid {
+		return config.NullStr
+	}
+
+	return nt.Time.Format(config.DefaultTimePattern)
+}
 
 //IsNil 是否是Nil
 func (nt *NullTime) IsNil() bool {
@@ -435,40 +380,19 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.In(timeutils.GetBJLocation()).Format(config.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.In(timer.GetBJLocation()).Format(config.DefaultTimePattern))
 	return []byte(val), nil
 }
 
-type nullTimeOpt func(nullTime *NullTime)
-
-func newTimeWithTime(v time.Time) nullTimeOpt {
-	return func(nullTime *NullTime) {
-		nullTime.Time = v
-	}
+func NewTime(t time.Time) NullTime {
+	return NullTime{NullTime: sql.NullTime{
+		Time:  t,
+		Valid: true,
+	}}
 }
 
-func newTimeWithValid(valid bool) nullTimeOpt {
-	return func(nullTime *NullTime) {
-		nullTime.Valid = valid
-	}
-}
-
-func newNullTime(args ...nullTimeOpt) *NullTime {
-	nt := &NullTime{}
-
-	for _, arg := range args {
-		arg(nt)
-	}
-
-	return nt
-}
-
-func NewTime(t time.Time) *NullTime {
-	return newNullTime(newTimeWithTime(t), newTimeWithValid(true))
-}
-
-func NewTimeNull() *NullTime {
-	return newNullTime()
+func NewTimeNull() NullTime {
+	return NullTime{}
 }
 
 // UnmarshalJSON for NullTime
@@ -478,7 +402,7 @@ func (nt *NullTime) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 
-	err := jsonutils.Unmarshal(b, &nt.Time)
+	err := serialize.Unmarshal(b, &nt.Time)
 	if err != nil {
 		nt.Valid = false
 	} else {

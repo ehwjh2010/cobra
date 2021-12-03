@@ -44,8 +44,6 @@ func InitDBWithGorm(dbConfig *client.DB, dbType int) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	log.Debug("Connect db success!")
-
 	sqlDB, err := db.DB()
 
 	if err != nil {

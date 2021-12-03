@@ -1,542 +1,473 @@
 package cache
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"errors"
-	"github.com/ehwjh2010/cobra/config"
+	"fmt"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/types"
-	"github.com/ehwjh2010/cobra/util/jsonutils"
-	"github.com/gomodule/redigo/redis"
-	"go.uber.org/zap"
+	"github.com/ehwjh2010/cobra/util/serialize"
+	"github.com/go-redis/redis/v8"
+	wrapErr "github.com/pkg/errors"
+	"time"
 )
 
-const DefaultTimeOut = 60 * 5 //5分钟
-
-
-var ErrNullValue = errors.New("dest value is null")
-
 type RedisClient struct {
-	//pool redis连接池
-	pool *redis.Pool
-
-	//defaultTimeOut 默认过期时间
+	client         *redis.Client
 	defaultTimeOut int
 }
 
-func NewRedisClient(args ...RedisClientOption) (client *RedisClient) {
-	client = &RedisClient{
-		defaultTimeOut: DefaultTimeOut,
-	}
-	for _, arg := range args {
-		arg(client)
-	}
-	return client
+func NewRedisClient(client *redis.Client, defaultTimeOut int) *RedisClient {
+	return &RedisClient{client: client, defaultTimeOut: defaultTimeOut}
 }
 
-type RedisClientOption func(client *RedisClient)
-
-func RedisClientWithPool(pool *redis.Pool) RedisClientOption {
-	return func(client *RedisClient) {
-		client.pool = pool
-	}
-}
-
-func RedisClientWithDefaultTimeOut(defaultTimeOut int) RedisClientOption {
-	return func(client *RedisClient) {
-		timeout := defaultTimeOut
-		if timeout <= 0 {
-			timeout = DefaultTimeOut
-		}
-
-		client.defaultTimeOut = timeout
-	}
-}
-
-//Set 如果timeout小于等于0, 则使用默认超时时间, ex 单位: 秒
-func (c *RedisClient) Set(key string, value interface{}, timeout int) error {
-	if value == nil {
-		return nil
-	}
-
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	var err error
-
-	if timeout > 0 {
-		_, err = conn.Do("SET", key, value, "EX", timeout)
+// Close 关闭连接池
+func (r *RedisClient) Close() error {
+	err := r.client.Close()
+	if err != nil {
+		return err
 	} else {
-		_, err = conn.Do("SET", key, value, "EX", c.defaultTimeOut)
+		log.Debug("Close redis success!")
+		return nil
+	}
+}
+
+//===============================Command Set===================================
+
+// Set redis命令SET, exp 单位: 秒
+func (r *RedisClient) Set(key string, value interface{}, exp int) (err error) {
+	ctx := context.Background()
+
+	if exp <= 0 {
+		exp = r.defaultTimeOut
 	}
 
-	if err != nil {
-		log.Error("Command set", zap.Error(err), zap.String("key", key))
-		return err
+	if err = r.client.Set(ctx, key, value, time.Duration(exp)*time.Second).Err(); err != nil {
+		return wrapErr.Wrap(err, fmt.Sprintf("set key=%s, value=%v err", key, value))
 	}
+
 	return nil
 }
 
-//SetJson 设置json
-func (c *RedisClient) SetJson(key string, data interface{}, timeout int) error {
-	if data == nil {
-		return nil
+//SetWithNoExpire redis命令SET, 永久存储
+func (r *RedisClient) SetWithNoExpire(key string, value interface{}) (err error) {
+	ctx := context.Background()
+
+	if err = r.client.Set(ctx, key, value, 0).Err(); err != nil {
+		return wrapErr.Wrap(err, fmt.Sprintf("set key=%s, value=%v err", key, value))
 	}
 
-	value, _ := jsonutils.Marshal(data)
-	return c.Set(key, value, timeout)
+	return nil
 }
 
-//GetString redis get
-func (c *RedisClient) GetString(key string) (types.NullString, error) {
-	conn := c.pool.Get()
+//SetJson 设置Json, exp 单位: 秒
+func (r *RedisClient) SetJson(key string, value interface{}, exp int) (err error) {
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	val, err := redis.String(conn.Do("GET", key))
+	str, err := serialize.MarshalStr(value)
 	if err != nil {
-		if errors.Is(err, redis.ErrNil) {
+		return err
+	}
+
+	return r.Set(key, str, exp)
+}
+
+//MSet 批量Set
+func (r *RedisClient) MSet(data map[string]interface{}) error {
+	ctx := context.Background()
+
+	return r.client.MSet(ctx, data).Err()
+}
+
+//===============================Command Get===================================
+
+//GetStr GetStr
+func (r *RedisClient) GetStr(key string) (types.NullString, error) {
+	ctx := context.Background()
+
+	result, err := r.client.Get(ctx, key).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
 			return types.NewStrNull(), nil
 		} else {
 			return types.NewStrNull(), err
 		}
 	}
 
-	return types.NewStr(val), nil
+	return types.NewStr(result), nil
 }
 
-//GetBool redis get
-func (c *RedisClient) GetBool(key string) (types.NullBool, error) {
-	conn := c.pool.Get()
+//GetInt GetInt
+func (r *RedisClient) GetInt(key string) (types.NullInt, error) {
+	ctx := context.Background()
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+	result, err := r.client.Get(ctx, key).Int()
 
-	val, err := redis.Bool(conn.Do("GET", key))
 	if err != nil {
-		if errors.Is(err, redis.ErrNil) {
-			return types.NewBoolNull(), nil
-		} else {
-			return types.NewBoolNull(), err
-		}
-	}
-
-	return types.NewBool(val), nil
-}
-
-//SetExp 设置过期时间
-func (c *RedisClient) SetExp(key string, ex int) error {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	_, err := conn.Do("EXPIRE", key, ex)
-	if err != nil {
-		log.Error("Command expire", zap.Error(err))
-		return err
-	}
-	return nil
-}
-
-//GetJson 获取JSON
-func (c *RedisClient) GetJson(key string, data interface{}) error {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	bv, err := redis.Bytes(conn.Do("GET", key))
-	if err != nil {
-		log.Error("Command get json", zap.Error(err))
-		return err
-	}
-
-	if bytes.Equal(bv, config.NullBytes) {
-		return ErrNullValue
-	}
-
-	errJson := jsonutils.Unmarshal(bv, data)
-	if errJson != nil {
-		log.Error("Json unmarshal failed", zap.String("err", errJson.Error()))
-		return err
-	}
-	return nil
-}
-
-//HSet 对应hset命令
-func (c *RedisClient) HSet(key string, field string, data interface{}) error {
-	if data == nil {
-		return nil
-	}
-
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	_, err := conn.Do("HSET", key, field, data)
-	if err != nil {
-		log.Error("Command hset", zap.Error(err))
-		return err
-	}
-	return nil
-}
-
-//HGetStr 对应hget命令
-func (c *RedisClient) HGetStr(key, field string) (types.NullString, error) {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	val, err := redis.String(conn.Do("HGET", key, field))
-	if err != nil {
-		if errors.Is(err, redis.ErrNil) {
-			return types.NewStrNull(), nil
-		} else {
-			return types.NewStrNull(), err
-		}
-	}
-	return types.NewStr(val), nil
-}
-
-//HGetInt 对应hget命令
-func (c *RedisClient) HGetInt(key, field string) (types.NullInt, error) {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	val, err := redis.Int(conn.Do("HGET", key, field))
-	if err != nil {
-		if errors.Is(err, redis.ErrNil) {
+		if errors.Is(err, redis.Nil) {
 			return types.NewIntNull(), nil
 		} else {
 			return types.NewIntNull(), err
 		}
 	}
 
-	return types.NewInt(val), nil
+	return types.NewInt(result), nil
 }
 
-//HGetInt64 对应hget命令
-func (c *RedisClient) HGetInt64(key, field string) (types.NullInt64, error) {
-	conn := c.pool.Get()
+//GetInt64 GetInt64
+func (r *RedisClient) GetInt64(key string) (types.NullInt64, error) {
+	ctx := context.Background()
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+	result, err := r.client.Get(ctx, key).Int64()
 
-	val, err := redis.Int64(conn.Do("HGET", key, field))
 	if err != nil {
-		if errors.Is(err, redis.ErrNil) {
+		if errors.Is(err, redis.Nil) {
 			return types.NewInt64Null(), nil
 		} else {
 			return types.NewInt64Null(), err
 		}
 	}
 
-	return types.NewInt64(val), nil
+	return types.NewInt64(result), nil
 }
 
-//HGetBool 对应hget命令
-func (c *RedisClient) HGetBool(key, field string) (types.NullBool, error) {
-	conn := c.pool.Get()
+//GetFloat64 GetFloat64
+func (r *RedisClient) GetFloat64(key string) (types.NullFloat64, error) {
+	ctx := context.Background()
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+	result, err := r.client.Get(ctx, key).Float64()
 
-	val, err := redis.Bool(conn.Do("HGET", key, field))
 	if err != nil {
-		if errors.Is(err, redis.ErrNil) {
+		if errors.Is(err, redis.Nil) {
+			return types.NewFloat64Null(), nil
+		} else {
+			return types.NewFloat64Null(), err
+		}
+	}
+
+	return types.NewFloat64(result), nil
+}
+
+//GetBool GetBool
+func (r *RedisClient) GetBool(key string) (types.NullBool, error) {
+	ctx := context.Background()
+
+	result, err := r.client.Get(ctx, key).Bool()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
 			return types.NewBoolNull(), nil
 		} else {
 			return types.NewBoolNull(), err
 		}
 	}
-	return types.NewBool(val), nil
+
+	return types.NewBool(result), nil
 }
 
-//HGetAll 对应hgetall命令
-func (c *RedisClient) HGetAll(key string) (map[string]interface{}, error) {
-	conn := c.pool.Get()
+//GetTime GetTime
+func (r *RedisClient) GetTime(key string) (types.NullTime, error) {
+	ctx := context.Background()
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+	result, err := r.client.Get(ctx, key).Time()
 
-	tmp, err := redis.Bytes(conn.Do("HGETALL", key))
 	if err != nil {
-		log.Error("Command hgetall", zap.Error(err))
+		if errors.Is(err, redis.Nil) {
+			return types.NewTimeNull(), nil
+		} else {
+			return types.NewTimeNull(), err
+		}
+	}
+
+	return types.NewTime(result), nil
+}
+
+//GetJson GetJson
+func (r *RedisClient) GetJson(key string, dst interface{}) (bool, error) {
+	ctx := context.Background()
+
+	result, err := r.client.Get(ctx, key).Bytes()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	if err = serialize.Unmarshal(result, dst); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+//===============================Command Count===================================
+
+//Incr Incr
+func (r *RedisClient) Incr(key string) (int64, error) {
+	ctx := context.Background()
+
+	cmd := r.client.Incr(ctx, key)
+	if cmd.Err() != nil {
+		return 0, wrapErr.Wrap(cmd.Err(), "incr "+key+" failed")
+	}
+
+	count := cmd.Val()
+	return count, nil
+}
+
+//IncrBy IncrBy
+func (r *RedisClient) IncrBy(key string, incr int64) (int64, error) {
+	ctx := context.Background()
+
+	cmd := r.client.IncrBy(ctx, key, incr)
+	if cmd.Err() != nil {
+		return 0, wrapErr.Wrap(cmd.Err(), "incrby "+key+" failed")
+	}
+
+	count := cmd.Val()
+	return count, nil
+}
+
+//Decr Decr
+func (r *RedisClient) Decr(key string) (int64, error) {
+	ctx := context.Background()
+
+	cmd := r.client.Decr(ctx, key)
+	if cmd.Err() != nil {
+		return 0, wrapErr.Wrap(cmd.Err(), "decr "+key+" failed")
+	}
+
+	count := cmd.Val()
+	return count, nil
+}
+
+//DecrBy DecrBy
+func (r *RedisClient) DecrBy(key string, decr int64) (int64, error) {
+	ctx := context.Background()
+
+	cmd := r.client.DecrBy(ctx, key, decr)
+	if cmd.Err() != nil {
+		return 0, wrapErr.Wrap(cmd.Err(), "decrby "+key+" failed")
+	}
+
+	count := cmd.Val()
+	return count, nil
+}
+
+//===============================Command list===================================
+
+//LPush 往列表插入值
+func (r *RedisClient) LPush(key string, value ...interface{}) error {
+	ctx := context.Background()
+
+	return r.client.LPush(ctx, key, value...).Err()
+}
+
+//RPush 往列表插入值
+func (r *RedisClient) RPush(key string, value ...interface{}) error {
+	ctx := context.Background()
+
+	return r.client.RPush(ctx, key, value...).Err()
+}
+
+// LMembersStr 获取列表全部内容
+func (r *RedisClient) LMembersStr(key string, start, end int) ([]string, error) {
+	ctx := context.Background()
+
+	result, err := r.client.LRange(ctx, key, int64(start), int64(end)).Result()
+	if err != nil {
 		return nil, err
 	}
 
-	var val map[string]interface{}
+	return result, nil
+}
 
-	err = json.Unmarshal(tmp, &val)
+// LAllMemberStr 获取列表全部内容
+func (r *RedisClient) LAllMemberStr(key string) ([]string, error) {
+	return r.LMembersStr(key, 0, -1)
+}
+
+// LMembersInt 获取列表全部内容
+func (r *RedisClient) LMembersInt(key string, start, end int) ([]int, error) {
+	ctx := context.Background()
+
+	result := make([]int, 0)
+
+	err := r.client.LRange(ctx, key, int64(start), int64(end)).ScanSlice(&result)
+
 	if err != nil {
-		log.Error("Json unmarshal failed, ", zap.Error(err))
 		return nil, err
 	}
-	return val, nil
+
+	return result, nil
 }
 
-//Incr 对应incr命令
-func (c *RedisClient) Incr(key string) (int, error) {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	val, err := redis.Int(conn.Do("INCR", key))
-	if err != nil {
-		log.Error("Command incr", zap.Error(err))
-		return 0, err
-	}
-	return val, nil
-
+// LAllMemberInt 获取列表全部内容
+func (r *RedisClient) LAllMemberInt(key string) ([]int, error) {
+	return r.LMembersInt(key, 0, -1)
 }
 
-//IncrBy 对应incrby命令
-func (c *RedisClient) IncrBy(key string, n int) (int, error) {
-	conn := c.pool.Get()
+// LMembersInt64 获取列表全部内容
+func (r *RedisClient) LMembersInt64(key string, start, end int) ([]int64, error) {
+	ctx := context.Background()
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+	result := make([]int64, 0)
 
-	val, err := redis.Int(conn.Do("INCRBY", key, n))
+	err := r.client.LRange(ctx, key, int64(start), int64(end)).ScanSlice(&result)
 	if err != nil {
-		log.Error("Command incrby", zap.Error(err))
-		return 0, err
-	}
-	return val, nil
-}
-
-//Decr 对应decr命令
-func (c *RedisClient) Decr(key string) (int, error) {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	val, err := redis.Int(conn.Do("DECR", key))
-	if err != nil {
-		log.Error("Command desr",  zap.Error(err))
-		return 0, err
-	}
-	return val, nil
-}
-
-//DecrBy 对应decrby命令
-func (c *RedisClient) DecrBy(key string, n int) (int, error) {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	val, err := redis.Int(conn.Do("DECRBY", key, n))
-	if err != nil {
-		log.Error("Command decrby",  zap.Error(err))
-		return 0, err
-	}
-	return val, nil
-}
-
-//SAdd 对应sadd命令
-func (c *RedisClient) SAdd(key string, v interface{}) error {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	_, err := conn.Do("SADD", key, v)
-	if err != nil {
-		log.Error("Command sadd", zap.Error(err))
-		return err
-	}
-	return nil
-}
-
-//SMembersStr 对应smembers命令
-func (c *RedisClient) SMembersStr(key string) ([]string, error) {
-	conn := c.pool.Get()
-
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
-
-	val, err := redis.Strings(conn.Do("SMEMBERS", key))
-	if err != nil {
-		log.Error("Command smembers str", zap.Error(err))
 		return nil, err
 	}
-	return val, nil
+
+	return result, nil
 }
 
-//SMembersInt 对应smembers命令
-func (c *RedisClient) SMembersInt(key string) ([]int, error) {
-	conn := c.pool.Get()
+// LAllMemberInt64 获取列表全部内容
+func (r *RedisClient) LAllMemberInt64(key string) ([]int64, error) {
+	return r.LMembersInt64(key, 0, -1)
+}
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+// LMembersFloat64 获取列表全部内容
+func (r *RedisClient) LMembersFloat64(key string, start, end int) ([]float64, error) {
+	ctx := context.Background()
 
-	val, err := redis.Ints(conn.Do("SMEMBERS", key))
+	result := make([]float64, 0)
+
+	err := r.client.LRange(ctx, key, int64(start), int64(end)).ScanSlice(&result)
 	if err != nil {
-		log.Error("Command smembers int", zap.Error(err))
 		return nil, err
 	}
-	return val, nil
+
+	return result, nil
 }
 
-//SMembersInt64 对应smembers命令
-func (c *RedisClient) SMembersInt64(key string) ([]int64, error) {
-	conn := c.pool.Get()
+// LAllMemberFloat64 获取列表全部内容
+func (r *RedisClient) LAllMemberFloat64(key string) ([]int64, error) {
+	return r.LMembersInt64(key, 0, -1)
+}
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+// TODO 待测试, 核心测试: key不存在时, 会是什么结果
 
-	val, err := redis.Int64s(conn.Do("SMEMBERS", key))
+func (r *RedisClient) LFirstMemberStr(key string) (types.NullString, error) {
+
+	result, err := r.LMembersStr(key, 0, 0)
+
 	if err != nil {
-		log.Error("Command smembers int64s", zap.Error(err), zap.String("key", key))
-		return nil, err
+		return types.NewStrNull(), err
 	}
-	return val, nil
+
+	if len(result) > 0 {
+		return types.NewStr(result[0]), nil
+	}
+
+	return types.NewStrNull(), nil
 }
 
-//SISMembers 对应sismembers命令
-func (c *RedisClient) SISMembers(key, value string) bool {
-	conn := c.pool.Get()
+func (r *RedisClient) LFirstMemberInt(key string) (types.NullInt, error) {
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+	result, err := r.LMembersInt(key, 0, 0)
 
-	val, err := redis.Bool(conn.Do("SISMEMBER", key, value))
 	if err != nil {
-		log.Error(
-			"Command sismember",
-			zap.Error(err),
-			zap.String("key", key),
-			zap.String("value", value))
-		return false
+		return types.NewIntNull(), err
 	}
-	return val
+
+	if len(result) > 0 {
+		return types.NewInt(result[0]), nil
+	}
+
+	return types.NewIntNull(), nil
 }
 
-//Exist 对应exists命令
-func (c *RedisClient) Exist(key string) bool {
-	conn := c.pool.Get()
+func (r *RedisClient) LFirstMemberInt64(key string) (types.NullInt64, error) {
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+	result, err := r.LMembersInt64(key, 0, 0)
 
-	val, err := redis.Bool(conn.Do("EXISTS", key))
 	if err != nil {
-		log.Error("Command exist", zap.Error(err), zap.String("key", key))
-		return false
+		return types.NewInt64Null(), err
 	}
-	return val
+
+	if len(result) > 0 {
+		return types.NewInt64(result[0]), nil
+	}
+
+	return types.NewInt64Null(), nil
 }
 
-//Del 对应del命令
-func (c *RedisClient) Del(key string) error {
-	conn := c.pool.Get()
+func (r *RedisClient) LFirstMemberFloat64(key string) (types.NullFloat64, error) {
 
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Error("Redis conn close failed", zap.Error(err))
-		}
-	}()
+	result, err := r.LMembersFloat64(key, 0, 0)
 
-	if _, err := conn.Do("DEL", key); err != nil {
-		log.Error("Command del", zap.Error(err), zap.String("key", key))
-		return err
+	if err != nil {
+		return types.NewFloat64Null(), err
 	}
-	return nil
+
+	if len(result) > 0 {
+		return types.NewFloat64(result[0]), nil
+	}
+
+	return types.NewFloat64Null(), nil
+}
+
+//LPop 从末端删除元素
+func (r *RedisClient) LPop(key string) (string, error) {
+	ctx := context.Background()
+
+	result, err := r.client.LPop(ctx, key).Result()
+
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
+}
+
+//LLen 列表长度
+func (r *RedisClient) LLen(key string) (int64, error) {
+	ctx := context.Background()
+
+	result, err := r.client.LLen(ctx, key).Result()
+
+	return result, err
+}
+
+//LRem 删除列表中所有与value相等的元素
+func (r *RedisClient) LRem(key string, value interface{}) error {
+	return r.LRemWithCount(key, value, 0)
+}
+
+//LRemFirstOne 从头部开始删除第一个value相等的元素
+func (r *RedisClient) LRemFirstOne(key string, value interface{}) error {
+	return r.LRemWithCount(key, value, 1)
+}
+
+//LRemLastOne 从尾部开始删除第一个value相等的元素
+func (r *RedisClient) LRemLastOne(key string, value interface{}) error {
+	return r.LRemWithCount(key, value, -1)
+}
+
+//LRemWithCount 删除列表中与value相等的元素, 删除个数为count
+func (r *RedisClient) LRemWithCount(key string, value interface{}, count int) error {
+	ctx := context.Background()
+
+	_, err := r.client.LRem(ctx, key, int64(count), value).Result()
+
+	return err
+}
+
+// LTrim 保留指定start, end 范围的元素
+func (r *RedisClient) LTrim(key string, start, end int) error {
+	ctx := context.Background()
+
+	_, err := r.client.LTrim(ctx, key, int64(start), int64(end)).Result()
+
+	return err
+}
+
+//RPopLPush Redis命令rpoplpush
+func (r *RedisClient) RPopLPush(src ,dst string) (string, error) {
+	ctx := context.Background()
+
+	return r.client.RPopLPush(ctx, src, dst).Result()
 }

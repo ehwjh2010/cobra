@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/ehwjh2010/cobra/util/structutils"
+	"github.com/ehwjh2010/cobra/util/object"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -65,7 +65,7 @@ func MaxAgeOpt(maxAge time.Duration) CorsOpt {
 func Cors(args ...CorsOpt) gin.HandlerFunc {
 
 	config := &CorsConfig{
-		AllowOrigins: nil,
+		AllowOrigins: []string{"*"},
 		AllowMethods: []string{
 			http.MethodGet,
 			http.MethodPost,
@@ -77,23 +77,35 @@ func Cors(args ...CorsOpt) gin.HandlerFunc {
 			http.MethodDelete,
 		},
 		AllowHeaders: []string{
-			"Origin",
-			"Content-Length",
-			"Content-Type",
-			"X-CSRF-Token",
 			"Authorization",
+			"Content-Length",
+			"X-CSRF-Token",
 			"Token",
 			"Session",
+			"Accept",
+			"Origin",
+			"Host",
+			"Connection",
+			"Accept-Encoding",
+			"Accept-Language",
+			"DNT",
+			"Keep-Alive",
+			"User-Agent",
+			"X-Requested-With",
+			"If-Modified-Since",
+			"Cache-Control",
+			"Content-Type",
 		},
 		AllowCredentials: true,
 		ExposeHeaders: []string{
 			"Content-Length",
-			"Content-Type",
-			"Authorization",
-			"Token",
-			"Session",
 			"Access-Control-Allow-Origin",
 			"Access-Control-Allow-Headers",
+			"Cache-Control",
+			"Content-Language",
+			"Content-Type",
+			"Expires",
+			"Last-Modified",
 		},
 		MaxAge:        time.Hour * 24,
 		AllowWildcard: true,
@@ -105,7 +117,7 @@ func Cors(args ...CorsOpt) gin.HandlerFunc {
 
 	c := &cors.Config{}
 
-	structutils.CopyProperties(config, c)
+	object.CopyProperties(config, c)
 
 	return cors.New(*c)
 }

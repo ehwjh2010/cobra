@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ehwjh2010/cobra/log"
 	"github.com/ehwjh2010/cobra/types"
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
 	"os/signal"
@@ -25,9 +24,7 @@ func invokeFunc(functions []func() error) error {
 			continue
 		}
 
-		if err := function(); err != nil {
-			multiErr.AddErr(err)
-		}
+		multiErr.AddErr(function())
 	}
 
 	if multiErr.IsEmpty() {
@@ -37,7 +34,7 @@ func invokeFunc(functions []func() error) error {
 	return &multiErr
 }
 
-func GraceServer(engine *gin.Engine, host string, port, timeout int, onStartUp func() error, onShutDown []func() error) {
+func GraceServer(engine http.Handler, host string, port, timeout int, onStartUp []func() error, onShutDown []func() error) {
 	// Create context that listens for the interrupt signal from the OS.
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -50,7 +47,7 @@ func GraceServer(engine *gin.Engine, host string, port, timeout int, onStartUp f
 	}
 
 	//Invoke OnStartUp
-	if err := onStartUp(); err != nil {
+	if err := invokeFunc(onStartUp); err != nil {
 		log.Fatal("Invoke start function failed!!!", zap.Error(err))
 	}
 

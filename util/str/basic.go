@@ -1,6 +1,8 @@
-package strutils
+package str
 
-import "unicode/utf8"
+import (
+	"unicode/utf8"
+)
 
 func IsEmptyStr(str string) bool {
 	if len(str) == 0 {

@@ -1,10 +1,10 @@
-package fileutils
+package file
 
 import "os"
 
 //WriteFile 写数据到文件, 文件对象会自动关闭
-//@param filename 文件路径
-//@param data 需要写入的数据
+//filename 文件路径
+//data 需要写入的数据
 func WriteFile(filename string, data []byte, ifExistTrunc bool) error {
 	f, err := OpenFile(filename, ifExistTrunc)
 	if err != nil {
@@ -16,8 +16,8 @@ func WriteFile(filename string, data []byte, ifExistTrunc bool) error {
 }
 
 //WriteFileWithObj 写数据到文件, 文件对象会自动关闭
-//@param f 文件对象指针
-//@param data 需要写入的数据
+//f 文件对象指针
+//data 需要写入的数据
 func WriteFileWithObj(f *os.File, data []byte) error {
 	_, err := f.Write(data)
 	if err1 := f.Close(); err1 != nil && err == nil {
@@ -27,8 +27,8 @@ func WriteFileWithObj(f *os.File, data []byte) error {
 }
 
 //WriteFileWithNoClose 写数据到文件, 文件对象不会关闭
-//@param f 文件对象指针
-//@param data 需要写入的数据
+//f 文件对象指针
+//data 需要写入的数据
 func WriteFileWithNoClose(f *os.File, data []byte) error {
 	_, err := f.Write(data)
 	return err

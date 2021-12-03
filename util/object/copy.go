@@ -1,4 +1,4 @@
-package structutils
+package object
 
 import "github.com/jinzhu/copier"
 
