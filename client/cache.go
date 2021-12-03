@@ -2,9 +2,9 @@ package client
 
 //Cache 缓存配置
 type Cache struct {
-	Host             string `yaml:"host" json:"host"` //Redis IP
-	Port             int    `yaml:"port" json:"port"` //Redis 端口
-	User             string `yaml:"user" json:"user"`
+	Host             string `yaml:"host" json:"host"`                         //Redis IP
+	Port             int    `yaml:"port" json:"port"`                         //Redis 端口
+	User             string `yaml:"user" json:"user"`                         //用户
 	Pwd              string `yaml:"pwd" json:"pwd"`                           //密码
 	MaxFreeConnCount int    `yaml:"maxFreeConnCount" json:"maxFreeConnCount"` //最大闲置连接数
 	MinFreeConnCount int    `yaml:"minFreeConnCount" json:"minFreeConnCount"` //最小闲置连接数
