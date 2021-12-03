@@ -433,8 +433,6 @@ func (r *RedisClient) LLen(key string) (int64, error) {
 	return result, err
 }
 
-//TODO rpoplpush
-
 //LRem 删除列表中所有与value相等的元素
 func (r *RedisClient) LRem(key string, value interface{}) error {
 	return r.LRemWithCount(key, value, 0)
@@ -453,13 +451,24 @@ func (r *RedisClient) LRemLastOne(key string, value interface{}) error {
 //LRemWithCount 删除列表中与value相等的元素, 删除个数为count
 func (r *RedisClient) LRemWithCount(key string, value interface{}, count int) error {
 	ctx := context.Background()
+
 	_, err := r.client.LRem(ctx, key, int64(count), value).Result()
+
 	return err
 }
 
-// LTrim 保留start, end 范围的元素
+// LTrim 保留指定start, end 范围的元素
 func (r *RedisClient) LTrim(key string, start, end int) error {
 	ctx := context.Background()
+
 	_, err := r.client.LTrim(ctx, key, int64(start), int64(end)).Result()
+
 	return err
+}
+
+//RPopLPush Redis命令rpoplpush
+func (r *RedisClient) RPopLPush(src ,dst string) (string, error) {
+	ctx := context.Background()
+
+	return r.client.RPopLPush(ctx, src, dst).Result()
 }
