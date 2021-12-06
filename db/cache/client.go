@@ -776,7 +776,7 @@ func (r *RedisClient) HSet(key string, info map[string]interface{}) error {
 	return nil
 }
 
-//HSet Redis命令Hset
+//HSetJson Redis命令Hset
 func (r *RedisClient) HSetJson(key, field string, value interface{}) error {
 	ctx := context.Background()
 
@@ -841,7 +841,7 @@ func (r *RedisClient) SAdd(key string, value ...interface{}) error {
 	return nil
 }
 
-//SIsMember Redis命令sisMember
+//SIsMember Redis命令sismember
 func (r *RedisClient) SIsMember(key string, value interface{}) (bool, error) {
 	ctx := context.Background()
 
@@ -856,4 +856,193 @@ func (r *RedisClient) SIsMember(key string, value interface{}) (bool, error) {
 	}
 
 	return exist, nil
+}
+
+//SMembers Redis命令smembers
+func (r *RedisClient) SMembers(key string) ([]string, error) {
+	ctx := context.Background()
+	result, err := r.client.SMembers(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return result, nil
+}
+
+//SMembersInt Redis命令smembers
+func (r *RedisClient) SMembersInt(key string) ([]int, error) {
+	ctx := context.Background()
+
+	ret := make([]int, 0)
+
+	err := r.client.SMembers(ctx, key).ScanSlice(ret)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return ret, nil
+}
+
+//SMembersInt64 Redis命令smembers
+func (r *RedisClient) SMembersInt64(key string) ([]int64, error) {
+	ctx := context.Background()
+
+	ret := make([]int64, 0)
+
+	err := r.client.SMembers(ctx, key).ScanSlice(ret)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return ret, nil
+}
+
+//SMembersFloat64 Redis命令smembers
+func (r *RedisClient) SMembersFloat64(key string) ([]float64, error) {
+	ctx := context.Background()
+
+	ret := make([]float64, 0)
+
+	err := r.client.SMembers(ctx, key).ScanSlice(ret)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return ret, nil
+}
+
+//SMembersTime Redis命令smembers
+func (r *RedisClient) SMembersTime(key string) ([]time.Time, error) {
+	ctx := context.Background()
+
+	ret := make([]time.Time, 0)
+
+	err := r.client.SMembers(ctx, key).ScanSlice(ret)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return ret, nil
+}
+
+//SPopStr Redis命令spop
+func (r *RedisClient) SPopStr(key string) (string, error) {
+	ctx := context.Background()
+
+	result, err := r.client.SPop(ctx, key).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", nil
+		} else {
+			return "", err
+		}
+	}
+
+	return result, nil
+}
+
+//SPopInt Redis命令spop
+func (r *RedisClient) SPopInt(key string) (int, error) {
+	ctx := context.Background()
+
+	result, err := r.client.SPop(ctx, key).Int()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+	}
+
+	return result, nil
+}
+
+//SPopInt64 Redis命令spop
+func (r *RedisClient) SPopInt64(key string) (int64, error) {
+	ctx := context.Background()
+
+	result, err := r.client.SPop(ctx, key).Int64()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+	}
+
+	return result, nil
+}
+
+//SPopBool Redis命令spop
+func (r *RedisClient) SPopBool(key string) (bool, error) {
+	ctx := context.Background()
+
+	result, err := r.client.SPop(ctx, key).Bool()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return result, nil
+}
+
+//SPopFloat64 Redis命令spop
+func (r *RedisClient) SPopFloat64(key string) (float64, error) {
+	ctx := context.Background()
+
+	result, err := r.client.SPop(ctx, key).Float64()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+	}
+
+	return result, nil
+}
+
+//SRem Redis命令srem
+func (r *RedisClient) SRem(key string, dst ...interface{}) (int64, error) {
+	ctx := context.Background()
+
+	result, err := r.client.SRem(ctx, key, dst...).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+	}
+
+	return result, nil
 }
