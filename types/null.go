@@ -19,6 +19,15 @@ type NullInt64 struct {
 	sql.NullInt64
 }
 
+//Empty 判断为nil或0
+func (ni *NullInt64) Empty() bool {
+	if !ni.Valid || ni.Value() == 0 {
+		return true
+	}
+
+	return false
+}
+
 func (ni *NullInt64) String() string {
 	if !ni.Valid {
 		return config.NullStr
@@ -37,8 +46,8 @@ func (ni *NullInt64) Equal(v NullInt64) bool {
 	return ni.Valid == v.Valid && (!ni.Valid || ni.Int64 == v.Int64)
 }
 
-//GetValue 获取值
-func (ni *NullInt64) GetValue() int64 {
+//Value 获取值
+func (ni *NullInt64) Value() int64 {
 	return ni.Int64
 }
 
@@ -86,6 +95,15 @@ type NullInt struct {
 	sql.NullInt64
 }
 
+//Empty 判断为nil或0
+func (ni *NullInt) Empty() bool {
+	if !ni.Valid || ni.Value() == 0 {
+		return true
+	}
+
+	return false
+}
+
 func (ni *NullInt) String() string {
 	if !ni.Valid {
 		return config.NullStr
@@ -99,8 +117,8 @@ func (ni *NullInt) IsNil() bool {
 	return !ni.Valid
 }
 
-//GetValue 获取值
-func (ni *NullInt) GetValue() int {
+//Value 获取值
+func (ni *NullInt) Value() int {
 	return integer.Int64ToInt(ni.Int64)
 }
 
@@ -152,6 +170,15 @@ type NullBool struct {
 	sql.NullBool
 }
 
+//Empty 判断为nil或false
+func (nb *NullBool) Empty() bool {
+	if !nb.Valid || nb.Value() == false {
+		return true
+	}
+
+	return false
+}
+
 func (nb *NullBool) String() string {
 	if !nb.Valid {
 		return config.NullStr
@@ -165,8 +192,8 @@ func (nb *NullBool) IsNil() bool {
 	return !nb.NullBool.Valid
 }
 
-//GetValue 获取值
-func (nb *NullBool) GetValue() bool {
+//Value 获取值
+func (nb *NullBool) Value() bool {
 	return nb.NullBool.Bool
 }
 
@@ -218,6 +245,15 @@ type NullFloat64 struct {
 	sql.NullFloat64
 }
 
+//Empty 判断为nil或0
+func (nf *NullFloat64) Empty() bool {
+	if !nf.Valid || nf.Value() == 0 {
+		return true
+	}
+
+	return false
+}
+
 func (nf *NullFloat64) String() string {
 	if !nf.Valid {
 		return config.NullStr
@@ -231,8 +267,8 @@ func (nf *NullFloat64) IsNil() bool {
 	return !nf.NullFloat64.Valid
 }
 
-//GetValue 获取值
-func (nf *NullFloat64) GetValue() float64 {
+//Value 获取值
+func (nf *NullFloat64) Value() float64 {
 	return nf.NullFloat64.Float64
 }
 
@@ -284,6 +320,15 @@ type NullString struct {
 	sql.NullString
 }
 
+//Empty 判断为nil或""
+func (ns *NullString) Empty() bool {
+	if !ns.Valid || ns.Value() == "" {
+		return true
+	}
+
+	return false
+}
+
 func (ns *NullString) String() string {
 	if !ns.Valid {
 		return config.NullStr
@@ -297,8 +342,8 @@ func (ns *NullString) IsNil() bool {
 	return !ns.NullString.Valid
 }
 
-//GetValue 获取值
-func (ns *NullString) GetValue() string {
+//Value 获取值
+func (ns *NullString) Value() string {
 	return ns.NullString.String
 }
 
@@ -370,8 +415,17 @@ func (nt *NullTime) IsNil() bool {
 	return !nt.Valid
 }
 
-//GetValue 获取值
-func (nt *NullTime) GetValue() time.Time {
+//Empty 判断为nil或0
+func (nt *NullTime) Empty() bool {
+	if !nt.Valid || nt.Value().Equal(time.Unix(0, 0)) {
+		return true
+	}
+
+	return false
+}
+
+//Value 获取值
+func (nt *NullTime) Value() time.Time {
 	return nt.Time
 }
 

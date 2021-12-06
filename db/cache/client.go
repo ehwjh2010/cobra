@@ -32,6 +32,85 @@ func (r *RedisClient) Close() error {
 	}
 }
 
+//Exist 确认key是否存在
+func (r *RedisClient) Exist(key string) (bool, error) {
+	ctx := context.Background()
+
+	result, err := r.client.Exists(ctx, key).Result()
+
+	if err != nil {
+		return false, err
+	}
+
+	exist := false
+	if result == 1 {
+		exist = true
+	}
+
+	return exist, nil
+}
+
+//Delete 删除指定key
+func (r *RedisClient) Delete(key ...string) error {
+	ctx := context.Background()
+
+	_, err := r.client.Del(ctx, key...).Result()
+
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return err
+	}
+
+	return nil
+}
+
+//SetExpire 设置过期时间, exp 单位: s
+func (r *RedisClient) SetExpire(key string, exp int) error {
+	ctx := context.Background()
+
+	_, err := r.client.Expire(ctx, key, time.Duration(exp)*time.Second).Result()
+
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return err
+	}
+
+	return nil
+}
+
+//TTL 获取指定key的过期时间, 返回时间, 单位: s
+//如果结果是nil, 则key不存在
+//如果结果值-1, 则key无过期时间
+//否则值就是key的过期时间
+func (r *RedisClient) TTL(key string) (types.NullFloat64, error) {
+	ctx := context.Background()
+
+	t, err := r.client.TTL(ctx, key).Result()
+
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return types.NewFloat64Null(), err
+	}
+
+	if t == (time.Duration(-1) * time.Nanosecond) {
+		return types.NewFloat64(-1), nil
+	} else if t == (time.Duration(-2) * time.Nanosecond) {
+		return types.NewFloat64Null(), nil
+	} else {
+		return types.NewFloat64(t.Seconds()), nil
+	}
+}
+
+//SetNX 存在不操作, 不存在则设置, exp 单位: s
+func (r *RedisClient) SetNX(key string, value interface{}, exp int) (bool, error) {
+	ctx := context.Background()
+
+	ok, err := r.client.SetNX(ctx, key, value, time.Duration(exp)*time.Second).Result()
+
+	if err != nil {
+		return false, err
+	}
+
+	return ok, nil
+}
+
 //===============================Command Set===================================
 
 // Set redis命令SET, exp 单位: 秒
@@ -63,7 +142,7 @@ func (r *RedisClient) SetWithNoExpire(key string, value interface{}) (err error)
 //SetJson 设置Json, exp 单位: 秒
 func (r *RedisClient) SetJson(key string, value interface{}, exp int) (err error) {
 
-	str, err := serialize.MarshalStr(value)
+	str, err := serialize.Marshal(value)
 	if err != nil {
 		return err
 	}
@@ -348,8 +427,7 @@ func (r *RedisClient) LAllMemberFloat64(key string) ([]int64, error) {
 	return r.LMembersInt64(key, 0, -1)
 }
 
-// TODO 待测试, 核心测试: key不存在时, 会是什么结果
-
+// LFirstMemberStr 获取第一个元素, 如果值是nil, 代表列表为空或key不存在
 func (r *RedisClient) LFirstMemberStr(key string) (types.NullString, error) {
 
 	result, err := r.LMembersStr(key, 0, 0)
@@ -410,14 +488,61 @@ func (r *RedisClient) LFirstMemberFloat64(key string) (types.NullFloat64, error)
 	return types.NewFloat64Null(), nil
 }
 
-//LPop 从末端删除元素
-func (r *RedisClient) LPop(key string) (string, error) {
+//LPop 从头部删除元素
+func (r *RedisClient) LPop(key string) (types.NullString, error) {
 	ctx := context.Background()
 
 	result, err := r.client.LPop(ctx, key).Result()
 
 	if err != nil {
-		return "", err
+		if errors.Is(err, redis.Nil) {
+			return types.NewStrNull(), nil
+		} else {
+			return types.NewStrNull(), err
+		}
+	}
+
+	return types.NewStr(result), nil
+}
+
+//LPopWithCount 从头部删除元素
+func (r *RedisClient) LPopWithCount(key string, count int) ([]string, error) {
+	ctx := context.Background()
+
+	result, err := r.client.LPopCount(ctx, key, count).Result()
+
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+//RPop 从尾部删除元素
+func (r *RedisClient) RPop(key string) (types.NullString, error) {
+	ctx := context.Background()
+
+	result, err := r.client.RPop(ctx, key).Result()
+
+	if err != nil && !errors.Is(err, redis.Nil) {
+		if errors.Is(err, redis.Nil) {
+			return types.NewStrNull(), nil
+		} else {
+			return types.NewStrNull(), err
+		}
+	}
+
+	return types.NewStr(result), nil
+}
+
+//RPopWithCount 从头部删除元素
+func (r *RedisClient) RPopWithCount(key string, count int) ([]string, error) {
+	ctx := context.Background()
+
+	result, err := r.client.RPopCount(ctx, key, count).Result()
+
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return nil, err
 	}
 
 	return result, nil
@@ -456,7 +581,7 @@ func (r *RedisClient) LRemWithCount(key string, value interface{}, count int) er
 	return err
 }
 
-// LTrim 保留指定start, end 范围的元素
+// LTrim 保留指定start, end 范围的元素, 包括边界元素, 其中start, end为列表下标
 func (r *RedisClient) LTrim(key string, start, end int) error {
 	ctx := context.Background()
 
@@ -466,8 +591,269 @@ func (r *RedisClient) LTrim(key string, start, end int) error {
 }
 
 //RPopLPush Redis命令rpoplpush
-func (r *RedisClient) RPopLPush(src ,dst string) (string, error) {
+func (r *RedisClient) RPopLPush(src, dst string) (string, error) {
 	ctx := context.Background()
 
-	return r.client.RPopLPush(ctx, src, dst).Result()
+	result, err := r.client.RPopLPush(ctx, src, dst).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return "", wrapErr.Wrap(err, "key="+src+" not exist")
+		} else {
+			return "", wrapErr.Wrap(err, "operate redis failed")
+		}
+	}
+
+	return result, nil
+}
+
+//===============================Command hash===================================
+
+//HGetStr Redis命令hget
+func (r *RedisClient) HGetStr(key string, field string) (types.NullString, error) {
+	ctx := context.Background()
+
+	value, err := r.client.HGet(ctx, key, field).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return types.NewStrNull(), nil
+		} else {
+			return types.NewStrNull(), err
+		}
+	}
+
+	return types.NewStr(value), nil
+}
+
+//HGetInt Redis命令hget
+func (r *RedisClient) HGetInt(key string, field string) (types.NullInt, error) {
+	ctx := context.Background()
+
+	value, err := r.client.HGet(ctx, key, field).Int()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return types.NewIntNull(), nil
+		} else {
+			return types.NewIntNull(), err
+		}
+	}
+
+	return types.NewInt(value), nil
+}
+
+//HGetInt64 Redis命令hget
+func (r *RedisClient) HGetInt64(key string, field string) (types.NullInt64, error) {
+	ctx := context.Background()
+
+	value, err := r.client.HGet(ctx, key, field).Int64()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return types.NewInt64Null(), nil
+		} else {
+			return types.NewInt64Null(), err
+		}
+	}
+
+	return types.NewInt64(value), nil
+}
+
+//HGetFloat64 Redis命令hget
+func (r *RedisClient) HGetFloat64(key string, field string) (types.NullFloat64, error) {
+	ctx := context.Background()
+
+	value, err := r.client.HGet(ctx, key, field).Float64()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return types.NewFloat64Null(), nil
+		} else {
+			return types.NewFloat64Null(), err
+		}
+	}
+
+	return types.NewFloat64(value), nil
+}
+
+//HGetBool Redis命令hget
+func (r *RedisClient) HGetBool(key string, field string) (types.NullBool, error) {
+	ctx := context.Background()
+
+	value, err := r.client.HGet(ctx, key, field).Bool()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return types.NewBoolNull(), nil
+		} else {
+			return types.NewBoolNull(), err
+		}
+	}
+
+	return types.NewBool(value), nil
+}
+
+//HGetTime Redis命令hget
+func (r *RedisClient) HGetTime(key string, field string) (types.NullTime, error) {
+	ctx := context.Background()
+
+	value, err := r.client.HGet(ctx, key, field).Time()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return types.NewTimeNull(), nil
+		} else {
+			return types.NewTimeNull(), err
+		}
+	}
+
+	return types.NewTime(value), nil
+}
+
+//HGetJson Redis命令hget
+func (r *RedisClient) HGetJson(key string, field string, dst interface{}) (bool, error) {
+	ctx := context.Background()
+
+	v, err := r.client.HGet(ctx, key, field).Bytes()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	if err = serialize.Unmarshal(v, dst); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+//HGetAll Redis命令hgetall
+func (r *RedisClient) HGetAll(key string) (map[string]string, error) {
+	ctx := context.Background()
+
+	v, err := r.client.HGetAll(ctx, key).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return v, nil
+}
+
+//HGetAllWIthMap Redis命令hgetall, 返回值第一个是key是否存在, 第二个是错误
+func (r *RedisClient) HGetAllWIthMap(key string) (map[string]string, error) {
+	ctx := context.Background()
+
+	v, err := r.client.HGetAll(ctx, key).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return v, nil
+}
+
+//HSet Redis命令Hset
+func (r *RedisClient) HSet(key string, info map[string]interface{}) error {
+	ctx := context.Background()
+
+	if _, err := r.client.HSet(ctx, key, info).Result(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//HSet Redis命令Hset
+func (r *RedisClient) HSetJson(key, field string, value interface{}) error {
+	ctx := context.Background()
+
+	marshalByte, err := serialize.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	if _, err := r.client.HSet(ctx, key, map[string]interface{}{field: marshalByte}).Result(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO 待测试
+
+//HKeys Redis命令hkeys
+func (r *RedisClient) HKeys(key string) ([]string, error) {
+	ctx := context.Background()
+
+	result, err := r.client.HKeys(ctx, key).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return result, nil
+}
+
+//HLen Redis命令hlen
+func (r *RedisClient) HLen(key string) (int64, error) {
+	ctx := context.Background()
+
+	count, err := r.client.HLen(ctx, key).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+	}
+
+	return count, nil
+}
+
+//===============================Command set===================================
+
+//SAdd Redis命令sadd
+func (r *RedisClient) SAdd(key string, value ...interface{}) error {
+	ctx := context.Background()
+
+	if _, err := r.client.SAdd(ctx, key, value...).Result(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//SIsMember Redis命令sisMember
+func (r *RedisClient) SIsMember(key string, value interface{}) (bool, error) {
+	ctx := context.Background()
+
+	exist, err := r.client.SIsMember(ctx, key, value).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return exist, nil
 }

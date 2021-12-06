@@ -5,9 +5,9 @@ import (
 	"github.com/ehwjh2010/cobra"
 	"github.com/ehwjh2010/cobra/client"
 	"github.com/ehwjh2010/cobra/config"
-	"github.com/ehwjh2010/cobra/extend"
 	"github.com/ehwjh2010/cobra/extend/ginext/middleware"
 	"github.com/ehwjh2010/cobra/log"
+	"github.com/ehwjh2010/cobra/server"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -58,7 +58,7 @@ func (app *App) Run() {
 				app.setting.Host, app.setting.Port, config.SwaggerAPIUrl))
 	}
 
-	extend.GraceServer(
+	server.GraceServer(
 		app.engine,
 		app.setting.Host,
 		app.setting.Port,
@@ -71,4 +71,3 @@ func (app *App) Run() {
 func (app *App) Engine() *gin.Engine {
 	return app.engine
 }
-
