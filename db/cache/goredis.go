@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const network = "tcp"
+
 func InitCacheWithGoRedis(redisConfig *client.Cache) (*redis.Client, error) {
 	redisClient := redis.NewClient(&redis.Options{
 		Network:      network,
@@ -21,6 +23,7 @@ func InitCacheWithGoRedis(redisConfig *client.Cache) (*redis.Client, error) {
 		PoolFIFO:     true,
 		PoolSize:     redisConfig.MaxOpenConnCount,
 		MinIdleConns: redisConfig.MinFreeConnCount,
+		MaxRetries:   redisConfig.MaxRetries,
 		IdleTimeout:  time.Duration(redisConfig.FreeMaxLifetime) * time.Minute,
 	})
 
