@@ -25,7 +25,7 @@ func InitLog(config *client.Log, application string) (err error) {
 		return
 	}
 
-	if str.IsNotEmptyStr(config.FileDir) {
+	if str.IsNotEmpty(config.FileDir) {
 		logFilePath, err := path.Relative2Abs(config.FileDir)
 		if err != nil {
 			return err
@@ -73,7 +73,7 @@ func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
 		writers = append(writers, os.Stdout)
 	}
 
-	if str.IsNotEmptyStr(conf.FileDir) {
+	if str.IsNotEmpty(conf.FileDir) {
 		absPath, _ := path.Relative2Abs(conf.FileDir)
 		filePath := path.PathJoin(absPath, application, filename)
 		if conf.Rotated {

@@ -1066,8 +1066,6 @@ func (r *RedisClient) SRem(key string, dst ...interface{}) (int64, error) {
 
 //===============================Command zset===================================
 
-// TODO 待测试
-
 //ZSet Redis命令zset
 func (r *RedisClient) ZSet(key string, score float64, value interface{}) error {
 	ctx := context.Background()

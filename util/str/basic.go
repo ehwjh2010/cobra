@@ -4,7 +4,7 @@ import (
 	"unicode/utf8"
 )
 
-func IsEmptyStr(str string) bool {
+func IsEmpty(str string) bool {
 	if len(str) == 0 {
 		return true
 	}
@@ -12,10 +12,10 @@ func IsEmptyStr(str string) bool {
 	return false
 }
 
-func IsNotEmptyStr(str string) bool {
-	return !IsEmptyStr(str)
+func IsNotEmpty(str string) bool {
+	return !IsEmpty(str)
 }
 
-func StrSize(str string) int {
+func Size(str string) int {
 	return utf8.RuneCountInString(str)
 }

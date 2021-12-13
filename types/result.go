@@ -50,8 +50,7 @@ type Pageable struct {
 
 func (p *Pageable) String() string {
 	return fmt.Sprintf("Pageable(totalCount=%d, totalPage=%d, page=%d, pageSize=%d, rows=%+v, hasNext=%v)",
-			p.TotalCount, p.TotalPage, p.Page, p.PageSize, p.Rows, p.HasNext,
-		)
+		p.TotalCount, p.TotalPage, p.Page, p.PageSize, p.Rows, p.HasNext)
 }
 
 func NewResult(data interface{}, args ...ResultOpt) *Result {
@@ -63,6 +62,14 @@ func NewResult(data interface{}, args ...ResultOpt) *Result {
 	for _, arg := range args {
 		arg(result)
 	}
+
+	return result
+}
+
+func NewPageResult(page int, pageSize int, totalCount int64, rows interface{}, args ...ResultOpt) *Result {
+	pageable := NewPageable(rows, page, pageSize, totalCount)
+
+	result := NewResult(pageable, args...)
 
 	return result
 }
@@ -98,12 +105,12 @@ func NewPageable(rows interface{}, page int, pageSize int, totalCount int64) *Pa
 	hasNext := totalPage > page
 
 	pageable := &Pageable{
-		Rows:     rows,
-		Page:     page,
-		PageSize: pageSize,
+		Rows:       rows,
+		Page:       page,
+		PageSize:   pageSize,
 		TotalCount: totalCount,
-		TotalPage: totalPage,
-		HasNext: hasNext,
+		TotalPage:  totalPage,
+		HasNext:    hasNext,
 	}
 
 	return pageable
