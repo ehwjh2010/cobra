@@ -26,21 +26,21 @@ type CorsConfig struct {
 
 type CorsOpt func(config *CorsConfig)
 
-func OriginOpt(origin ...string) CorsOpt {
+func OriginOpt(origins ...string) CorsOpt {
 	return func(config *CorsConfig) {
-		config.AllowOrigins = append(config.AllowOrigins, origin...)
+		config.AllowOrigins = origins
 	}
 }
 
-func MethodOpt(method ...string) CorsOpt {
+func MethodOpt(methods ...string) CorsOpt {
 	return func(config *CorsConfig) {
-		config.AllowMethods = append(config.AllowMethods, method...)
+		config.AllowMethods = methods
 	}
 }
 
-func HeaderOpt(header ...string) CorsOpt {
+func HeaderOpt(headers ...string) CorsOpt {
 	return func(config *CorsConfig) {
-		config.AllowHeaders = append(config.AllowHeaders, header...)
+		config.AllowHeaders = headers
 	}
 }
 
