@@ -9,4 +9,3 @@ func SetMode(debug bool) {
 		gin.SetMode(gin.ReleaseMode)
 	}
 }
-

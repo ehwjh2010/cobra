@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"github.com/ehwjh2010/cobra/config"
-	"github.com/ehwjh2010/cobra/util/integer"
-	"github.com/ehwjh2010/cobra/util/serialize"
-	"github.com/ehwjh2010/cobra/util/timer"
+	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/util/integer"
+	"github.com/ehwjh2010/viper/util/serialize"
+	"github.com/ehwjh2010/viper/util/timer"
 	"strconv"
 	"time"
 )
@@ -20,7 +20,7 @@ type NullInt64 struct {
 }
 
 //Empty 判断为nil或0
-func (ni *NullInt64) Empty() bool {
+func (ni NullInt64) Empty() bool {
 	if !ni.Valid || ni.Value() == 0 {
 		return true
 	}
@@ -28,9 +28,9 @@ func (ni *NullInt64) Empty() bool {
 	return false
 }
 
-func (ni *NullInt64) String() string {
+func (ni NullInt64) String() string {
 	if !ni.Valid {
-		return config.NullStr
+		return global.NullStr
 	}
 
 	return strconv.FormatInt(ni.Int64, 10)
@@ -72,7 +72,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 
 //UnmarshalJSON for NullInt64
 func (ni *NullInt64) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, config.NullBytes) {
+	if bytes.Equal(b, global.NullBytes) {
 		ni.Valid = false
 		return nil
 	}
@@ -96,7 +96,7 @@ type NullInt struct {
 }
 
 //Empty 判断为nil或0
-func (ni *NullInt) Empty() bool {
+func (ni NullInt) Empty() bool {
 	if !ni.Valid || ni.Value() == 0 {
 		return true
 	}
@@ -104,9 +104,9 @@ func (ni *NullInt) Empty() bool {
 	return false
 }
 
-func (ni *NullInt) String() string {
+func (ni NullInt) String() string {
 	if !ni.Valid {
-		return config.NullStr
+		return global.NullStr
 	}
 
 	return strconv.FormatInt(ni.Int64, 10)
@@ -143,7 +143,7 @@ func (ni NullInt) MarshalJSON() ([]byte, error) {
 
 //UnmarshalJSON for NullInt
 func (ni *NullInt) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, config.NullBytes) {
+	if bytes.Equal(b, global.NullBytes) {
 		ni.Valid = false
 		return nil
 	}
@@ -171,7 +171,7 @@ type NullBool struct {
 }
 
 //Empty 判断为nil或false
-func (nb *NullBool) Empty() bool {
+func (nb NullBool) Empty() bool {
 	if !nb.Valid || nb.Value() == false {
 		return true
 	}
@@ -179,9 +179,9 @@ func (nb *NullBool) Empty() bool {
 	return false
 }
 
-func (nb *NullBool) String() string {
+func (nb NullBool) String() string {
 	if !nb.Valid {
-		return config.NullStr
+		return global.NullStr
 	}
 
 	return strconv.FormatBool(nb.Bool)
@@ -218,7 +218,7 @@ func NewBoolNull() NullBool {
 
 //UnmarshalJSON for NullBool
 func (nb *NullBool) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, config.NullBytes) {
+	if bytes.Equal(b, global.NullBytes) {
 		nb.Valid = false
 		return nil
 	}
@@ -246,7 +246,7 @@ type NullFloat64 struct {
 }
 
 //Empty 判断为nil或0
-func (nf *NullFloat64) Empty() bool {
+func (nf NullFloat64) Empty() bool {
 	if !nf.Valid || nf.Value() == 0 {
 		return true
 	}
@@ -254,9 +254,9 @@ func (nf *NullFloat64) Empty() bool {
 	return false
 }
 
-func (nf *NullFloat64) String() string {
+func (nf NullFloat64) String() string {
 	if !nf.Valid {
-		return config.NullStr
+		return global.NullStr
 	}
 
 	return strconv.FormatFloat(nf.Float64, 'E', -1, 64)
@@ -293,7 +293,7 @@ func NewFloat64Null() NullFloat64 {
 
 // UnmarshalJSON for NullFloat64
 func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, config.NullBytes) {
+	if bytes.Equal(b, global.NullBytes) {
 		nf.Valid = false
 		return nil
 	}
@@ -321,7 +321,7 @@ type NullString struct {
 }
 
 //Empty 判断为nil或""
-func (ns *NullString) Empty() bool {
+func (ns NullString) Empty() bool {
 	if !ns.Valid || ns.Value() == "" {
 		return true
 	}
@@ -329,9 +329,9 @@ func (ns *NullString) Empty() bool {
 	return false
 }
 
-func (ns *NullString) String() string {
+func (ns NullString) String() string {
 	if !ns.Valid {
-		return config.NullStr
+		return global.NullStr
 	}
 
 	return ns.NullString.String
@@ -375,7 +375,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullString
 func (ns *NullString) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, config.NullBytes) {
+	if bytes.Equal(b, global.NullBytes) {
 		ns.Valid = false
 		return nil
 	}
@@ -402,12 +402,12 @@ type NullTime struct {
 	sql.NullTime
 }
 
-func (nt *NullTime) String() string {
+func (nt NullTime) String() string {
 	if !nt.Valid {
-		return config.NullStr
+		return global.NullStr
 	}
 
-	return nt.Time.Format(config.DefaultTimePattern)
+	return nt.Time.Format(global.DefaultTimePattern)
 }
 
 //IsNil 是否是Nil
@@ -416,7 +416,7 @@ func (nt *NullTime) IsNil() bool {
 }
 
 //Empty 判断为nil或0
-func (nt *NullTime) Empty() bool {
+func (nt NullTime) Empty() bool {
 	if !nt.Valid || nt.Value().Equal(time.Unix(0, 0)) {
 		return true
 	}
@@ -434,7 +434,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return []byte("null"), nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.In(timer.GetBJLocation()).Format(config.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.In(timer.GetBJLocation()).Format(global.DefaultTimePattern))
 	return []byte(val), nil
 }
 
@@ -451,7 +451,7 @@ func NewTimeNull() NullTime {
 
 // UnmarshalJSON for NullTime
 func (nt *NullTime) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, config.NullBytes) {
+	if bytes.Equal(b, global.NullBytes) {
 		nt.Valid = false
 		return nil
 	}

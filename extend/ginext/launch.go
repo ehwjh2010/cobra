@@ -2,12 +2,12 @@ package ginext
 
 import (
 	"fmt"
-	"github.com/ehwjh2010/cobra"
-	"github.com/ehwjh2010/cobra/client"
-	"github.com/ehwjh2010/cobra/config"
-	"github.com/ehwjh2010/cobra/extend/ginext/middleware"
-	"github.com/ehwjh2010/cobra/log"
-	"github.com/ehwjh2010/cobra/server"
+	"github.com/ehwjh2010/viper"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/extend/ginext/middleware"
+	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/server"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -19,7 +19,7 @@ type App struct {
 	setting client.Setting
 }
 
-func Cobra(settings client.Setting) *App {
+func Viper(settings client.Setting) *App {
 	SetMode(settings.Debug)
 
 	if err := log.InitLog(&settings.LogConfig, settings.Application); err != nil {
@@ -49,13 +49,13 @@ func Cobra(settings client.Setting) *App {
 
 //Run 启动
 func (app *App) Run() {
-	log.Infof(cobra.SIGN + "\n" + "Cobra Version: " + cobra.VERSION)
+	log.Infof(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
 	if app.setting.Swagger {
 		log.Info("Use swagger, url: " +
 			fmt.Sprintf(
 				"http://%s:%d%s",
-				app.setting.Host, app.setting.Port, config.SwaggerAPIUrl))
+				app.setting.Host, app.setting.Port, global.SwaggerAPIUrl))
 	}
 
 	server.GraceServer(

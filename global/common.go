@@ -1,4 +1,4 @@
-package config
+package global
 
 import "time"
 
@@ -42,6 +42,6 @@ const (
 )
 
 const (
-	CN = "cn" //中文
-	EN = "en" //英文
+	Chinese = "cn" //中文
+	English = "en" //英文
 )

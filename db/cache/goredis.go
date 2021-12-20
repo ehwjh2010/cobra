@@ -3,10 +3,12 @@ package cache
 import (
 	"context"
 	"fmt"
-	"github.com/ehwjh2010/cobra/client"
+	"github.com/ehwjh2010/viper/client"
 	"github.com/go-redis/redis/v8"
 	"time"
 )
+
+const network = "tcp"
 
 func InitCacheWithGoRedis(redisConfig *client.Cache) (*redis.Client, error) {
 	redisClient := redis.NewClient(&redis.Options{
@@ -21,10 +23,11 @@ func InitCacheWithGoRedis(redisConfig *client.Cache) (*redis.Client, error) {
 		PoolFIFO:     true,
 		PoolSize:     redisConfig.MaxOpenConnCount,
 		MinIdleConns: redisConfig.MinFreeConnCount,
+		MaxRetries:   redisConfig.MaxRetries,
 		IdleTimeout:  time.Duration(redisConfig.FreeMaxLifetime) * time.Minute,
 	})
 
-	ctx := context.Background()
+	ctx := context.TODO()
 
 	if _, err := redisClient.Ping(ctx).Result(); err != nil {
 		return nil, err

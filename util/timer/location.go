@@ -1,7 +1,7 @@
 package timer
 
 import (
-	"github.com/ehwjh2010/cobra/config"
+	"github.com/ehwjh2010/viper/global"
 	"strings"
 	"time"
 )
@@ -10,7 +10,7 @@ var locationMap = map[string]*time.Location{"UTC": time.UTC}
 
 //GetBJLocation 东八区
 func GetBJLocation() *time.Location {
-	location, _ := GetLocationByName(config.BJ)
+	location, _ := GetLocationByName(global.BJ)
 	return location
 }
 

@@ -1,7 +1,7 @@
 package ginext
 
 import (
-	"github.com/ehwjh2010/cobra/config"
+	"github.com/ehwjh2010/viper/global"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -49,18 +49,18 @@ func RegisterTrans(language string) (err error) {
 		//})
 
 		switch language {
-		case config.EN:
+		case global.English:
 			trans, _ = uni.GetTranslator(enT.Locale())
-		case config.CN:
+		case global.Chinese:
 			trans, _ = uni.GetTranslator(zhT.Locale())
 		default:
 			trans, _ = uni.GetTranslator(enT.Locale())
 		}
 
 		switch language {
-		case config.EN:
+		case global.English:
 			err = enTran.RegisterDefaultTranslations(v, trans)
-		case config.CN:
+		case global.Chinese:
 			err = zhTran.RegisterDefaultTranslations(v, trans)
 		default:
 			err = enTran.RegisterDefaultTranslations(v, trans)

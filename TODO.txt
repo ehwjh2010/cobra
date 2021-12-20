@@ -1,20 +1,17 @@
 2. 数据库连接
-    2.3 MongoDB
     2.4 ES
 6. 数据库钩子函数
 8. 根据数据库自动生成结构体
 10. 日志输出到日志中心
-11. 项目支持自动重启
 13. 依赖注入  https://github.com/google/wire,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
 17. 定时器 https://github.com/robfig/cron,  https://segmentfault.com/a/1190000023029219,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
-18. 协程池 https://github.com/panjf2000/ants
-24. gorm持续优化, 提供查询数量方法, Or查询, 连表查询, 查询指定字段
-25. http请求封装
+24. gorm持续优化, 提供连表查询, 查询指定字段
+26. mysql, redis支持集群
+27. 集群支持强制从写集群读取
+28. gorm支持重连
 
 
 优先级:
-7. 支持多种数据库
-8. 使用go-redis替换redisgo
-11. 测试gorm是否支持重连  # 不支持重连
-12. mysql, redis支持集群
-13. 支持强制从写集群读取
+1. 项目支持自动重启
+2. 协程池 https://github.com/panjf2000/ants
+3. http请求封装

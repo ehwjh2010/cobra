@@ -3,10 +3,11 @@ package rdb
 import (
 	"errors"
 	"fmt"
-	"github.com/ehwjh2010/cobra/log"
-	"github.com/ehwjh2010/cobra/util/str"
+	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/util/str"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"strconv"
 	"strings"
 )
 
@@ -19,7 +20,7 @@ const (
 
 const (
 	Eq    = "="
-	Nq    = "!="
+	Neq   = "!="
 	Gte   = ">="
 	Gt    = ">"
 	Lte   = "<="
@@ -38,8 +39,8 @@ const (
 type (
 	DBClient struct {
 		db *gorm.DB
-		//DbType 数据库类型
-		DbType int
+		//DBType 数据库类型
+		DBType int
 	}
 
 	Where struct {
@@ -49,73 +50,113 @@ type (
 		Value interface{}
 		//Sign 符号
 		Sign string
+		//Or 添加
+		Ors []*Where
 	}
 )
 
 func NewDBClient(db *gorm.DB, dbType int) (client *DBClient) {
 	client = &DBClient{
 		db:     db,
-		DbType: dbType,
+		DBType: dbType,
 	}
 
 	return client
 }
 
+//TODO Where 指定字段, 连表查询, 聚合查询, GROUP BY, HAVING, DISTINCT, COUNT, JOIN
+
+//Or 添加Or条件
+func (where *Where) Or(w *Where) *Where {
+	if w != nil {
+		where.Ors = append(where.Ors, w)
+	}
+
+	return where
+}
+
+//NewWhere 设置查询条件
 func NewWhere(column string, value interface{}, sign string) *Where {
 	return &Where{Column: column, Value: value, Sign: sign}
 }
 
+//NewEqWhere =
 func NewEqWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Eq}
 }
 
+//NewNotEqWhere !=
 func NewNotEqWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: Nq}
+	return &Where{Column: column, Value: value, Sign: Neq}
 }
 
+//NewGtWhere >
 func NewGtWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Gt}
 }
 
+//NewGteWhere >=
 func NewGteWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Gte}
 }
 
+//NewLteWhere <=
 func NewLteWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Lte}
 }
 
+//NewLtWhere <
 func NewLtWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Lt}
 }
 
+//NewInWhere in
 func NewInWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: In}
 }
 
+//NewNotInWhere not in
 func NewNotInWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: NotIn}
 }
 
-//NewLikeWhere TODO 模糊查询 格式化值
-func NewLikeWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: Like}
+//NewLikeWhere 模糊查询 %demo%
+func NewLikeWhere(column string, value string) *Where {
+	return &Where{Column: column, Value: `%` + value + `%`, Sign: Like}
 }
 
-//NewLeftLikeWhere TODO 模糊查询 格式化值
-func NewLeftLikeWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: Like}
+//NewLeftLikeWhere 模糊查询 %demo
+func NewLeftLikeWhere(column string, value string) *Where {
+	return &Where{Column: column, Value: `%` + value, Sign: Like}
 }
 
-//NewRightLikeWhere TODO 模糊查询 格式化值
-func NewRightLikeWhere(column string, value interface{}) *Where {
-	return &Where{Column: column, Value: value, Sign: Like}
+//NewRightLikeWhere 模糊查询 demo%
+func NewRightLikeWhere(column string, value string) *Where {
+	return &Where{Column: column, Value: value + `%`, Sign: Like}
 }
 
-//ForWhere 获取SQL
-func (where *Where) ForWhere() (pattern string, value interface{}) {
-	pattern = strings.Join([]string{where.Column, where.Sign, "?"}, " ")
+//internal 获取SQL
+func (where *Where) internal() (pattern string, value interface{}) {
+	pattern = where.Column + " " + where.Sign + " " + "?"
 	value = where.Value
+	return
+}
+
+//tranArgs 暂不支持ors里面嵌套or
+func (where *Where) tranOr(valMap map[string]interface{}, dive bool) (args []string) {
+
+	if len(where.Ors) <= 0 {
+		return
+	}
+
+	// 暂不支持ors里面嵌套or
+	for idx, ele := range where.Ors {
+		placeholder := "@" + ele.Column + strconv.Itoa(idx)
+		arg := ele.Column + " " + ele.Sign + " " + placeholder
+		valMap[placeholder] = ele.Value
+		args = append(args, arg)
+	}
+
 	return
 }
 
@@ -126,25 +167,31 @@ type Order struct {
 	Sort string
 }
 
+func (o Order) String() string {
+	return "order by " + o.Column + " " + o.Sort
+}
+
+//NewOrder 正排序 order by asc
 func NewOrder(column string) (order *Order) {
 	order = &Order{Column: column, Sort: ASC}
 	return order
 }
 
+//NewDescOrder 逆排序 order by desc
 func NewDescOrder(column string) (order *Order) {
 	order = &Order{Column: column, Sort: DESC}
 	return order
 }
 
-//Description 获取排序SQL
-func (o *Order) Description() (description string) {
-	description = fmt.Sprintf("%s %s", o.Column, o.Sort)
+//description 获取排序SQL
+func (o *Order) description() (description string) {
+	description = o.Column + " " + o.Sort
 	return description
 }
 
 //QueryCondition 查询条件
 type QueryCondition struct {
-	//Where 查询条件, `map`时, 根据`map`设定查询条件, struct时, struct零值字段不会当做条件. 推荐使用`map`
+	//Where 查询条件
 	Where []*Where
 
 	//Page 页数, 从1开始
@@ -159,59 +206,17 @@ type QueryCondition struct {
 	//TotalCount 是否查询总数量
 	TotalCount bool
 
-	offset int
+	//Offset 偏移量
+	Offset int
 
-	limit int
+	//Limit  查询数量
+	Limit int
 }
 
-func NewQueryCondition(args ...QCOption) *QueryCondition {
+func NewQueryCondition() *QueryCondition {
 	cond := &QueryCondition{}
 
-	for _, arg := range args {
-		arg(cond)
-	}
-
 	return cond
-}
-
-type QCOption func(condition *QueryCondition)
-
-func QCWithWhere(where []*Where) QCOption {
-	return func(condition *QueryCondition) {
-		condition.Where = where
-	}
-}
-
-func QCWithPage(page int) QCOption {
-	if page <= 0 {
-		panic("Page must gt 0")
-	}
-
-	return func(condition *QueryCondition) {
-		condition.Page = page
-	}
-}
-
-func QCWithPageSize(pageSize int) QCOption {
-	if pageSize <= 0 {
-		panic("PageSize must gt 0")
-	}
-
-	return func(condition *QueryCondition) {
-		condition.PageSize = pageSize
-	}
-}
-
-func QCWithTotalCount(totalCount bool) QCOption {
-	return func(condition *QueryCondition) {
-		condition.TotalCount = totalCount
-	}
-}
-
-func QCWithSort(sort []*Order) QCOption {
-	return func(condition *QueryCondition) {
-		condition.Sort = sort
-	}
 }
 
 //AddWhere 添加条件
@@ -248,15 +253,15 @@ func (qc *QueryCondition) SetTotalCount(query bool) *QueryCondition {
 	return qc
 }
 
-//OrderStr 获取Order排序
-func (qc *QueryCondition) OrderStr() string {
+//orderStr 获取Order排序
+func (qc *QueryCondition) orderStr() string {
 	if qc.Sort == nil {
 		return ""
 	}
 
-	var tmp []string
-	for _, item := range qc.Sort {
-		tmp = append(tmp, item.Description())
+	tmp := make([]string, len(qc.Sort))
+	for index, item := range qc.Sort {
+		tmp[index] = item.description()
 	}
 
 	result := strings.Join(tmp, ", ")
@@ -264,8 +269,36 @@ func (qc *QueryCondition) OrderStr() string {
 	return result
 }
 
-//Offset 获取偏移量
-func (qc *QueryCondition) Offset() (offset int) {
+//GetOffset 获取偏移量
+func (qc *QueryCondition) GetOffset() (offset int) {
+
+	if qc.Offset > 0 {
+		return qc.Offset
+	}
+
+	if o := qc.getOffsetByPage(); o > 0 {
+		return o
+	}
+
+	return 0
+}
+
+//GetLimit 获取偏移量
+func (qc *QueryCondition) GetLimit() (limit int) {
+
+	if qc.Limit > 0 {
+		return qc.Limit
+	}
+
+	if l := qc.getLimitByPage(); l > 0 {
+		return l
+	}
+
+	return 0
+}
+
+//getOffsetByPage 获取偏移量
+func (qc *QueryCondition) getOffsetByPage() (offset int) {
 	if qc.Page < 1 {
 		return 0
 	}
@@ -275,8 +308,8 @@ func (qc *QueryCondition) Offset() (offset int) {
 	return offset
 }
 
-//Limit 获取Limit
-func (qc *QueryCondition) Limit() (limit int) {
+//getLimitByPage 获取Limit
+func (qc *QueryCondition) getLimitByPage() (limit int) {
 	return qc.PageSize
 }
 
@@ -305,7 +338,7 @@ func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
 
 	if c.occurErr(tx, excludeErr...) {
-		log.Error("Query db occur err", zap.Error(tx.Error))
+		log.Error("operate db occur err", zap.Error(tx.Error))
 		return false, tx.Error
 	}
 
@@ -362,9 +395,18 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 	db = db.Table(tableName)
 
 	if condition.Where != nil {
+	whereLoop:
 		for _, where := range condition.Where {
-			query, args := where.ForWhere()
+			query, args := where.internal()
 			db = db.Where(query, args)
+			if len(where.Ors) <= 0 {
+				continue whereLoop
+			}
+
+			for _, w := range where.Ors {
+				q, ag := w.internal()
+				db = db.Or(q, ag)
+			}
 		}
 	}
 
@@ -372,15 +414,15 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 		db = db.Count(&totalCount)
 	}
 
-	if orderStr := condition.OrderStr(); str.IsNotEmptyStr(orderStr) {
+	if orderStr := condition.orderStr(); str.IsNotEmpty(orderStr) {
 		db = db.Order(orderStr)
 	}
 
-	if limit := condition.Limit(); limit >= 0 {
+	if limit := condition.GetLimit(); limit >= 0 {
 		db = db.Limit(limit)
 	}
 
-	if offset := condition.Offset(); offset >= 0 {
+	if offset := condition.GetOffset(); offset >= 0 {
 		db = db.Offset(offset)
 	}
 
@@ -398,10 +440,19 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition) (coun
 
 	db = db.Table(tableName)
 
-	if condition.Where != nil {
+	if len(condition.Where) > 0 {
+	whereLoop:
 		for _, where := range condition.Where {
-			query, arg := where.ForWhere()
+			query, arg := where.internal()
 			db = db.Where(query, arg)
+			if len(where.Ors) <= 0 {
+				continue whereLoop
+			}
+
+			for _, w := range where.Ors {
+				q, ag := w.internal()
+				db = db.Or(q, ag)
+			}
 		}
 	}
 
@@ -497,10 +548,10 @@ func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValu
 	return tx.Error
 }
 
-//UpdateRecordWithoutCond 无条件更新记录
+//UpdateRecordNoCond 无条件更新记录
 //tableName 表名
 //dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
-func (c *DBClient) UpdateRecordWithoutCond(tableName string, dstValue interface{}) error {
+func (c *DBClient) UpdateRecordNoCond(tableName string, dstValue interface{}) error {
 	db := c.db
 
 	tx := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Table(tableName).Updates(dstValue)
@@ -518,8 +569,8 @@ func (c *DBClient) Save(ptr interface{}) error {
 	return tx.Error
 }
 
-//GetConn 获取原生DB对象
-func (c *DBClient) GetConn() *gorm.DB {
+//GetDB 获取原生DB对象
+func (c *DBClient) GetDB() *gorm.DB {
 	db := c.db
 	return db
 }

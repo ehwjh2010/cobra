@@ -2,8 +2,8 @@ package rdb
 
 import (
 	"fmt"
-	"github.com/ehwjh2010/cobra/client"
-	"github.com/ehwjh2010/cobra/log"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

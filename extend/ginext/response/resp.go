@@ -1,7 +1,7 @@
 package response
 
 import (
-	"github.com/ehwjh2010/cobra/types"
+	"github.com/ehwjh2010/viper/types"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

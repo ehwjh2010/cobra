@@ -1,9 +1,9 @@
 package mysql
 
 import (
-	"github.com/ehwjh2010/cobra/client"
-	"github.com/ehwjh2010/cobra/db/rdb"
-	"github.com/ehwjh2010/cobra/log"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/db/rdb"
+	"github.com/ehwjh2010/viper/log"
 )
 
 //InitMysql 初始化Mysql

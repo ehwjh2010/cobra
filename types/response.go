@@ -90,4 +90,3 @@ func RespWithStatus(statusCode int) RespOpt {
 		response.StatusCode = statusCode
 	}
 }
-
