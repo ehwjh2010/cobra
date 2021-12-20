@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/ehwjh2010/cobra/util/object"
+	"github.com/ehwjh2010/viper/util/object"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"

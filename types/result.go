@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/ehwjh2010/cobra/config"
+	"github.com/ehwjh2010/viper/global"
 	"math"
 )
 
@@ -24,7 +24,7 @@ type Result struct {
 	Data interface{} `json:"data"`
 }
 
-func (r *Result) String() string {
+func (r Result) String() string {
 	return fmt.Sprintf("Result(code=%d, message=%s, data=%+v)", r.Code, r.Message, r.Data)
 }
 
@@ -48,7 +48,7 @@ type Pageable struct {
 	HasNext bool `json:"hasNext"`
 }
 
-func (p *Pageable) String() string {
+func (p Pageable) String() string {
 	return fmt.Sprintf("Pageable(totalCount=%d, totalPage=%d, page=%d, pageSize=%d, rows=%+v, hasNext=%v)",
 		p.TotalCount, p.TotalPage, p.Page, p.PageSize, p.Rows, p.HasNext)
 }
@@ -90,11 +90,11 @@ func ResultWithMessage(msg string) ResultOpt {
 
 func NewPageable(rows interface{}, page int, pageSize int, totalCount int64) *Pageable {
 	if page <= 0 {
-		page = config.DefaultPage
+		page = global.DefaultPage
 	}
 
 	if pageSize <= 0 {
-		pageSize = config.DefaultPageSize
+		pageSize = global.DefaultPageSize
 	}
 
 	if totalCount < 0 {

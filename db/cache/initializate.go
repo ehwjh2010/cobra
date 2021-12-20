@@ -1,9 +1,9 @@
 package cache
 
 import (
-	"github.com/ehwjh2010/cobra/client"
-	"github.com/ehwjh2010/cobra/config"
-	"github.com/ehwjh2010/cobra/log"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/log"
 )
 
 //InitCache 初始化缓存
@@ -17,7 +17,7 @@ func InitCache(conf *client.Cache) (client *RedisClient, err error) {
 	log.Debug("Connect redis success")
 
 	if conf.DefaultTimeOut <= 0 {
-		conf.DefaultTimeOut = config.FiveMinute
+		conf.DefaultTimeOut = global.FiveMinute
 	}
 
 	client = NewRedisClient(c, conf.DefaultTimeOut)

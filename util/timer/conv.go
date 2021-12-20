@@ -1,10 +1,9 @@
 package timer
 
 import (
-	"github.com/ehwjh2010/cobra/config"
+	"github.com/ehwjh2010/viper/global"
 	"time"
 )
-
 
 //==========================Format===============================
 
@@ -13,7 +12,7 @@ func Time2StrWithLay(t time.Time, layout string) string {
 }
 
 func Time2Str(t time.Time) string {
-	return t.Format(config.DefaultTimePattern)
+	return t.Format(global.DefaultTimePattern)
 }
 
 //==========================Second===============================
@@ -35,7 +34,7 @@ func Sec2StrWithLay(sec int64, layout string) string {
 
 // Sec2Str 秒级时间戳转UTC时区字符串
 func Sec2Str(sec int64) string {
-	return RawSec2Str(sec, config.DefaultTimePattern, time.UTC)
+	return RawSec2Str(sec, global.DefaultTimePattern, time.UTC)
 }
 
 // Sec2BjStrWithLay 秒级时间戳转东八区字符串
@@ -47,7 +46,7 @@ func Sec2BjStrWithLay(sec int64, layout string) string {
 // Sec2BjStr 秒级时间戳转东八区字符串
 func Sec2BjStr(sec int64) string {
 	loc := GetBJLocation()
-	return RawSec2Str(sec, config.DefaultTimePattern, loc)
+	return RawSec2Str(sec, global.DefaultTimePattern, loc)
 }
 
 func Str2TimeWithLay(str, layout string) (time.Time, error) {
@@ -55,7 +54,7 @@ func Str2TimeWithLay(str, layout string) (time.Time, error) {
 }
 
 func Str2Time(str string) (time.Time, error) {
-	return time.Parse(config.DefaultTimePattern, str)
+	return time.Parse(global.DefaultTimePattern, str)
 }
 
 //==========================MillSecond===========================
@@ -77,7 +76,7 @@ func MillSec2StrWithLay(msec int64, layout string) string {
 
 // MillSec2Str 毫秒级时间戳转UTC时区字符串
 func MillSec2Str(msec int64) string {
-	return RawMillSec2Str(msec, config.DefaultTimePattern, time.UTC)
+	return RawMillSec2Str(msec, global.DefaultTimePattern, time.UTC)
 }
 
 // MillSec2BjStrWithLay 毫秒级时间戳转东八区字符串
@@ -89,7 +88,7 @@ func MillSec2BjStrWithLay(msec int64, layout string) string {
 // MillSec2BjStr 毫秒级时间戳转东八区字符串
 func MillSec2BjStr(msec int64) string {
 	loc := GetBJLocation()
-	return RawMillSec2Str(msec, config.DefaultTimePattern, loc)
+	return RawMillSec2Str(msec, global.DefaultTimePattern, loc)
 }
 
 //==========================MicroSecond===========================
@@ -111,7 +110,7 @@ func MicroSec2StrWithLay(msec int64, layout string) string {
 
 // MicroSec2Str 毫秒级时间戳转UTC时区字符串
 func MicroSec2Str(msec int64) string {
-	return RawMicroSec2Str(msec, config.DefaultTimePattern, time.UTC)
+	return RawMicroSec2Str(msec, global.DefaultTimePattern, time.UTC)
 }
 
 // MicroSec2BjStrWithLay 毫秒级时间戳转东八区字符串
@@ -123,5 +122,5 @@ func MicroSec2BjStrWithLay(msec int64, layout string) string {
 // MicroSec2BjStr 毫秒级时间戳转东八区字符串
 func MicroSec2BjStr(msec int64) string {
 	loc := GetBJLocation()
-	return RawMicroSec2Str(msec, config.DefaultTimePattern, loc)
+	return RawMicroSec2Str(msec, global.DefaultTimePattern, loc)
 }

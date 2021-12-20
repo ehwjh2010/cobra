@@ -3,8 +3,8 @@ package rdb
 import (
 	"errors"
 	"fmt"
-	"github.com/ehwjh2010/cobra/log"
-	"github.com/ehwjh2010/cobra/util/str"
+	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/util/str"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"strconv"
@@ -39,8 +39,8 @@ const (
 type (
 	DBClient struct {
 		db *gorm.DB
-		//DbType 数据库类型
-		DbType int
+		//DBType 数据库类型
+		DBType int
 	}
 
 	Where struct {
@@ -58,7 +58,7 @@ type (
 func NewDBClient(db *gorm.DB, dbType int) (client *DBClient) {
 	client = &DBClient{
 		db:     db,
-		DbType: dbType,
+		DBType: dbType,
 	}
 
 	return client
@@ -167,7 +167,7 @@ type Order struct {
 	Sort string
 }
 
-func (o *Order) String() string {
+func (o Order) String() string {
 	return "order by " + o.Column + " " + o.Sort
 }
 

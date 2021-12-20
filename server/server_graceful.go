@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/ehwjh2010/cobra/log"
-	"github.com/ehwjh2010/cobra/types"
+	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/types"
 	"go.uber.org/zap"
 	"net/http"
 	"os/signal"
@@ -27,11 +27,7 @@ func invokeFunc(functions []func() error) error {
 		multiErr.AddErr(function())
 	}
 
-	if multiErr.IsEmpty() {
-		return nil
-	}
-
-	return &multiErr
+	return multiErr.AsStdErr()
 }
 
 func GraceServer(engine http.Handler, host string, port, timeout int, onStartUp []func() error, onShutDown []func() error) {

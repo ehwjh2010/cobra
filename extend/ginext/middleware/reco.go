@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/ehwjh2010/cobra/log"
+	"github.com/ehwjh2010/viper/log"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net"

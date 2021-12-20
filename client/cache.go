@@ -8,7 +8,7 @@ type Cache struct {
 	Pwd              string `yaml:"pwd" json:"pwd"`                           //密码
 	MinFreeConnCount int    `yaml:"minFreeConnCount" json:"minFreeConnCount"` //最小闲置连接数
 	MaxOpenConnCount int    `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` //最大连接数, 默认是每核10个连接
-	FreeMaxLifetime  int    `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`   //闲置连接存活的最大时间, 单位: 分钟, 默认
+	FreeMaxLifetime  int    `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`   //闲置连接存活的最大时间, 单位: 分钟
 	Database         int    `yaml:"database" json:"database"`                 //数据库
 	ConnectTimeout   int    `yaml:"connectTimeout" json:"connectTimeout"`     //连接Redis超时时间, 单位: 秒
 	ReadTimeout      int    `yaml:"readTimeout" json:"readTimeout"`           //读取超时时间, 单位: 秒

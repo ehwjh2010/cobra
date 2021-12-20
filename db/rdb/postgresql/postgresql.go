@@ -1,8 +1,8 @@
 package postgresql
 
 import (
-	"github.com/ehwjh2010/cobra/client"
-	"github.com/ehwjh2010/cobra/db/rdb"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/db/rdb"
 )
 
 //InitPostgresql 初始化Mysql

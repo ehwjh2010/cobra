@@ -2,7 +2,7 @@ package path
 
 import (
 	"errors"
-	"github.com/ehwjh2010/cobra/config"
+	"github.com/ehwjh2010/viper/global"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -100,9 +100,9 @@ func Relative2Abs(relativePath string) (string, error) {
 		return "", nil
 	}
 
-	if strings.HasPrefix(relativePath, config.HomeShortCut) {
+	if strings.HasPrefix(relativePath, global.HomeShortCut) {
 		home := os.Getenv("HOME")
-		relativePath = strings.Replace(relativePath, config.HomeShortCut, home, 1)
+		relativePath = strings.Replace(relativePath, global.HomeShortCut, home, 1)
 	}
 
 	absPath, err := filepath.Abs(relativePath)

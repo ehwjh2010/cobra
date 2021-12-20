@@ -1,7 +1,7 @@
 package rdb
 
 import (
-	"github.com/ehwjh2010/cobra/types"
+	"github.com/ehwjh2010/viper/types"
 	"time"
 )
 
@@ -18,4 +18,3 @@ type BasicModel struct {
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime;type:datetime not null default current_timestamp;comment:创建时间" json:"createdAt" swaggertype:"primitive,string"`
 	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime;type:datetime not null default current_timestamp on update current_timestamp;comment:更新时间" json:"updatedAt" swaggertype:"primitive,string"`
 }
-

@@ -1,11 +1,11 @@
 package log
 
 import (
-	"github.com/ehwjh2010/cobra/client"
-	"github.com/ehwjh2010/cobra/config"
-	"github.com/ehwjh2010/cobra/util/file"
-	"github.com/ehwjh2010/cobra/util/path"
-	"github.com/ehwjh2010/cobra/util/str"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/util/file"
+	"github.com/ehwjh2010/viper/util/path"
+	"github.com/ehwjh2010/viper/util/str"
 	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
@@ -58,7 +58,7 @@ func InitLog(config *client.Log, application string) (err error) {
 
 func getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(config.DefaultTimePattern)
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(global.DefaultTimePattern)
 	encoderConfig.TimeKey = "time"
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.EncodeDuration = zapcore.SecondsDurationEncoder
