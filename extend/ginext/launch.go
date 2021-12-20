@@ -19,7 +19,7 @@ type App struct {
 	setting client.Setting
 }
 
-func Cobra(settings client.Setting) *App {
+func Viper(settings client.Setting) *App {
 	SetMode(settings.Debug)
 
 	if err := log.InitLog(&settings.LogConfig, settings.Application); err != nil {
@@ -49,7 +49,7 @@ func Cobra(settings client.Setting) *App {
 
 //Run 启动
 func (app *App) Run() {
-	log.Infof(cobra.SIGN + "\n" + "Cobra Version: " + cobra.VERSION)
+	log.Infof(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
 	if app.setting.Swagger {
 		log.Info("Use swagger, url: " +
