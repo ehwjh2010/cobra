@@ -417,7 +417,7 @@ func (nt *NullTime) IsNil() bool {
 
 //Empty 判断为nil或0
 func (nt NullTime) Empty() bool {
-	if !nt.Valid || nt.Value().Equal(time.Unix(0, 0)) {
+	if !nt.Valid || nt.Time.Equal(time.Unix(0, 0)) {
 		return true
 	}
 
@@ -432,7 +432,7 @@ func (nt *NullTime) Value() time.Time {
 // MarshalJSON for NullTime
 func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
-		return []byte("null"), nil
+		return global.NullBytes, nil
 	}
 	val := fmt.Sprintf("\"%s\"", nt.Time.In(timer.GetBJLocation()).Format(global.DefaultTimePattern))
 	return []byte(val), nil
