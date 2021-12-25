@@ -572,6 +572,7 @@ func (c *DBClient) Save(ptr interface{}) error {
 //GetDB 获取原生DB对象
 func (c *DBClient) GetDB() *gorm.DB {
 	db := c.db
+
 	return db
 }
 
