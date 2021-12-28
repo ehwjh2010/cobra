@@ -7,30 +7,7 @@ import (
 	"time"
 )
 
-var rwMutex sync.RWMutex
-
-var locationMap = map[string]*time.Location{"UTC": time.UTC}
-
-//storeLoc 存储时区
-func storeLoc(name string, loc *time.Location) {
-	rwMutex.Lock()
-	defer rwMutex.Unlock()
-	if _, exist := locationMap[name]; exist {
-		return
-	}
-
-	if loc != nil {
-		locationMap[strings.ToUpper(name)] = loc
-	}
-}
-
-//queryLoc 查询时区
-func queryLoc(name string) (*time.Location, bool) {
-	rwMutex.RLock()
-	defer rwMutex.RUnlock()
-	loc, exist := locationMap[name]
-	return loc, exist
-}
+var locationMap sync.Map
 
 //GetBJLocation 东八区
 func GetBJLocation() *time.Location {
@@ -46,16 +23,18 @@ func GetUTCLocation() *time.Location {
 //GetLocationByName 根据名字获取时区
 func GetLocationByName(name string) (*time.Location, error) {
 	name = strings.ToUpper(name)
-	if location, ok := queryLoc(name); ok {
+	if loc, ok := locationMap.Load(name); ok {
+		location := loc.(*time.Location)
 		return location, nil
 	}
 
 	if location, err := time.LoadLocation(name); err == nil {
-		storeLoc(name, location)
+		locationMap.LoadOrStore(name, location)
 	} else {
 		return nil, err
 	}
 
-	location, _ := queryLoc(name)
+	loc, _ := locationMap.Load(name)
+	location := loc.(*time.Location)
 	return location, nil
 }

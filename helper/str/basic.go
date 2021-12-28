@@ -5,11 +5,7 @@ import (
 )
 
 func IsEmpty(str string) bool {
-	if len(str) == 0 {
-		return true
-	}
-
-	return false
+	return len(str) == 0
 }
 
 func IsNotEmpty(str string) bool {

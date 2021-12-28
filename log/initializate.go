@@ -3,9 +3,9 @@ package log
 import (
 	"github.com/ehwjh2010/viper/client"
 	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/util/file"
-	"github.com/ehwjh2010/viper/util/path"
-	"github.com/ehwjh2010/viper/util/str"
+	"github.com/ehwjh2010/viper/helper/file"
+	"github.com/ehwjh2010/viper/helper/path"
+	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
@@ -36,8 +36,7 @@ func InitLog(config *client.Log, application string) (err error) {
 		}
 	}
 
-	var writeSyncer zapcore.WriteSyncer
-	writeSyncer = getWriters(config, application)
+	writeSyncer := getWriters(config, application)
 
 	encoder := getEncoder()
 	var l = new(zapcore.Level)

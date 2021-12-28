@@ -2,15 +2,10 @@ package routine
 
 import (
 	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/log"
 	"github.com/panjf2000/ants/v2"
 	"time"
 )
-
-type FinSignal struct{}
-
-func NewFin() FinSignal {
-	return FinSignal{}
-}
 
 type Task struct {
 	rawConfig client.Routine
@@ -23,6 +18,16 @@ func newTask(rawConfig client.Routine, p *ants.Pool) *Task {
 
 type TaskFunc func()
 
+type AntsLogger func(string, ...interface{})
+
+func (d AntsLogger) Printf(format string, args ...interface{}) {
+	d(format, args...)
+}
+
+func defaultAntsLogger(format string, args ...interface{}) {
+	log.Infof(format, args...)
+}
+
 // SetUp 初始化协程池
 func SetUp(conf *client.Routine) (*Task, error) {
 	if conf.MaxWorkerCount <= 0 {
@@ -33,9 +38,13 @@ func SetUp(conf *client.Routine) (*Task, error) {
 		conf.FreeMaxLifetime = 3600
 	}
 
+	if conf.Logger == nil {
+		conf.Logger = AntsLogger(defaultAntsLogger)
+	}
+
 	if conf.PanicHandler == nil {
 		conf.PanicHandler = func(i interface{}) {
-
+			conf.Logger.Printf("err ==> ", i)
 		}
 	}
 
@@ -66,23 +75,12 @@ func (task *Task) Close() {
 	task.p.Release()
 }
 
-//AddTask 添加任务, 如果有设置
-func (task *Task) AddTask(taskFunc TaskFunc, t time.Duration) error {
-	//return task.p.Submit(taskFunc)
-
-	return nil
+//Reboot 重启关闭的协程池
+func (task Task) Reboot() {
+	task.p.Reboot()
 }
 
-//AddTaskWithTimeout 添加任务
-func (task *Task) AddTaskWithTimeout(taskFunc TaskFunc, t time.Duration) error {
-	//return task.p.Submit(taskFunc)
-
-	return nil
-}
-
-//wrapperTaskFunc 包装任务函数
-func (task *Task) wrapperTaskFunc(fn TaskFunc) func() {
-	return func() {
-		fn()
-	}
+//Delay 添加任务, 如果有设置
+func (task *Task) Delay(taskFunc TaskFunc) error {
+	return task.p.Submit(taskFunc)
 }

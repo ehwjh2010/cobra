@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/util/integer"
-	"github.com/ehwjh2010/viper/util/serialize"
+	"github.com/ehwjh2010/viper/helper/integer"
+	"github.com/ehwjh2010/viper/helper/serialize"
 	"strconv"
 	"time"
 )
