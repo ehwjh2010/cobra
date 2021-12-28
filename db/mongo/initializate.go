@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-func InitMongo(conf client.Mongo) (*mongo.Database, error) {
+//SetUp 初始化mongo
+func SetUp(conf client.Mongo) (*mongo.Database, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), global.FiveMinute)
 	defer cancel()
 	o := options.Client().ApplyURI(conf.Uri)

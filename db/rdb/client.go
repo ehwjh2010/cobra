@@ -3,8 +3,9 @@ package rdb
 import (
 	"errors"
 	"fmt"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/util/str"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"strconv"
@@ -39,6 +40,9 @@ const (
 type (
 	DBClient struct {
 		db *gorm.DB
+		//rawConfig 数据库配置
+		rawConfig client.DB
+
 		//DBType 数据库类型
 		DBType int
 	}
@@ -55,10 +59,11 @@ type (
 	}
 )
 
-func NewDBClient(db *gorm.DB, dbType int) (client *DBClient) {
+func NewDBClient(db *gorm.DB, dbType int, rawConfig client.DB) (client *DBClient) {
 	client = &DBClient{
-		db:     db,
-		DBType: dbType,
+		db:        db,
+		DBType:    dbType,
+		rawConfig: rawConfig,
 	}
 
 	return client

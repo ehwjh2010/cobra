@@ -6,8 +6,8 @@ import (
 	"github.com/ehwjh2010/viper/log"
 )
 
-//InitCache 初始化缓存
-func InitCache(conf *client.Cache) (client *RedisClient, err error) {
+//SetUp 初始化缓存
+func SetUp(conf *client.Cache) (client *RedisClient, err error) {
 	c, err := InitCacheWithGoRedis(conf)
 	if err != nil {
 		log.Debug("Connect redis failed")

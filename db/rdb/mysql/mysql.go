@@ -6,8 +6,8 @@ import (
 	"github.com/ehwjh2010/viper/log"
 )
 
-//InitMysql 初始化Mysql
-func InitMysql(dbConfig *client.DB) (client *rdb.DBClient, err error) {
+//SetUp 初始化Mysql
+func SetUp(dbConfig *client.DB) (client *rdb.DBClient, err error) {
 
 	db, err := rdb.InitDBWithGorm(dbConfig, rdb.Mysql)
 
@@ -18,7 +18,7 @@ func InitMysql(dbConfig *client.DB) (client *rdb.DBClient, err error) {
 
 	log.Debug("Connect db success")
 
-	client = rdb.NewDBClient(db, rdb.Mysql)
+	client = rdb.NewDBClient(db, rdb.Mysql, *dbConfig)
 
 	return client, nil
 }

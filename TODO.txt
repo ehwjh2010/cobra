@@ -15,3 +15,4 @@
 1. 项目支持自动重启
 2. 协程池 https://github.com/panjf2000/ants
 3. http请求封装
+4. 缓存雪崩
