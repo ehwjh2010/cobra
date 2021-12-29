@@ -17,7 +17,7 @@ func Success(c *gin.Context, data interface{}, args ...types.RespOpt) {
 
 //InvalidRequest 无效入参, 状态码400
 func InvalidRequest(c *gin.Context, message string) {
-	result := types.NewResult(nil, types.ResultWithMessage(message), types.ResultWithCode(types.InvalidParams))
+	result := types.NewErrResp(types.InvalidParams, message)
 
 	response := types.NewResp(result, types.RespWithStatus(http.StatusBadRequest))
 
@@ -35,8 +35,14 @@ func InvalidRequestWithData(c *gin.Context, message string, data interface{}) {
 
 //Fail 请求正常, 状态码200, 但是业务流不正常
 func Fail(c *gin.Context, code int, message string, args ...types.RespOpt) {
-	result := types.NewResult(nil, types.ResultWithCode(code), types.ResultWithMessage(message))
+	result := types.NewErrResp(code, message)
 
+	response := types.NewResp(result, args...)
+
+	baseResponse(c, response)
+}
+
+func FailWithResult(c *gin.Context, result types.Result, args ...types.RespOpt) {
 	response := types.NewResp(result, args...)
 
 	baseResponse(c, response)
@@ -62,8 +68,8 @@ func baseResponse(c *gin.Context, response *types.Response) {
 		}
 	}
 
-	if response.Cookies != nil {
-		for _, cookie := range response.Cookies {
+	if response.Cookie != nil {
+		for _, cookie := range response.Cookie {
 			if cookie == nil {
 				continue
 			}

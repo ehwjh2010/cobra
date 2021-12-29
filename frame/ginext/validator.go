@@ -15,7 +15,7 @@ import (
 )
 
 var flag = false
-var lock = sync.Mutex{}
+var lock sync.Mutex
 var trans unTrans.Translator
 
 // RegisterTrans 定义翻译的方法

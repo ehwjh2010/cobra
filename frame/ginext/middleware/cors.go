@@ -8,6 +8,49 @@ import (
 	"time"
 )
 
+var DefaultAllowHeaders = []string{
+	"Authorization",
+	"Content-Length",
+	"X-CSRF-Token",
+	"Token",
+	"Session",
+	"Accept",
+	"Origin",
+	"Host",
+	"Connection",
+	"Accept-Encoding",
+	"Accept-Language",
+	"DNT",
+	"Keep-Alive",
+	"User-Agent",
+	"X-Requested-With",
+	"If-Modified-Since",
+	"Cache-Control",
+	"Content-Type",
+}
+
+var DefaultAllowMethods = []string{
+	http.MethodGet,
+	http.MethodPost,
+	http.MethodPut,
+	http.MethodPatch,
+	http.MethodHead,
+	http.MethodHead,
+	http.MethodOptions,
+	http.MethodDelete,
+}
+
+var DefaultExposeHeaders = []string{
+	"Content-Length",
+	"Access-Control-Allow-Origin",
+	"Access-Control-Allow-Headers",
+	"Cache-Control",
+	"Content-Language",
+	"Content-Type",
+	"Expires",
+	"Last-Modified",
+}
+
 type CorsConfig struct {
 	AllowOrigins []string //允许哪些源 源: 协议+域名+端口 -> http://example.com
 
@@ -63,52 +106,14 @@ func MaxAgeOpt(maxAge time.Duration) CorsOpt {
 }
 
 func Cors(args ...CorsOpt) gin.HandlerFunc {
-
 	config := &CorsConfig{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{
-			http.MethodGet,
-			http.MethodPost,
-			http.MethodPut,
-			http.MethodPatch,
-			http.MethodHead,
-			http.MethodHead,
-			http.MethodOptions,
-			http.MethodDelete,
-		},
-		AllowHeaders: []string{
-			"Authorization",
-			"Content-Length",
-			"X-CSRF-Token",
-			"Token",
-			"Session",
-			"Accept",
-			"Origin",
-			"Host",
-			"Connection",
-			"Accept-Encoding",
-			"Accept-Language",
-			"DNT",
-			"Keep-Alive",
-			"User-Agent",
-			"X-Requested-With",
-			"If-Modified-Since",
-			"Cache-Control",
-			"Content-Type",
-		},
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     DefaultAllowMethods,
+		AllowHeaders:     DefaultAllowHeaders,
 		AllowCredentials: true,
-		ExposeHeaders: []string{
-			"Content-Length",
-			"Access-Control-Allow-Origin",
-			"Access-Control-Allow-Headers",
-			"Cache-Control",
-			"Content-Language",
-			"Content-Type",
-			"Expires",
-			"Last-Modified",
-		},
-		MaxAge:        time.Hour * 24,
-		AllowWildcard: true,
+		ExposeHeaders:    DefaultExposeHeaders,
+		MaxAge:           time.Hour * 24,
+		AllowWildcard:    true,
 	}
 
 	for _, arg := range args {

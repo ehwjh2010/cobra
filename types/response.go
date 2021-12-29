@@ -3,15 +3,15 @@ package types
 import "net/http"
 
 type Response struct {
-	Cookies    []*http.Cookie
+	Cookie     []*http.Cookie
 	Header     map[string]string
-	Result     *Result
+	Result     Result
 	StatusCode int
 }
 
 type RespOpt func(response *Response)
 
-func NewResp(result *Result, args ...RespOpt) *Response {
+func NewResp(result Result, args ...RespOpt) *Response {
 	response := &Response{
 		Result:     result,
 		StatusCode: http.StatusOK,
@@ -56,7 +56,7 @@ func (r *Response) AddHeaders(headers map[string]string) *Response {
 func (r *Response) AddCookie(cookies ...*http.Cookie) *Response {
 	for _, cookie := range cookies {
 		if cookie != nil {
-			r.Cookies = append(r.Cookies, cookie)
+			r.Cookie = append(r.Cookie, cookie)
 		}
 	}
 

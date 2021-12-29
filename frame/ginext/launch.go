@@ -7,6 +7,7 @@ import (
 	"github.com/ehwjh2010/viper/frame/ginext/middleware"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/routine"
 	"github.com/ehwjh2010/viper/server"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -28,6 +29,10 @@ func Viper(settings client.Setting) *App {
 
 	if err := RegisterTrans(settings.Language); err != nil {
 		log.Fatal("Register validator translator failed, ", zap.Error(err))
+	}
+
+	if settings.EnableRtePool {
+		settings.OnStartUp = append(settings.OnStartUp, routine.SetUpDefaultTask(settings.Routine))
 	}
 
 	engine := gin.New()

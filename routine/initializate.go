@@ -16,13 +16,13 @@ func (d AntsLogger) Printf(format string, args ...interface{}) {
 }
 
 func defaultAntsLogger(format string, args ...interface{}) {
-	log.Infof(format, args...)
+	log.Errorf(format, args...)
 }
 
 // SetUp 初始化协程池
 func SetUp(conf *client.Routine) (*Task, error) {
 	if conf.MaxWorkerCount <= 0 {
-		conf.MaxWorkerCount = 5000
+		conf.MaxWorkerCount = 10
 	}
 
 	if conf.FreeMaxLifetime <= 0 {
@@ -35,7 +35,7 @@ func SetUp(conf *client.Routine) (*Task, error) {
 
 	if conf.PanicHandler == nil {
 		conf.PanicHandler = func(i interface{}) {
-			conf.Logger.Printf("err ==> ", i)
+			conf.Logger.Printf("execute task occur panic, panic ==> ", i)
 		}
 	}
 
@@ -45,6 +45,7 @@ func SetUp(conf *client.Routine) (*Task, error) {
 		MaxBlockingTasks: 0,
 		Nonblocking:      false,
 		Logger:           conf.Logger,
+		PanicHandler:     conf.PanicHandler,
 	}
 
 	p, err := ants.NewPool(conf.MaxWorkerCount, ants.WithOptions(opts))
