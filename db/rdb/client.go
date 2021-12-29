@@ -6,10 +6,12 @@ import (
 	"github.com/ehwjh2010/viper/client"
 	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/routine"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -42,6 +44,10 @@ type (
 		db *gorm.DB
 		//rawConfig 数据库配置
 		rawConfig client.DB
+		// 心跳连续失败次数
+		pCount int
+		// 重连连续失败次数
+		rCount int
 
 		//DBType 数据库类型
 		DBType int
@@ -67,6 +73,76 @@ func NewDBClient(db *gorm.DB, dbType int, rawConfig client.DB) (client *DBClient
 	}
 
 	return client
+}
+
+//Heartbeat 检测心跳
+func (c *DBClient) Heartbeat() error {
+	db, err := c.db.DB()
+	if err != nil {
+		return err
+	}
+
+	return db.Ping()
+}
+
+//WatchHeartbeat 监测心跳和重连
+func (c *DBClient) WatchHeartbeat() {
+	_ = routine.AddTask(func() {
+		waitFlag := true
+		for {
+			if waitFlag {
+				<-time.After(3 * time.Second)
+			}
+
+			//重连失败次数大于0, 直接重连
+			if c.rCount > 0 {
+				if c.replaceDB() {
+					c.rCount = 0
+					c.pCount = 0
+					waitFlag = true
+				} else {
+					c.rCount++
+					c.pCount++
+					waitFlag = false
+				}
+				continue
+			}
+
+			if c.Heartbeat() != nil {
+				c.pCount++
+				//心跳连续3次失败, 触发重连
+				if c.pCount >= 3 {
+					if c.replaceDB() {
+						c.rCount = 0
+						c.pCount = 0
+						waitFlag = true
+					} else {
+						c.rCount++
+						waitFlag = false
+					}
+				}
+			} else {
+				c.rCount = 0
+				c.pCount = 0
+				waitFlag = true
+				log.Debug("db is healthy")
+			}
+		}
+	})
+}
+
+//replaceDB 替换client内部的db对象
+func (c *DBClient) replaceDB() bool {
+	newDB, err := InitDBWithGorm(&c.rawConfig, c.DBType)
+	if err != nil {
+		log.Error("reconnect db failed!", zap.Int("reconnectCount", c.rCount), zap.Error(err))
+		return false
+	}
+
+	c.Close()
+	c.db = newDB
+	log.Info("reconnect db success")
+	return true
 }
 
 //TODO Where 指定字段, 连表查询, 聚合查询, GROUP BY, HAVING, DISTINCT, COUNT, JOIN

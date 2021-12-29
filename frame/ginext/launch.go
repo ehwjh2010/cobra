@@ -31,9 +31,13 @@ func Viper(settings client.Setting) *App {
 		log.Fatal("Register validator translator failed, ", zap.Error(err))
 	}
 
-	if settings.EnableRtePool {
-		settings.OnStartUp = append(settings.OnStartUp, routine.SetUpDefaultTask(settings.Routine))
-	}
+	newOnStartUp := make([]func() error, len(settings.OnStartUp)+1)
+
+	newOnStartUp[0] = routine.SetUpDefaultTask(settings.Routine)
+
+	copy(newOnStartUp[1:], settings.OnStartUp)
+
+	settings.OnStartUp = newOnStartUp
 
 	engine := gin.New()
 

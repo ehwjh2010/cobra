@@ -16,5 +16,7 @@ func SetUp(dbConfig *client.DB) (client *rdb.DBClient, err error) {
 
 	client = rdb.NewDBClient(db, rdb.Postgresql, *dbConfig)
 
+	client.WatchHeartbeat()
+
 	return client, nil
 }
