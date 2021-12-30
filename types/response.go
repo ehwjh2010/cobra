@@ -5,7 +5,7 @@ import "net/http"
 type Response struct {
 	Cookie     []*http.Cookie
 	Header     map[string]string
-	Result     Result
+	Result     interface{}
 	StatusCode int
 }
 

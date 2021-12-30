@@ -125,7 +125,6 @@ func (c *DBClient) WatchHeartbeat() {
 				c.rCount = 0
 				c.pCount = 0
 				waitFlag = true
-				log.Debug("db is healthy")
 			}
 		}
 	})
