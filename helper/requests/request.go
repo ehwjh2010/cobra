@@ -99,13 +99,13 @@ func (r *HTTPRequest) toInternal() *grequests.RequestOptions {
 		RequestTimeout: r.Timeout,
 	}
 
-	if len(r.Files) > 0 {
+	if r.Files != nil {
 		rOpt.Files = BatchFileUpload2Internal(r.Files)
 	}
 
-	if len(r.Json) > 0 {
+	if r.Json != nil {
 		rOpt.JSON = r.Json
-	} else if len(r.Form) > 0 {
+	} else if r.Form != nil {
 		rOpt.Data = r.Form
 	}
 

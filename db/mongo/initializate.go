@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/ehwjh2010/viper/client"
 	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/types"
+	"github.com/ehwjh2010/viper/helper/types"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
