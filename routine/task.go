@@ -12,10 +12,12 @@ type Task struct {
 	p         *ants.Pool
 }
 
-var backgroundTask *Task
-var mtx sync.Mutex
+var (
+	backgroundTask *Task
+	mtx            sync.Mutex
 
-var NoEnableRoutinePool = errors.New("not enable routine pool, please add enableRtePool field to settings")
+	NoEnableRoutinePool = errors.New("not enable routine pool, please add enableRtePool field to settings")
+)
 
 func newTask(rawConfig client.Routine, p *ants.Pool) *Task {
 	return &Task{rawConfig: rawConfig, p: p}
