@@ -7,10 +7,10 @@ import (
 )
 
 //SetUp 初始化缓存
-func SetUp(conf *client.Cache) (client *RedisClient, err error) {
+func SetUp(conf client.Cache) (client *RedisClient, err error) {
 	c, err := InitCacheWithGoRedis(conf)
 	if err != nil {
-		log.Debug("Connect redis failed")
+		log.Err("Connect redis failed", err)
 		return nil, err
 	}
 
@@ -20,7 +20,8 @@ func SetUp(conf *client.Cache) (client *RedisClient, err error) {
 		conf.DefaultTimeOut = global.FiveMinute
 	}
 
-	client = NewRedisClient(c, conf.DefaultTimeOut)
+	client = NewRedisClient(c, conf, conf.DefaultTimeOut)
+	client.WatchHeartbeat()
 
 	return client, nil
 }

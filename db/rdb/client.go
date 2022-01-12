@@ -96,7 +96,7 @@ func (c *DBClient) WatchHeartbeat() {
 
 			//重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
-				if c.replaceDB() {
+				if ok, _ := c.replaceDB(); ok {
 					c.rCount = 0
 					c.pCount = 0
 					waitFlag = true
@@ -112,7 +112,7 @@ func (c *DBClient) WatchHeartbeat() {
 				c.pCount++
 				//心跳连续3次失败, 触发重连
 				if c.pCount >= 3 {
-					if c.replaceDB() {
+					if ok, _ := c.replaceDB(); ok {
 						c.rCount = 0
 						c.pCount = 0
 						waitFlag = true
@@ -131,17 +131,18 @@ func (c *DBClient) WatchHeartbeat() {
 }
 
 //replaceDB 替换client内部的db对象
-func (c *DBClient) replaceDB() bool {
-	newDB, err := InitDBWithGorm(&c.rawConfig, c.DBType)
+func (c *DBClient) replaceDB() (bool, error) {
+	newDB, err := InitDBWithGorm(c.rawConfig, c.DBType)
 	if err != nil {
 		log.Error("reconnect db failed!", zap.Int("reconnectCount", c.rCount), zap.Error(err))
-		return false
+		return false, err
 	}
 
+	//关闭之前的连接
 	c.Close()
 	c.db = newDB
 	log.Info("reconnect db success")
-	return true
+	return true, nil
 }
 
 //TODO Where 指定字段, 连表查询, 聚合查询, GROUP BY, HAVING, DISTINCT, COUNT, JOIN
@@ -225,7 +226,7 @@ func (where *Where) internal() (pattern string, value interface{}) {
 //tranArgs 暂不支持ors里面嵌套or
 func (where *Where) tranOr(valMap map[string]interface{}, dive bool) (args []string) {
 
-	if len(where.Ors) <= 0 {
+	if where.Ors == nil {
 		return
 	}
 
@@ -418,7 +419,7 @@ func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
 
 	if c.occurErr(tx, excludeErr...) {
-		log.Error("operate db occur err", zap.Error(tx.Error))
+		log.Err("operate db occur err", tx.Error)
 		return false, tx.Error
 	}
 
@@ -479,7 +480,7 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 		for _, where := range condition.Where {
 			query, args := where.internal()
 			db = db.Where(query, args)
-			if len(where.Ors) <= 0 {
+			if where.Ors == nil {
 				continue whereLoop
 			}
 
@@ -525,7 +526,7 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition) (coun
 		for _, where := range condition.Where {
 			query, arg := where.internal()
 			db = db.Where(query, arg)
-			if len(where.Ors) <= 0 {
+			if where.Ors == nil {
 				continue whereLoop
 			}
 
@@ -664,7 +665,7 @@ func (c *DBClient) Close() error {
 
 	s, err := c.db.DB()
 	if err != nil {
-		log.Error("Close conn; get db failed!", zap.Error(err))
+		log.Err("Close conn; get db failed!", err)
 		return err
 	}
 

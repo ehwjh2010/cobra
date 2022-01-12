@@ -84,7 +84,7 @@ func GraceServer(engine http.Handler, host string, port, timeout int, onStartUp 
 
 	multiErr := invokeFunc(onShutDown)
 	if multiErr != nil {
-		log.Error("Server exiting", zap.Error(multiErr))
+		log.Err("Server exiting", multiErr)
 	} else {
 		log.Info("Server exiting")
 	}

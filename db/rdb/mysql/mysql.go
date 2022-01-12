@@ -7,7 +7,7 @@ import (
 )
 
 //SetUp 初始化Mysql
-func SetUp(dbConfig *client.DB) (client *rdb.DBClient, err error) {
+func SetUp(dbConfig client.DB) (client *rdb.DBClient, err error) {
 
 	db, err := rdb.InitDBWithGorm(dbConfig, rdb.Mysql)
 
@@ -18,7 +18,7 @@ func SetUp(dbConfig *client.DB) (client *rdb.DBClient, err error) {
 
 	log.Debug("Connect db success")
 
-	client = rdb.NewDBClient(db, rdb.Mysql, *dbConfig)
+	client = rdb.NewDBClient(db, rdb.Mysql, dbConfig)
 
 	client.WatchHeartbeat()
 

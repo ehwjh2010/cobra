@@ -10,7 +10,7 @@ import (
 
 const network = "tcp"
 
-func InitCacheWithGoRedis(redisConfig *client.Cache) (*redis.Client, error) {
+func InitCacheWithGoRedis(redisConfig client.Cache) (*redis.Client, error) {
 	redisClient := redis.NewClient(&redis.Options{
 		Network:      network,
 		Addr:         fmt.Sprintf("%s:%d", redisConfig.Host, redisConfig.Port),
