@@ -34,7 +34,7 @@ func AccessLog(skipPaths []string, utc bool, timeFormat string) gin.HandlerFunc 
 
 		if echo {
 			end := time.Now()
-			latency := end.Sub(start)
+			latency := end.Sub(start).Milliseconds()
 			if utc {
 				end = end.UTC()
 			}
@@ -46,14 +46,15 @@ func AccessLog(skipPaths []string, utc bool, timeFormat string) gin.HandlerFunc 
 				}
 			} else {
 				log.Info(path,
+					zap.String("startTime", start.Format(timeFormat)),
 					zap.Int("status", c.Writer.Status()),
 					zap.String("method", c.Request.Method),
 					zap.String("path", path),
 					zap.String("query", query),
 					zap.String("ip", c.ClientIP()),
-					zap.String("user-agent", c.Request.UserAgent()),
-					zap.String("time", end.Format(timeFormat)),
-					zap.Duration("latency", latency),
+					//zap.String("user-agent", c.Request.UserAgent()),
+					zap.String("endTime", end.Format(timeFormat)),
+					zap.Int64("cost(ms)", latency),
 				)
 			}
 		}

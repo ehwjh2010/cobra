@@ -5,9 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/util/integer"
-	"github.com/ehwjh2010/viper/util/serialize"
-	"github.com/ehwjh2010/viper/util/timer"
+	"github.com/ehwjh2010/viper/helper/integer"
+	"github.com/ehwjh2010/viper/helper/serialize"
 	"strconv"
 	"time"
 )
@@ -21,7 +20,7 @@ type NullInt64 struct {
 
 //Empty 判断为nil或0
 func (ni NullInt64) Empty() bool {
-	if !ni.Valid || ni.Value() == 0 {
+	if !ni.Valid || ni.Int64 == 0 {
 		return true
 	}
 
@@ -46,8 +45,8 @@ func (ni *NullInt64) Equal(v NullInt64) bool {
 	return ni.Valid == v.Valid && (!ni.Valid || ni.Int64 == v.Int64)
 }
 
-//Value 获取值
-func (ni *NullInt64) Value() int64 {
+//GetValue 获取值
+func (ni *NullInt64) GetValue() int64 {
 	return ni.Int64
 }
 
@@ -97,7 +96,7 @@ type NullInt struct {
 
 //Empty 判断为nil或0
 func (ni NullInt) Empty() bool {
-	if !ni.Valid || ni.Value() == 0 {
+	if !ni.Valid || ni.Int64 == 0 {
 		return true
 	}
 
@@ -117,8 +116,8 @@ func (ni *NullInt) IsNil() bool {
 	return !ni.Valid
 }
 
-//Value 获取值
-func (ni *NullInt) Value() int {
+//GetValue 获取值
+func (ni *NullInt) GetValue() int {
 	return integer.Int64ToInt(ni.Int64)
 }
 
@@ -172,7 +171,7 @@ type NullBool struct {
 
 //Empty 判断为nil或false
 func (nb NullBool) Empty() bool {
-	if !nb.Valid || nb.Value() == false {
+	if !nb.Valid || !nb.Bool {
 		return true
 	}
 
@@ -192,8 +191,8 @@ func (nb *NullBool) IsNil() bool {
 	return !nb.NullBool.Valid
 }
 
-//Value 获取值
-func (nb *NullBool) Value() bool {
+//GetValue 获取值
+func (nb *NullBool) GetValue() bool {
 	return nb.NullBool.Bool
 }
 
@@ -247,7 +246,7 @@ type NullFloat64 struct {
 
 //Empty 判断为nil或0
 func (nf NullFloat64) Empty() bool {
-	if !nf.Valid || nf.Value() == 0 {
+	if !nf.Valid || nf.Float64 == 0 {
 		return true
 	}
 
@@ -267,8 +266,8 @@ func (nf *NullFloat64) IsNil() bool {
 	return !nf.NullFloat64.Valid
 }
 
-//Value 获取值
-func (nf *NullFloat64) Value() float64 {
+//GetValue 获取值
+func (nf *NullFloat64) GetValue() float64 {
 	return nf.NullFloat64.Float64
 }
 
@@ -322,7 +321,7 @@ type NullString struct {
 
 //Empty 判断为nil或""
 func (ns NullString) Empty() bool {
-	if !ns.Valid || ns.Value() == "" {
+	if !ns.Valid || ns.NullString.String == "" {
 		return true
 	}
 
@@ -342,8 +341,8 @@ func (ns *NullString) IsNil() bool {
 	return !ns.NullString.Valid
 }
 
-//Value 获取值
-func (ns *NullString) Value() string {
+//GetValue 获取值
+func (ns *NullString) GetValue() string {
 	return ns.NullString.String
 }
 
@@ -417,24 +416,24 @@ func (nt *NullTime) IsNil() bool {
 
 //Empty 判断为nil或0
 func (nt NullTime) Empty() bool {
-	if !nt.Valid || nt.Value().Equal(time.Unix(0, 0)) {
+	if !nt.Valid || nt.Time.Equal(time.Unix(0, 0)) {
 		return true
 	}
 
 	return false
 }
 
-//Value 获取值
-func (nt *NullTime) Value() time.Time {
+//GetValue 获取值
+func (nt *NullTime) GetValue() time.Time {
 	return nt.Time
 }
 
 // MarshalJSON for NullTime
 func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
-		return []byte("null"), nil
+		return global.NullBytes, nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.In(timer.GetBJLocation()).Format(global.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.Format(global.DefaultTimePattern))
 	return []byte(val), nil
 }
 

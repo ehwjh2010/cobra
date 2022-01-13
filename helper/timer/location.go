@@ -3,10 +3,11 @@ package timer
 import (
 	"github.com/ehwjh2010/viper/global"
 	"strings"
+	"sync"
 	"time"
 )
 
-var locationMap = map[string]*time.Location{"UTC": time.UTC}
+var locationMap sync.Map
 
 //GetBJLocation 东八区
 func GetBJLocation() *time.Location {
@@ -22,16 +23,18 @@ func GetUTCLocation() *time.Location {
 //GetLocationByName 根据名字获取时区
 func GetLocationByName(name string) (*time.Location, error) {
 	name = strings.ToUpper(name)
-	if location, ok := locationMap[name]; ok {
+	if loc, ok := locationMap.Load(name); ok {
+		location := loc.(*time.Location)
 		return location, nil
 	}
 
 	if location, err := time.LoadLocation(name); err == nil {
-		locationMap[name] = location
+		locationMap.LoadOrStore(name, location)
 	} else {
 		return nil, err
 	}
 
-	location, _ := locationMap[name]
+	loc, _ := locationMap.Load(name)
+	location := loc.(*time.Location)
 	return location, nil
 }

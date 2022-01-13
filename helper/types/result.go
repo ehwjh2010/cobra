@@ -8,7 +8,7 @@ import (
 
 const (
 	OK      = 0
-	SUCCESS = "Success"
+	SUCCESS = "success"
 
 	InvalidParams = 10000
 )
@@ -22,6 +22,33 @@ type Result struct {
 
 	//Data 数据
 	Data interface{} `json:"data"`
+}
+
+type ResultOpt func(response *Result)
+
+func ResultWithCode(code int) ResultOpt {
+	return func(response *Result) {
+		response.Code = code
+	}
+}
+
+func ResultWithMessage(msg string) ResultOpt {
+	return func(response *Result) {
+		response.Message = msg
+	}
+}
+
+func NewResult(data interface{}, args ...ResultOpt) Result {
+	result := &Result{
+		Code:    OK,
+		Message: SUCCESS,
+		Data:    data,
+	}
+	for _, arg := range args {
+		arg(result)
+	}
+
+	return *result
 }
 
 func (r Result) String() string {
@@ -46,46 +73,6 @@ type Pageable struct {
 
 	//HasNext 是否还有下一页
 	HasNext bool `json:"hasNext"`
-}
-
-func (p Pageable) String() string {
-	return fmt.Sprintf("Pageable(totalCount=%d, totalPage=%d, page=%d, pageSize=%d, rows=%+v, hasNext=%v)",
-		p.TotalCount, p.TotalPage, p.Page, p.PageSize, p.Rows, p.HasNext)
-}
-
-func NewResult(data interface{}, args ...ResultOpt) *Result {
-	result := &Result{
-		Code:    OK,
-		Message: SUCCESS,
-		Data:    data,
-	}
-	for _, arg := range args {
-		arg(result)
-	}
-
-	return result
-}
-
-func NewPageResult(page int, pageSize int, totalCount int64, rows interface{}, args ...ResultOpt) *Result {
-	pageable := NewPageable(rows, page, pageSize, totalCount)
-
-	result := NewResult(pageable, args...)
-
-	return result
-}
-
-type ResultOpt func(response *Result)
-
-func ResultWithCode(code int) ResultOpt {
-	return func(response *Result) {
-		response.Code = code
-	}
-}
-
-func ResultWithMessage(msg string) ResultOpt {
-	return func(response *Result) {
-		response.Message = msg
-	}
 }
 
 func NewPageable(rows interface{}, page int, pageSize int, totalCount int64) *Pageable {
@@ -114,4 +101,21 @@ func NewPageable(rows interface{}, page int, pageSize int, totalCount int64) *Pa
 	}
 
 	return pageable
+}
+
+func (p Pageable) String() string {
+	return fmt.Sprintf("Pageable(totalCount=%d, totalPage=%d, page=%d, pageSize=%d, rows=%+v, hasNext=%v)",
+		p.TotalCount, p.TotalPage, p.Page, p.PageSize, p.Rows, p.HasNext)
+}
+
+func NewPageResult(page int, pageSize int, totalCount int64, rows interface{}, args ...ResultOpt) Result {
+	pageable := NewPageable(rows, page, pageSize, totalCount)
+
+	result := NewResult(pageable, args...)
+
+	return result
+}
+
+func NewErrResp(code int, message string) Result {
+	return NewResult(nil, ResultWithCode(code), ResultWithMessage(message))
 }

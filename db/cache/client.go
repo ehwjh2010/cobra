@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/helper/serialize"
+	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/types"
-	"github.com/ehwjh2010/viper/util/serialize"
 	"github.com/go-redis/redis/v8"
 	wrapErr "github.com/pkg/errors"
 	"strconv"
@@ -15,11 +16,32 @@ import (
 
 type RedisClient struct {
 	client         *redis.Client
+	rawConfig      client.Cache
 	defaultTimeOut int
 }
 
-func NewRedisClient(client *redis.Client, defaultTimeOut int) *RedisClient {
-	return &RedisClient{client: client, defaultTimeOut: defaultTimeOut}
+func NewRedisClient(client *redis.Client, rawConfig client.Cache, defaultTimeOut int) *RedisClient {
+	return &RedisClient{client: client, defaultTimeOut: defaultTimeOut, rawConfig: rawConfig}
+}
+
+//WatchHeartbeat 监测心跳和重连
+func (r *RedisClient) WatchHeartbeat() {
+	//TODO 待实现
+}
+
+//replaceDB 替换内部client
+func (r *RedisClient) replaceDB() (bool, error) {
+	cli, err := InitCacheWithGoRedis(r.rawConfig)
+	if err != nil {
+		return false, err
+	}
+
+	//关闭之前的连接
+	r.client.Close()
+
+	r.client = cli
+	return true, nil
+
 }
 
 // Close 关闭连接池

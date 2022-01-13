@@ -1,0 +1,24 @@
+package ginext
+
+import (
+	"github.com/ehwjh2010/viper/helper/validator"
+	ut "github.com/go-playground/universal-translator"
+)
+
+var translator ut.Translator
+
+//RegisterTrans 定义翻译的方法
+func RegisterTrans(language string) error {
+	trans, err := validator.RegisterTrans(language)
+	if err != nil {
+		return err
+	}
+
+	translator = trans
+	return nil
+}
+
+//Translate 翻译错误信息
+func Translate(err error) (errMsg string) {
+	return validator.Translate(err, translator)
+}

@@ -14,7 +14,7 @@ import (
 
 const DefaultCreateBatchSize = 1000
 
-func InitDBWithGorm(dbConfig *client.DB, dbType int) (*gorm.DB, error) {
+func InitDBWithGorm(dbConfig client.DB, dbType int) (*gorm.DB, error) {
 
 	var sqlLogger = logger.Silent
 	if dbConfig.EnableRawSQL {
@@ -63,7 +63,7 @@ func InitDBWithGorm(dbConfig *client.DB, dbType int) (*gorm.DB, error) {
 	return db, nil
 }
 
-func getDialector(dbConfig *client.DB, dbType int) gorm.Dialector {
+func getDialector(dbConfig client.DB, dbType int) gorm.Dialector {
 	switch dbType {
 	case Mysql:
 		dsn := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,

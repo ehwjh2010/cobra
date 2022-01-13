@@ -1,40 +1,12 @@
 package global
 
-import "time"
-
 var NullBytes = []byte("null")
-
-const SwaggerAPIUrl = "/swagger/index.html"
-
-const BJ = "Asia/Shanghai"
 
 const NullStr = "null"
 
+const SwaggerAPIUrl = "/swagger/index.html"
+
 const HomeShortCut = "~" //类Unix系统home路径的短符号
-
-//常用时间 以下时间都是以秒为单位
-const (
-	OneSecond   = 1
-	ThreeSecond = 3
-	FiveSecond  = 5
-	TenSecond   = 10
-	HalfMinute  = 30
-
-	OneMinute   = 60 * OneSecond
-	ThreeMinute = 3 * OneMinute
-	FiveMinute  = 5 * OneMinute
-	TenMinute   = 10 * OneMinute
-	HalfHour    = 30 * OneMinute
-
-	OneHour    = 60 * OneMinute
-	SizHour    = 6 * OneHour
-	TwelveHour = 12 * OneHour
-
-	HalfDay = TwelveHour
-	OneDay  = 24 * OneHour
-)
-
-const DefaultTimePattern = time.RFC3339 //默认时间格式
 
 const (
 	DefaultPage     = 1  //默认页数
@@ -44,4 +16,14 @@ const (
 const (
 	Chinese = "cn" //中文
 	English = "en" //英文
+)
+
+const (
+	ContentType        = "Content-Type"
+	ContentDisposition = "Content-Disposition"
+	UserAgent          = "ViperRequests/1.1.0"
+
+	JsonType      = "application/json; charset=utf-8"
+	FormType      = "application/x-www-form-urlencoded; charset=utf-8"
+	MultiFormType = "multipart/form-data; charset=utf-8; boundary=--801fe6c28526e72589981c923d518232--"
 )

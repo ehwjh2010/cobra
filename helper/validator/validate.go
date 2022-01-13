@@ -1,39 +1,27 @@
-package ginext
+package validator
 
 import (
 	"github.com/ehwjh2010/viper/global"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
-	unTrans "github.com/go-playground/universal-translator"
+	"github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	enTran "github.com/go-playground/validator/v10/translations/en"
-	zhTran "github.com/go-playground/validator/v10/translations/zh"
+	en2 "github.com/go-playground/validator/v10/translations/en"
+	zh2 "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/pkg/errors"
 	"strings"
-	"sync"
 )
 
-var flag = false
-var lock = sync.Mutex{}
-var trans unTrans.Translator
-
 // RegisterTrans 定义翻译的方法
-func RegisterTrans(language string) (err error) {
-	if flag {
-		return nil
-	}
+func RegisterTrans(language string) (translator ut.Translator, err error) {
+	var trans ut.Translator
 
-	lock.Lock()
-	defer lock.Unlock()
-	if flag {
-		return nil
-	}
 	language = strings.ToLower(language)
 	zhT := zh.New() //中文翻译器
 	enT := en.New() //英文翻译器
 	//第一个参数是备用的语言环境，后面的参数是应该支持的语言环境
-	uni := unTrans.New(enT, zhT, enT)
+	uni := ut.New(enT, zhT, enT)
 
 	//修改gin框架中的validator引擎属性, 实现定制
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
@@ -59,27 +47,26 @@ func RegisterTrans(language string) (err error) {
 
 		switch language {
 		case global.English:
-			err = enTran.RegisterDefaultTranslations(v, trans)
+			err = en2.RegisterDefaultTranslations(v, trans)
 		case global.Chinese:
-			err = zhTran.RegisterDefaultTranslations(v, trans)
+			err = zh2.RegisterDefaultTranslations(v, trans)
 		default:
-			err = enTran.RegisterDefaultTranslations(v, trans)
+			err = en2.RegisterDefaultTranslations(v, trans)
 		}
 
 		if err != nil {
-			return errors.Wrap(err, "init translator failed")
+			return nil, errors.Wrap(err, "init translator failed")
 		}
 	}
-	flag = true
-	return nil
+	return trans, nil
 }
 
 //Translate 翻译错误信息
-func Translate(err error) (errMsg string) {
+func Translate(err error, tran ut.Translator) (errMsg string) {
 	if errs, ok := err.(validator.ValidationErrors); ok {
 		// validator.ValidationErrors类型错误则进行翻译
 		for _, err := range errs {
-			errMsg = err.Translate(trans)
+			errMsg = err.Translate(tran)
 			break
 		}
 	} else {

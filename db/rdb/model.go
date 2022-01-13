@@ -1,7 +1,7 @@
 package rdb
 
 import (
-	"github.com/ehwjh2010/viper/types"
+	"github.com/ehwjh2010/viper/helper/types"
 	"time"
 )
 

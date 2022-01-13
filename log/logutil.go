@@ -56,6 +56,15 @@ func Errorf(template string, args ...interface{}) {
 	sugaredLogger.Errorf(template, args...)
 }
 
+//Err 打印Error级别日志, 以及打印err
+func Err(msg string, errs ...error) {
+	fields := make([]zap.Field, len(errs))
+	for index, err := range errs {
+		fields[index] = zap.Error(err)
+	}
+	logger.Error(msg, fields...)
+}
+
 //-----------------------------------------------------------
 
 //Fatal日志相关方法
@@ -68,6 +77,15 @@ func Fatal(msg string, args ...zap.Field) {
 //Fatalf 格式化打印Fatal级别日志
 func Fatalf(template string, args ...interface{}) {
 	sugaredLogger.Fatalf(template, args...)
+}
+
+//FatalErr 打印Fatal级别日志, 以及打印err
+func FatalErr(msg string, errs ...error) {
+	fields := make([]zap.Field, len(errs))
+	for index, err := range errs {
+		fields[index] = zap.Error(err)
+	}
+	logger.Fatal(msg, fields...)
 }
 
 //-----------------------------------------------------------

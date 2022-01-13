@@ -3,12 +3,15 @@ package rdb
 import (
 	"errors"
 	"fmt"
+	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/util/str"
+	"github.com/ehwjh2010/viper/routine"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -39,6 +42,13 @@ const (
 type (
 	DBClient struct {
 		db *gorm.DB
+		//rawConfig 数据库配置
+		rawConfig client.DB
+		// 心跳连续失败次数
+		pCount int
+		// 重连连续失败次数
+		rCount int
+
 		//DBType 数据库类型
 		DBType int
 	}
@@ -55,13 +65,84 @@ type (
 	}
 )
 
-func NewDBClient(db *gorm.DB, dbType int) (client *DBClient) {
+func NewDBClient(db *gorm.DB, dbType int, rawConfig client.DB) (client *DBClient) {
 	client = &DBClient{
-		db:     db,
-		DBType: dbType,
+		db:        db,
+		DBType:    dbType,
+		rawConfig: rawConfig,
 	}
 
 	return client
+}
+
+//Heartbeat 检测心跳
+func (c *DBClient) Heartbeat() error {
+	db, err := c.db.DB()
+	if err != nil {
+		return err
+	}
+
+	return db.Ping()
+}
+
+//WatchHeartbeat 监测心跳和重连
+func (c *DBClient) WatchHeartbeat() {
+	_ = routine.AddTask(func() {
+		waitFlag := true
+		for {
+			if waitFlag {
+				<-time.After(3 * time.Second)
+			}
+
+			//重连失败次数大于0, 直接重连
+			if c.rCount > 0 {
+				if ok, _ := c.replaceDB(); ok {
+					c.rCount = 0
+					c.pCount = 0
+					waitFlag = true
+				} else {
+					c.rCount++
+					c.pCount++
+					waitFlag = false
+				}
+				continue
+			}
+
+			if c.Heartbeat() != nil {
+				c.pCount++
+				//心跳连续3次失败, 触发重连
+				if c.pCount >= 3 {
+					if ok, _ := c.replaceDB(); ok {
+						c.rCount = 0
+						c.pCount = 0
+						waitFlag = true
+					} else {
+						c.rCount++
+						waitFlag = false
+					}
+				}
+			} else {
+				c.rCount = 0
+				c.pCount = 0
+				waitFlag = true
+			}
+		}
+	})
+}
+
+//replaceDB 替换client内部的db对象
+func (c *DBClient) replaceDB() (bool, error) {
+	newDB, err := InitDBWithGorm(c.rawConfig, c.DBType)
+	if err != nil {
+		log.Error("reconnect db failed!", zap.Int("reconnectCount", c.rCount), zap.Error(err))
+		return false, err
+	}
+
+	//关闭之前的连接
+	c.Close()
+	c.db = newDB
+	log.Info("reconnect db success")
+	return true, nil
 }
 
 //TODO Where 指定字段, 连表查询, 聚合查询, GROUP BY, HAVING, DISTINCT, COUNT, JOIN
@@ -145,7 +226,7 @@ func (where *Where) internal() (pattern string, value interface{}) {
 //tranArgs 暂不支持ors里面嵌套or
 func (where *Where) tranOr(valMap map[string]interface{}, dive bool) (args []string) {
 
-	if len(where.Ors) <= 0 {
+	if where.Ors == nil {
 		return
 	}
 
@@ -338,7 +419,7 @@ func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
 
 	if c.occurErr(tx, excludeErr...) {
-		log.Error("operate db occur err", zap.Error(tx.Error))
+		log.Err("operate db occur err", tx.Error)
 		return false, tx.Error
 	}
 
@@ -399,7 +480,7 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 		for _, where := range condition.Where {
 			query, args := where.internal()
 			db = db.Where(query, args)
-			if len(where.Ors) <= 0 {
+			if where.Ors == nil {
 				continue whereLoop
 			}
 
@@ -445,7 +526,7 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition) (coun
 		for _, where := range condition.Where {
 			query, arg := where.internal()
 			db = db.Where(query, arg)
-			if len(where.Ors) <= 0 {
+			if where.Ors == nil {
 				continue whereLoop
 			}
 
@@ -572,6 +653,7 @@ func (c *DBClient) Save(ptr interface{}) error {
 //GetDB 获取原生DB对象
 func (c *DBClient) GetDB() *gorm.DB {
 	db := c.db
+
 	return db
 }
 
@@ -583,7 +665,7 @@ func (c *DBClient) Close() error {
 
 	s, err := c.db.DB()
 	if err != nil {
-		log.Error("Close conn; get db failed!", zap.Error(err))
+		log.Err("Close conn; get db failed!", err)
 		return err
 	}
 

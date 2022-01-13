@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/types"
 	"go.uber.org/zap"
 	"net/http"
 	"os/signal"
@@ -84,7 +84,7 @@ func GraceServer(engine http.Handler, host string, port, timeout int, onStartUp 
 
 	multiErr := invokeFunc(onShutDown)
 	if multiErr != nil {
-		log.Error("Server exiting", zap.Error(multiErr))
+		log.Err("Server exiting", multiErr)
 	} else {
 		log.Info("Server exiting")
 	}

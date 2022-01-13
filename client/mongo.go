@@ -7,8 +7,8 @@ type Mongo struct {
 	Database string `json:"database" yaml:"database"`
 	//MaxConnectCount 最大连接数量
 	MaxConnectCount uint64 `json:"maxConnectCount" yaml:"maxConnectCount"`
-	//MinFreeConnCount 最小闲置连接数
-	MinFreeConnCount uint64 `json:"minFreeConnCount" yaml:"minFreeConnCount"`
+	//MinConnectCount 最小连接数
+	MinConnectCount uint64 `json:"minConnectCount" yaml:"minConnectCount"`
 	//FreeMaxLifetime 闲置连接最大存活时间, 单位: 分钟
 	FreeMaxLifetime int `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`
 }
