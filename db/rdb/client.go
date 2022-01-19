@@ -86,7 +86,7 @@ func (c *DBClient) WatchHeartbeat() {
 		waitFlag := true
 		for {
 			if waitFlag {
-				<-time.After(3 * time.Second)
+				<-time.After(enum.ThreeSecDur)
 			}
 
 			//重连失败次数大于0, 直接重连
@@ -103,6 +103,7 @@ func (c *DBClient) WatchHeartbeat() {
 				continue
 			}
 
+			//心跳检测
 			if c.Heartbeat() != nil {
 				c.pCount++
 				//心跳连续3次失败, 触发重连

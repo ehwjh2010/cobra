@@ -429,6 +429,11 @@ func (nt *NullTime) GetValue() time.Time {
 	return nt.Time
 }
 
+//TimeStamp 获取时间戳, 单位: s
+func (nt *NullTime) TimeStamp() int64 {
+	return nt.Time.Unix()
+}
+
 // MarshalJSON for NullTime
 func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
