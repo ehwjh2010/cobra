@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ehwjh2010/viper/client/enum"
 	"github.com/ehwjh2010/viper/client/setting"
+	"github.com/ehwjh2010/viper/client/verror"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
@@ -11,6 +12,10 @@ import (
 
 //SetUp 初始化mongo
 func SetUp(conf *setting.Mongo) (*Client, error) {
+	if conf == nil {
+		return nil, verror.InvalidConfig
+	}
+
 	cli, db, err := setup(conf)
 	if err != nil {
 		return nil, err

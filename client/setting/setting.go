@@ -13,7 +13,7 @@ type Setting struct {
 	Debug           bool              `json:"debug" yaml:"debug"`                     //debug, 默认false
 	Swagger         bool              `json:"swagger" yaml:"swagger"`                 //是否启动swagger, 默认false
 	LogConfig       *Log              `json:"log" yaml:"log"`                         //日志配置
-	Routine         *Routine          `json:"routine" yaml:"routine"`                 //协程池配置
+	Routine         Routine           `json:"routine" yaml:"routine"`                 //协程池配置
 	Middlewares     []gin.HandlerFunc //中间件
 	OnStartUp       []func() error    //项目启动前执行函数, 如果出现error, 项目停止启动
 	OnShutDown      []func() error    //项目关闭前执行函数

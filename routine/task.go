@@ -54,7 +54,7 @@ func (task Task) CountInfo() map[string]int {
 }
 
 //SetUpDefaultTask 初始化后台任务
-func SetUpDefaultTask(conf *setting.Routine) func() error {
+func SetUpDefaultTask(conf setting.Routine) func() error {
 	return func() error {
 		if backgroundTask != nil {
 			return nil

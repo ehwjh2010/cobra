@@ -6,7 +6,7 @@ import (
 
 // Routine 协程池配置
 type Routine struct {
-	// MaxWorkerCount 最大worker数量, 默认是5000
+	// MaxWorkerCount 最大worker数量, 默认是10
 	MaxWorkerCount int `json:"maxWorkerCount" yaml:"maxWorkerCount"`
 
 	// WaitTimeOut 阻塞后, 等待超时时间, 小于或等于0则没有超时时间, 单位: 秒

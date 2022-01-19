@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"github.com/ehwjh2010/viper/client/enum"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/integer"
 	"github.com/ehwjh2010/viper/helper/serialize"

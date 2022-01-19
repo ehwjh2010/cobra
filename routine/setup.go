@@ -1,6 +1,7 @@
 package routine
 
 import (
+	"github.com/ehwjh2010/viper/client/enum"
 	"github.com/ehwjh2010/viper/client/setting"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/panjf2000/ants/v2"
@@ -20,13 +21,14 @@ func defaultAntsLogger(format string, args ...interface{}) {
 }
 
 // SetUp 初始化协程池
-func SetUp(conf *setting.Routine) (*Task, error) {
+func SetUp(conf setting.Routine) (*Task, error) {
+
 	if conf.MaxWorkerCount <= 0 {
 		conf.MaxWorkerCount = 10
 	}
 
 	if conf.FreeMaxLifetime <= 0 {
-		conf.FreeMaxLifetime = 3600
+		conf.FreeMaxLifetime = enum.OneHour
 	}
 
 	if conf.Logger == nil {
@@ -53,7 +55,7 @@ func SetUp(conf *setting.Routine) (*Task, error) {
 		return nil, err
 	}
 
-	task := newTask(*conf, p)
+	task := newTask(conf, p)
 
 	return task, nil
 }

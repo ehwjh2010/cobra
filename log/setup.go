@@ -1,8 +1,8 @@
 package log
 
 import (
+	"github.com/ehwjh2010/viper/client/enum"
 	"github.com/ehwjh2010/viper/client/setting"
-	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
 	"github.com/ehwjh2010/viper/helper/str"
