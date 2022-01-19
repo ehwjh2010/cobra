@@ -1,4 +1,4 @@
-package client
+package setting
 
 import (
 	"github.com/panjf2000/ants/v2"

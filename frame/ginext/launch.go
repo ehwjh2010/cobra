@@ -3,7 +3,7 @@ package ginext
 import (
 	"fmt"
 	"github.com/ehwjh2010/viper"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/setting"
 	"github.com/ehwjh2010/viper/frame/ginext/middleware"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/log"
@@ -12,23 +12,22 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"go.uber.org/zap"
 )
 
 type App struct {
 	engine  *gin.Engine
-	setting client.Setting
+	setting setting.Setting
 }
 
-func Viper(settings client.Setting) *App {
+func Viper(settings setting.Setting) *App {
 	SetMode(settings.Debug)
 
-	if err := log.InitLog(&settings.LogConfig, settings.Application); err != nil {
-		log.Fatal("Log init failed", zap.Error(err))
+	if err := log.InitLog(settings.LogConfig, settings.Application); err != nil {
+		log.FatalErr("Log init failed", err)
 	}
 
 	if err := RegisterTrans(settings.Language); err != nil {
-		log.Fatal("Register validator translator failed, ", zap.Error(err))
+		log.FatalErr("Register validator translator failed, ", err)
 	}
 
 	newOnStartUp := make([]func() error, len(settings.OnStartUp)+1)

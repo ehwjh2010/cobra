@@ -2,15 +2,15 @@ package mongo
 
 import (
 	"context"
-	"github.com/ehwjh2010/viper/client"
-	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/client/enum"
+	"github.com/ehwjh2010/viper/client/setting"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
 
 //SetUp 初始化mongo
-func SetUp(conf client.Mongo) (*Client, error) {
+func SetUp(conf *setting.Mongo) (*Client, error) {
 	cli, db, err := setup(conf)
 	if err != nil {
 		return nil, err
@@ -20,8 +20,8 @@ func SetUp(conf client.Mongo) (*Client, error) {
 	return c, nil
 }
 
-func setup(conf client.Mongo) (*mongo.Client, *mongo.Database, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), global.FiveMinute)
+func setup(conf *setting.Mongo) (*mongo.Client, *mongo.Database, error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), enum.FiveMinute)
 	defer cancel()
 	o := options.Client().ApplyURI(conf.Uri)
 	o.SetMaxPoolSize(conf.MaxConnectCount)

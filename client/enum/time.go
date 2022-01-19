@@ -1,4 +1,4 @@
-package global
+package enum
 
 import "time"
 
@@ -31,6 +31,8 @@ const (
 	OneDay  = 24 * OneHour
 )
 
+
+//常用时间 以下时间都是以time.Duration为单位
 const (
 	OneSecDur   = time.Duration(1) * time.Second
 	ThreeSecDur = time.Duration(3) * time.Second
@@ -50,3 +52,4 @@ const (
 
 	OneDayDur = time.Duration(24) * time.Hour
 )
+

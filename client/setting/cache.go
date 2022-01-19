@@ -1,4 +1,4 @@
-package client
+package setting
 
 //Cache 缓存配置
 type Cache struct {

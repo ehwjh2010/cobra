@@ -1,4 +1,4 @@
-package client
+package setting
 
 //Log 日志配置
 type Log struct {

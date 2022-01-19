@@ -3,7 +3,8 @@ package rdb
 import (
 	"errors"
 	"fmt"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/enum"
+	"github.com/ehwjh2010/viper/client/setting"
 	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/routine"
@@ -33,24 +34,17 @@ const (
 	Like  = "like"
 )
 
-const (
-	Mysql = iota
-	Postgresql
-	Sqlite
-)
-
 type (
 	DBClient struct {
 		db *gorm.DB
 		//rawConfig 数据库配置
-		rawConfig client.DB
-		// 心跳连续失败次数
+		rawConfig *setting.DB
+		//pCount 心跳连续失败次数
 		pCount int
-		// 重连连续失败次数
+		//rCount 重连连续失败次数
 		rCount int
-
 		//DBType 数据库类型
-		DBType int
+		DBType enum.DBType
 	}
 
 	Where struct {
@@ -65,7 +59,7 @@ type (
 	}
 )
 
-func NewDBClient(db *gorm.DB, dbType int, rawConfig client.DB) (client *DBClient) {
+func NewDBClient(db *gorm.DB, dbType enum.DBType, rawConfig *setting.DB) (client *DBClient) {
 	client = &DBClient{
 		db:        db,
 		DBType:    dbType,
@@ -87,7 +81,8 @@ func (c *DBClient) Heartbeat() error {
 
 //WatchHeartbeat 监测心跳和重连
 func (c *DBClient) WatchHeartbeat() {
-	_ = routine.AddTask(func() {
+	//TODO 待优化, 监测代码逻辑与redis是一致的
+	fn := func() {
 		waitFlag := true
 		for {
 			if waitFlag {
@@ -127,7 +122,18 @@ func (c *DBClient) WatchHeartbeat() {
 				waitFlag = true
 			}
 		}
-	})
+	}
+
+	//优先使用协程池监听, 如果没有使用原生协程监听
+	err := routine.AddTask(fn)
+	if err != nil {
+		if errors.Is(err, routine.NoEnableRoutinePool) {
+			go fn()
+		} else {
+			log.Warn("watch heartbeat failed")
+		}
+
+	}
 }
 
 //replaceDB 替换client内部的db对象

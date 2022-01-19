@@ -3,14 +3,14 @@ package cache
 import (
 	"context"
 	"fmt"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/setting"
 	"github.com/go-redis/redis/v8"
 	"time"
 )
 
 const network = "tcp"
 
-func InitCacheWithGoRedis(redisConfig client.Cache) (*redis.Client, error) {
+func InitCacheWithGoRedis(redisConfig *setting.Cache) (*redis.Client, error) {
 	redisClient := redis.NewClient(&redis.Options{
 		Network:      network,
 		Addr:         fmt.Sprintf("%s:%d", redisConfig.Host, redisConfig.Port),

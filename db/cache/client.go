@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/setting"
 	"github.com/ehwjh2010/viper/helper/serialize"
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/routine"
 	"github.com/go-redis/redis/v8"
 	wrapErr "github.com/pkg/errors"
 	"strconv"
@@ -16,17 +17,82 @@ import (
 
 type RedisClient struct {
 	client         *redis.Client
-	rawConfig      client.Cache
+	//rawConfig 数据库配置配置
+	rawConfig      *setting.Cache
+	//defaultTimeOut 默认超时时间
 	defaultTimeOut int
+	//pCount 心跳连续失败次数
+	pCount int
+	//rCount 重连连续失败次数
+	rCount int
 }
 
-func NewRedisClient(client *redis.Client, rawConfig client.Cache, defaultTimeOut int) *RedisClient {
+func NewRedisClient(client *redis.Client, rawConfig *setting.Cache, defaultTimeOut int) *RedisClient {
 	return &RedisClient{client: client, defaultTimeOut: defaultTimeOut, rawConfig: rawConfig}
+}
+
+//Heartbeat ping连接
+func (r RedisClient) Heartbeat() error {
+	_, err := r.client.Ping(context.TODO()).Result()
+	return err
 }
 
 //WatchHeartbeat 监测心跳和重连
 func (r *RedisClient) WatchHeartbeat() {
-	//TODO 待实现
+	//TODO 待优化, 监测代码逻辑与mysql是一致的
+
+	fn := func() {
+		waitFlag := true
+		for {
+			if waitFlag {
+				<-time.After(3 * time.Second)
+			}
+
+			//重连失败次数大于0, 直接重连
+			if r.rCount > 0 {
+				if ok, _ := r.replaceDB(); ok {
+					r.rCount = 0
+					r.pCount = 0
+					waitFlag = true
+				} else {
+					r.rCount++
+					r.pCount++
+					waitFlag = false
+				}
+				continue
+			}
+
+			if r.Heartbeat() != nil {
+				r.pCount++
+				//心跳连续3次失败, 触发重连
+				if r.pCount >= 3 {
+					if ok, _ := r.replaceDB(); ok {
+						r.rCount = 0
+						r.pCount = 0
+						waitFlag = true
+					} else {
+						r.rCount++
+						waitFlag = false
+					}
+				}
+			} else {
+				r.rCount = 0
+				r.pCount = 0
+				waitFlag = true
+			}
+		}
+	}
+
+	//优先使用协程池监听, 如果没有使用原生协程监听
+	err := routine.AddTask(fn)
+	if err != nil {
+		if errors.Is(err, routine.NoEnableRoutinePool) {
+			go fn()
+		} else {
+			log.Warn("watch heartbeat failed")
+		}
+
+	}
 }
 
 //replaceDB 替换内部client

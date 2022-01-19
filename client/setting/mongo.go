@@ -1,4 +1,4 @@
-package client
+package setting
 
 type Mongo struct {
 	//Uri mongo Uri example:"mongodb://localhost:27017"

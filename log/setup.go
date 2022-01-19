@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/setting"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
@@ -20,7 +20,7 @@ var logger = zap.L()
 var sugaredLogger = zap.S()
 
 // InitLog 初始化Logger
-func InitLog(config *client.Log, application string) (err error) {
+func InitLog(config *setting.Log, application string) (err error) {
 	if config == nil {
 		return
 	}
@@ -57,7 +57,7 @@ func InitLog(config *client.Log, application string) (err error) {
 
 func getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(global.DefaultTimePattern)
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(enum.DefaultTimePattern)
 	encoderConfig.TimeKey = "time"
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.EncodeDuration = zapcore.SecondsDurationEncoder
@@ -65,7 +65,7 @@ func getEncoder() zapcore.Encoder {
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
-func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
+func getWriters(conf *setting.Log, application string) zapcore.WriteSyncer {
 	var writers []io.Writer
 
 	if conf.EnableConsole {

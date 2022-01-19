@@ -1,7 +1,7 @@
 package routine
 
 import (
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/setting"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/panjf2000/ants/v2"
 	"time"
@@ -20,7 +20,7 @@ func defaultAntsLogger(format string, args ...interface{}) {
 }
 
 // SetUp 初始化协程池
-func SetUp(conf *client.Routine) (*Task, error) {
+func SetUp(conf *setting.Routine) (*Task, error) {
 	if conf.MaxWorkerCount <= 0 {
 		conf.MaxWorkerCount = 10
 	}

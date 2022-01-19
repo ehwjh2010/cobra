@@ -1,7 +1,7 @@
 package requests
 
 import (
-	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/client/enum"
 	"github.com/ehwjh2010/viper/routine"
 	"github.com/levigross/grequests"
 	"time"
@@ -28,7 +28,7 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 	})
 }
 
-var defaultHTTPClient = NewHTTPClient(NewRequest(RWithTimeout(global.ThreeSecDur)))
+var defaultHTTPClient = NewHTTPClient(NewRequest(RWithTimeout(enum.ThreeSecDur)))
 
 //Method 请求
 func (api *HTTPClient) Method(method string, url string, rOpts ...ROpt) (*HTTPResponse, error) {

@@ -406,7 +406,7 @@ func (nt NullTime) String() string {
 		return global.NullStr
 	}
 
-	return nt.Time.Format(global.DefaultTimePattern)
+	return nt.Time.Format(enum.DefaultTimePattern)
 }
 
 //IsNil 是否是Nil
@@ -433,7 +433,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return global.NullBytes, nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.Format(global.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.Format(enum.DefaultTimePattern))
 	return []byte(val), nil
 }
 
