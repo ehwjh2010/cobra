@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"github.com/ehwjh2010/viper/client/enum"
+	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/helper/integer"
+	"github.com/ehwjh2010/viper/helper/cast"
 	"github.com/ehwjh2010/viper/helper/serialize"
 	"strconv"
 	"time"
@@ -119,7 +119,7 @@ func (ni *NullInt) IsNil() bool {
 
 //GetValue 获取值
 func (ni *NullInt) GetValue() int {
-	return integer.Int64ToInt(ni.Int64)
+	return cast.Int64ToInt(ni.Int64)
 }
 
 func NewInt(v int) NullInt {
@@ -138,7 +138,7 @@ func (ni NullInt) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
-	return serialize.Marshal(integer.Int64ToInt(ni.Int64))
+	return serialize.Marshal(cast.Int64ToInt(ni.Int64))
 }
 
 //UnmarshalJSON for NullInt
@@ -407,7 +407,7 @@ func (nt NullTime) String() string {
 		return global.NullStr
 	}
 
-	return nt.Time.Format(enum.DefaultTimePattern)
+	return nt.Time.Format(enums.DefaultTimePattern)
 }
 
 //IsNil 是否是Nil
@@ -439,7 +439,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return global.NullBytes, nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.Format(enum.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.Format(enums.DefaultTimePattern))
 	return []byte(val), nil
 }
 

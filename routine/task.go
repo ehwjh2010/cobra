@@ -2,13 +2,13 @@ package routine
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/client/setting"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/panjf2000/ants/v2"
 	"sync"
 )
 
 type Task struct {
-	rawConfig setting.Routine
+	rawConfig settings.Routine
 	p         *ants.Pool
 }
 
@@ -19,7 +19,7 @@ var (
 	NoEnableRoutinePool = errors.New("not enable routine pool, please add enableRtePool field to settings")
 )
 
-func newTask(rawConfig setting.Routine, p *ants.Pool) *Task {
+func newTask(rawConfig settings.Routine, p *ants.Pool) *Task {
 	return &Task{rawConfig: rawConfig, p: p}
 }
 
@@ -54,7 +54,7 @@ func (task Task) CountInfo() map[string]int {
 }
 
 //SetUpDefaultTask 初始化后台任务
-func SetUpDefaultTask(conf setting.Routine) func() error {
+func SetUpDefaultTask(conf settings.Routine) func() error {
 	return func() error {
 		if backgroundTask != nil {
 			return nil

@@ -2,20 +2,15 @@ package mongo
 
 import (
 	"context"
-	"github.com/ehwjh2010/viper/client/enum"
-	"github.com/ehwjh2010/viper/client/setting"
-	"github.com/ehwjh2010/viper/client/verror"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
 
 //SetUp 初始化mongo
-func SetUp(conf *setting.Mongo) (*Client, error) {
-	if conf == nil {
-		return nil, verror.InvalidConfig
-	}
-
+func SetUp(conf settings.Mongo) (*Client, error) {
 	cli, db, err := setup(conf)
 	if err != nil {
 		return nil, err
@@ -25,13 +20,13 @@ func SetUp(conf *setting.Mongo) (*Client, error) {
 	return c, nil
 }
 
-func setup(conf *setting.Mongo) (*mongo.Client, *mongo.Database, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), enum.FiveMinute)
+func setup(conf settings.Mongo) (*mongo.Client, *mongo.Database, error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), enums.FiveMinute)
 	defer cancel()
 	o := options.Client().ApplyURI(conf.Uri)
-	o.SetMaxPoolSize(conf.MaxConnectCount)
-	o.SetMinPoolSize(conf.MinConnectCount)
-	o.SetMaxConnIdleTime(time.Duration(conf.FreeMaxLifetime) * time.Minute)
+	o.SetMaxPoolSize(conf.MaxOpenConnCount)
+	o.SetMinPoolSize(conf.MinOpenConnCount)
+	o.SetMaxConnIdleTime(time.Duration(conf.FreeMaxLifetime) * time.Second)
 	cli, err := mongo.Connect(ctx, o)
 	if err != nil {
 		return nil, nil, err

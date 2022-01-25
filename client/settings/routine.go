@@ -1,8 +1,10 @@
-package setting
+package settings
 
-import (
-	"github.com/panjf2000/ants/v2"
-)
+type LogHandlerFunc func(string, ...interface{})
+
+func (d LogHandlerFunc) Printf(format string, args ...interface{}) {
+	d(format, args...)
+}
 
 // Routine 协程池配置
 type Routine struct {
@@ -22,5 +24,5 @@ type Routine struct {
 	PanicHandler func(interface{})
 
 	// Logger 日志处理器
-	Logger ants.Logger
+	Logger LogHandlerFunc
 }

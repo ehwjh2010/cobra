@@ -1,4 +1,4 @@
-package enum
+package enums
 
 type DBType int
 
@@ -16,10 +16,8 @@ func (dbType DBType) Desc() string {
 	}
 }
 
-
 const (
 	Mysql DBType = iota
 	Postgresql
 	Sqlite
 )
-

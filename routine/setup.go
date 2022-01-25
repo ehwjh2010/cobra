@@ -1,8 +1,8 @@
 package routine
 
 import (
-	"github.com/ehwjh2010/viper/client/enum"
-	"github.com/ehwjh2010/viper/client/setting"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/panjf2000/ants/v2"
 	"time"
@@ -10,29 +10,23 @@ import (
 
 type TaskFunc func()
 
-type AntsLogger func(string, ...interface{})
-
-func (d AntsLogger) Printf(format string, args ...interface{}) {
-	d(format, args...)
-}
-
 func defaultAntsLogger(format string, args ...interface{}) {
 	log.Errorf(format, args...)
 }
 
 // SetUp 初始化协程池
-func SetUp(conf setting.Routine) (*Task, error) {
+func SetUp(conf settings.Routine) (*Task, error) {
 
 	if conf.MaxWorkerCount <= 0 {
 		conf.MaxWorkerCount = 10
 	}
 
 	if conf.FreeMaxLifetime <= 0 {
-		conf.FreeMaxLifetime = enum.OneHour
+		conf.FreeMaxLifetime = enums.OneHour
 	}
 
 	if conf.Logger == nil {
-		conf.Logger = AntsLogger(defaultAntsLogger)
+		conf.Logger = defaultAntsLogger
 	}
 
 	if conf.PanicHandler == nil {

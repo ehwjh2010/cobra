@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ehwjh2010/viper/client/setting"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/helper/serialize"
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
@@ -16,9 +17,9 @@ import (
 )
 
 type RedisClient struct {
-	client         *redis.Client
+	client *redis.Client
 	//rawConfig 数据库配置配置
-	rawConfig      *setting.Cache
+	rawConfig settings.Cache
 	//defaultTimeOut 默认超时时间
 	defaultTimeOut int
 	//pCount 心跳连续失败次数
@@ -27,7 +28,7 @@ type RedisClient struct {
 	rCount int
 }
 
-func NewRedisClient(client *redis.Client, rawConfig *setting.Cache, defaultTimeOut int) *RedisClient {
+func NewRedisClient(client *redis.Client, rawConfig settings.Cache, defaultTimeOut int) *RedisClient {
 	return &RedisClient{client: client, defaultTimeOut: defaultTimeOut, rawConfig: rawConfig}
 }
 
@@ -39,7 +40,7 @@ func (r RedisClient) Heartbeat() error {
 
 //WatchHeartbeat 监测心跳和重连
 func (r *RedisClient) WatchHeartbeat() {
-	//TODO 待优化, 监测代码逻辑与mysql是一致的
+	//TODO 监测逻辑接口化
 
 	fn := func() {
 		waitFlag := true
@@ -50,6 +51,9 @@ func (r *RedisClient) WatchHeartbeat() {
 
 			//重连失败次数大于0, 直接重连
 			if r.rCount > 0 {
+				if r.rCount >= 3 {
+					<-time.After(enums.OneSecDur)
+				}
 				if ok, _ := r.replaceDB(); ok {
 					r.rCount = 0
 					r.pCount = 0

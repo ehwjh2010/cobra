@@ -3,8 +3,8 @@ package rdb
 import (
 	"errors"
 	"fmt"
-	"github.com/ehwjh2010/viper/client/enum"
-	"github.com/ehwjh2010/viper/client/setting"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/routine"
@@ -38,13 +38,13 @@ type (
 	DBClient struct {
 		db *gorm.DB
 		//rawConfig 数据库配置
-		rawConfig *setting.DB
+		rawConfig settings.DB
 		//pCount 心跳连续失败次数
 		pCount int
 		//rCount 重连连续失败次数
 		rCount int
 		//DBType 数据库类型
-		DBType enum.DBType
+		DBType enums.DBType
 	}
 
 	Where struct {
@@ -59,7 +59,7 @@ type (
 	}
 )
 
-func NewDBClient(db *gorm.DB, dbType enum.DBType, rawConfig *setting.DB) (client *DBClient) {
+func NewDBClient(db *gorm.DB, dbType enums.DBType, rawConfig settings.DB) (client *DBClient) {
 	client = &DBClient{
 		db:        db,
 		DBType:    dbType,
@@ -67,6 +67,10 @@ func NewDBClient(db *gorm.DB, dbType enum.DBType, rawConfig *setting.DB) (client
 	}
 
 	return client
+}
+
+func (c *DBClient) RawConfig() settings.DB {
+	return c.rawConfig
 }
 
 //Heartbeat 检测心跳
@@ -81,16 +85,20 @@ func (c *DBClient) Heartbeat() error {
 
 //WatchHeartbeat 监测心跳和重连
 func (c *DBClient) WatchHeartbeat() {
-	//TODO 待优化, 监测代码逻辑与redis是一致的
+	//TODO 重连逻辑接口化
 	fn := func() {
 		waitFlag := true
 		for {
 			if waitFlag {
-				<-time.After(enum.ThreeSecDur)
+				<-time.After(enums.ThreeSecDur)
 			}
 
 			//重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
+				//重连次数过多, 休眠1秒后重连
+				if c.rCount >= 3 {
+					<-time.After(enums.OneSecDur)
+				}
 				if ok, _ := c.replaceDB(); ok {
 					c.rCount = 0
 					c.pCount = 0
@@ -125,7 +133,7 @@ func (c *DBClient) WatchHeartbeat() {
 		}
 	}
 
-	//优先使用协程池监听, 如果没有使用原生协程监听
+	//优先使用协程池监听, 如果没有启用协程池, 使用原生协程监听
 	err := routine.AddTask(fn)
 	if err != nil {
 		if errors.Is(err, routine.NoEnableRoutinePool) {
@@ -133,7 +141,6 @@ func (c *DBClient) WatchHeartbeat() {
 		} else {
 			log.Warn("watch heartbeat failed")
 		}
-
 	}
 }
 

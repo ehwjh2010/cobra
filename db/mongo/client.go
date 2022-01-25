@@ -3,7 +3,8 @@ package mongo
 import (
 	"context"
 	"errors"
-	"github.com/ehwjh2010/viper/client/setting"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/routine"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,17 +12,17 @@ import (
 )
 
 type Client struct {
-	db        *mongo.Database
-	cli       *mongo.Client
+	db  *mongo.Database
+	cli *mongo.Client
 	//rawConfig 数据库配置配置
-	rawConfig *setting.Mongo
+	rawConfig settings.Mongo
 	//pCount 心跳连续失败次数
 	pCount int
 	//rCount 重连连续失败次数
 	rCount int
 }
 
-func NewClient(cli *mongo.Client, db *mongo.Database, rawConfig *setting.Mongo) *Client {
+func NewClient(cli *mongo.Client, db *mongo.Database, rawConfig settings.Mongo) *Client {
 	return &Client{db: db, rawConfig: rawConfig, cli: cli}
 }
 
@@ -32,7 +33,7 @@ func (c *Client) Heartbeat() error {
 
 //WatchHeartbeat 监测心跳和重连
 func (c *Client) WatchHeartbeat() {
-	//TODO 待优化, 监测代码逻辑与mysql是一致的
+	//TODO 监测逻辑接口化
 
 	fn := func() {
 		waitFlag := true
@@ -43,6 +44,9 @@ func (c *Client) WatchHeartbeat() {
 
 			//重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
+				if c.rCount >= 3 {
+					<-time.After(enums.OneSecDur)
+				}
 				if ok, _ := c.replaceDB(); ok {
 					c.rCount = 0
 					c.pCount = 0

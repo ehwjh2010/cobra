@@ -1,7 +1,7 @@
 package timer
 
 import (
-	"github.com/ehwjh2010/viper/client/enum"
+	"github.com/ehwjh2010/viper/client/enums"
 	"strings"
 	"sync"
 	"time"
@@ -11,7 +11,7 @@ var locationMap sync.Map
 
 //GetBJLocation 东八区
 func GetBJLocation() *time.Location {
-	location, _ := GetLocationByName(enum.BJ)
+	location, _ := GetLocationByName(enums.BJ)
 	return location
 }
 

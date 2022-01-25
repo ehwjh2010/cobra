@@ -3,7 +3,7 @@ package ginext
 import (
 	"fmt"
 	"github.com/ehwjh2010/viper"
-	"github.com/ehwjh2010/viper/client/setting"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/frame/ginext/middleware"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/log"
@@ -16,10 +16,10 @@ import (
 
 type App struct {
 	engine  *gin.Engine
-	setting setting.Setting
+	setting settings.Setting
 }
 
-func Viper(settings setting.Setting) *App {
+func Viper(settings settings.Setting) *App {
 	SetMode(settings.Debug)
 
 	if err := log.InitLog(settings.LogConfig, settings.Application); err != nil {
@@ -30,13 +30,15 @@ func Viper(settings setting.Setting) *App {
 		log.FatalErr("Register validator translator failed, ", err)
 	}
 
-	newOnStartUp := make([]func() error, len(settings.OnStartUp)+1)
+	if settings.EnableRtPool {
+		newOnStartUp := make([]func() error, len(settings.OnStartUp)+1)
 
-	newOnStartUp[0] = routine.SetUpDefaultTask(settings.Routine)
+		newOnStartUp[0] = routine.SetUpDefaultTask(settings.Routine)
 
-	copy(newOnStartUp[1:], settings.OnStartUp)
+		copy(newOnStartUp[1:], settings.OnStartUp)
 
-	settings.OnStartUp = newOnStartUp
+		settings.OnStartUp = newOnStartUp
+	}
 
 	engine := gin.New()
 

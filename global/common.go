@@ -23,3 +23,12 @@ const (
 	ContentDisposition = "Content-Disposition"
 	UserAgent          = "ViperRequests/1.1.0"
 )
+
+const (
+	AsciiLowercase = "abcdefghijklmnopqrstuvwxyz"
+	AsciiUppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	AsciiLetters   = AsciiLowercase + AsciiUppercase
+
+	Digits    = "0123456789"
+	Hexdigits = Digits + "abcdef" + "ABCDEF"
+)

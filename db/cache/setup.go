@@ -1,17 +1,13 @@
 package cache
 
 import (
-	"github.com/ehwjh2010/viper/client/enum"
-	"github.com/ehwjh2010/viper/client/setting"
-	"github.com/ehwjh2010/viper/client/verror"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/log"
 )
 
 //SetUp 初始化缓存
-func SetUp(conf *setting.Cache) (client *RedisClient, err error) {
-	if conf != nil {
-		return nil, verror.InvalidConfig
-	}
+func SetUp(conf settings.Cache) (client *RedisClient, err error) {
 
 	c, err := InitCacheWithGoRedis(conf)
 	if err != nil {
@@ -22,7 +18,7 @@ func SetUp(conf *setting.Cache) (client *RedisClient, err error) {
 	log.Debug("Connect redis success")
 
 	if conf.DefaultTimeOut <= 0 {
-		conf.DefaultTimeOut = enum.FiveMinute
+		conf.DefaultTimeOut = enums.FiveMinute
 	}
 
 	client = NewRedisClient(c, conf, conf.DefaultTimeOut)
