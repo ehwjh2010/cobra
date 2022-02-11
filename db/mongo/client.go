@@ -12,26 +12,23 @@ import (
 )
 
 type Client struct {
-	db  *mongo.Database
-	cli *mongo.Client
-	//rawConfig 数据库配置配置
-	rawConfig settings.Mongo
-	//pCount 心跳连续失败次数
-	pCount int
-	//rCount 重连连续失败次数
-	rCount int
+	db        *mongo.Database
+	cli       *mongo.Client
+	rawConfig settings.Mongo // 数据库配置配置
+	pCount    int            // 心跳连续失败次数
+	rCount    int            // 重连连续失败次数
 }
 
 func NewClient(cli *mongo.Client, db *mongo.Database, rawConfig settings.Mongo) *Client {
 	return &Client{db: db, rawConfig: rawConfig, cli: cli}
 }
 
-//Heartbeat ping连接
+// Heartbeat ping连接
 func (c *Client) Heartbeat() error {
 	return c.cli.Ping(context.TODO(), nil)
 }
 
-//WatchHeartbeat 监测心跳和重连
+// WatchHeartbeat 监测心跳和重连
 func (c *Client) WatchHeartbeat() {
 	//TODO 监测逻辑接口化
 
@@ -92,12 +89,12 @@ func (c *Client) WatchHeartbeat() {
 	}
 }
 
-//Close 关闭连接
+// Close 关闭连接
 func (c *Client) Close() error {
 	return c.cli.Disconnect(context.TODO())
 }
 
-//replaceDB 替换内部连接
+// replaceDB 替换内部连接
 func (c *Client) replaceDB() (bool, error) {
 	cli, db, err := setup(c.rawConfig)
 	if err != nil {

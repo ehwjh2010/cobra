@@ -1,6 +1,6 @@
 package settings
 
-//DB 数据库配置
+// DB 数据库配置
 type DB struct {
 	Host             string `yaml:"host" json:"host"`                         //数据库 IP
 	Port             int    `yaml:"port" json:"port"`                         //数据库 端口

@@ -57,7 +57,7 @@ func Viper(settings settings.Setting) *App {
 	return app
 }
 
-//Run 启动
+// Run 启动
 func (app *App) Run() {
 	log.Infof(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
@@ -77,7 +77,7 @@ func (app *App) Run() {
 		app.setting.OnShutDown)
 }
 
-//Engine 返回引擎
+// Engine 返回引擎
 func (app *App) Engine() *gin.Engine {
 	return app.engine
 }

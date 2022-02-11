@@ -6,7 +6,7 @@ import (
 	"github.com/ehwjh2010/viper/log"
 )
 
-//SetUp 初始化缓存
+// SetUp 初始化缓存
 func SetUp(conf settings.Cache) (client *RedisClient, err error) {
 
 	c, err := InitCacheWithGoRedis(conf)

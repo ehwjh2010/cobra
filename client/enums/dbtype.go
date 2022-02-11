@@ -2,7 +2,7 @@ package enums
 
 type DBType int
 
-//Desc 描述
+// Desc 描述
 func (dbType DBType) Desc() string {
 	switch dbType {
 	case Mysql:
@@ -17,7 +17,7 @@ func (dbType DBType) Desc() string {
 }
 
 const (
-	Mysql DBType = iota
+	Mysql DBType = iota + 1
 	Postgresql
 	Sqlite
 )

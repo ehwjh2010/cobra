@@ -1,4 +1,4 @@
-package timer
+package time
 
 import (
 	"github.com/ehwjh2010/viper/client/enums"

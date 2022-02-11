@@ -1,6 +1,6 @@
 package settings
 
-//Cache 缓存配置
+// Cache 缓存配置
 type Cache struct {
 	Host             string `yaml:"host" json:"host"`                         //Redis IP
 	Port             int    `yaml:"port" json:"port"`                         //Redis 端口

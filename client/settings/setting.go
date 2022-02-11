@@ -20,7 +20,7 @@ type Setting struct {
 	OnShutDown      []func() error    //项目关闭前执行函数
 }
 
-//Arrange 处理零值及无效字段为默认值
+// Arrange 处理零值及无效字段为默认值
 func (s *Setting) Arrange() {
 	if s.Host == "" {
 		s.Host = "127.0.0.1"
