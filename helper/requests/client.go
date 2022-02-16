@@ -2,7 +2,7 @@ package requests
 
 import (
 	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/routine"
+	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/levigross/grequests"
 	"time"
 )

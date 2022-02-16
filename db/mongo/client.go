@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
+	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/routine"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
