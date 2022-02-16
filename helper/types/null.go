@@ -36,8 +36,8 @@ func (ni NullInt64) String() string {
 	return strconv.FormatInt(ni.Int64, 10)
 }
 
-// IsNil 是否是Nil
-func (ni *NullInt64) IsNil() bool {
+// IsNull 是否是Nil
+func (ni *NullInt64) IsNull() bool {
 	return !ni.Valid
 }
 
@@ -112,8 +112,8 @@ func (ni NullInt) String() string {
 	return strconv.FormatInt(ni.Int64, 10)
 }
 
-// IsNil 是否是Nil
-func (ni *NullInt) IsNil() bool {
+// IsNull 是否是Nil
+func (ni *NullInt) IsNull() bool {
 	return !ni.Valid
 }
 
@@ -187,8 +187,8 @@ func (nb NullBool) String() string {
 	return strconv.FormatBool(nb.Bool)
 }
 
-// IsNil 是否是Nil
-func (nb *NullBool) IsNil() bool {
+// IsNull 是否是Nil
+func (nb *NullBool) IsNull() bool {
 	return !nb.NullBool.Valid
 }
 
@@ -262,8 +262,8 @@ func (nf NullFloat64) String() string {
 	return strconv.FormatFloat(nf.Float64, 'E', -1, 64)
 }
 
-// IsNil 是否是Nil
-func (nf *NullFloat64) IsNil() bool {
+// IsNull 是否是Nil
+func (nf *NullFloat64) IsNull() bool {
 	return !nf.NullFloat64.Valid
 }
 
@@ -337,8 +337,8 @@ func (ns NullString) String() string {
 	return ns.NullString.String
 }
 
-// IsNil 是否是Nil
-func (ns *NullString) IsNil() bool {
+// IsNull 是否是Nil
+func (ns *NullString) IsNull() bool {
 	return !ns.NullString.Valid
 }
 
@@ -410,8 +410,8 @@ func (nt NullTime) String() string {
 	return nt.Time.Format(enums.DefaultTimePattern)
 }
 
-// IsNil 是否是Nil
-func (nt *NullTime) IsNil() bool {
+// IsNull 是否是Nil
+func (nt *NullTime) IsNull() bool {
 	return !nt.Valid
 }
 

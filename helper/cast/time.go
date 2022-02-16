@@ -1,7 +1,8 @@
-package time
+package cast
 
 import (
 	"github.com/ehwjh2010/viper/client/enums"
+	time2 "github.com/ehwjh2010/viper/helper/time"
 	"time"
 )
 
@@ -39,13 +40,13 @@ func Sec2Str(sec int64) string {
 
 // Sec2BjStrWithLay 秒级时间戳转东八区字符串
 func Sec2BjStrWithLay(sec int64, layout string) string {
-	loc := GetBJLocation()
+	loc := time2.GetBJLocation()
 	return RawSec2Str(sec, layout, loc)
 }
 
 // Sec2BjStr 秒级时间戳转东八区字符串
 func Sec2BjStr(sec int64) string {
-	loc := GetBJLocation()
+	loc := time2.GetBJLocation()
 	return RawSec2Str(sec, enums.DefaultTimePattern, loc)
 }
 
@@ -81,13 +82,13 @@ func MillSec2Str(msec int64) string {
 
 // MillSec2BjStrWithLay 毫秒级时间戳转东八区字符串
 func MillSec2BjStrWithLay(msec int64, layout string) string {
-	loc := GetBJLocation()
+	loc := time2.GetBJLocation()
 	return RawMillSec2Str(msec, layout, loc)
 }
 
 // MillSec2BjStr 毫秒级时间戳转东八区字符串
 func MillSec2BjStr(msec int64) string {
-	loc := GetBJLocation()
+	loc := time2.GetBJLocation()
 	return RawMillSec2Str(msec, enums.DefaultTimePattern, loc)
 }
 
@@ -115,12 +116,12 @@ func MicroSec2Str(msec int64) string {
 
 // MicroSec2BjStrWithLay 毫秒级时间戳转东八区字符串
 func MicroSec2BjStrWithLay(msec int64, layout string) string {
-	loc := GetBJLocation()
+	loc := time2.GetBJLocation()
 	return RawMicroSec2Str(msec, layout, loc)
 }
 
 // MicroSec2BjStr 毫秒级时间戳转东八区字符串
 func MicroSec2BjStr(msec int64) string {
-	loc := GetBJLocation()
+	loc := time2.GetBJLocation()
 	return RawMicroSec2Str(msec, enums.DefaultTimePattern, loc)
 }
