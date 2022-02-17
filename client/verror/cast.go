@@ -1,22 +1,30 @@
 package verror
 
-type CastError struct {
-	error   error
-	message string
-}
+import (
+	"fmt"
+)
 
-func (c *CastError) Message(message string) {
-	c.message = message
+type CastError struct {
+	Value interface{}
+	Desc  string
 }
 
 func (c CastError) Error() string {
-	return c.Error() + "detail: " + c.message
+	return fmt.Sprintf("%v %s", c.Value, c.Desc)
 }
 
-func NewCastError(error error) *CastError {
-	return &CastError{error: error}
+func NewCastError(value interface{}, desc string) *CastError {
+	return &CastError{Value: value, Desc: desc}
 }
 
-//var (
-//	AnyBaseCastError = NewCastError(errors.New("interface cast error"))
-//)
+func CastBoolError(value interface{}) error {
+	return NewCastError(value, "cast bool error")
+}
+
+func CastDoubleError(value interface{}) error {
+	return NewCastError(value, "cast double error")
+}
+
+func CastIntegerError(value interface{}) error {
+	return NewCastError(value, "cast integer error")
+}
