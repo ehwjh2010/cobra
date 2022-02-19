@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/cast"
 	"github.com/ehwjh2010/viper/helper/serialize"
@@ -407,7 +406,7 @@ func (nt NullTime) String() string {
 		return global.NullStr
 	}
 
-	return nt.Time.Format(enums.DefaultTimePattern)
+	return nt.Time.Format(global.DefaultTimePattern)
 }
 
 // IsNull 是否是Nil
@@ -439,7 +438,7 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
 		return global.NullBytes, nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.Format(enums.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.Format(global.DefaultTimePattern))
 	return []byte(val), nil
 }
 

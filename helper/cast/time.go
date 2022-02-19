@@ -1,19 +1,30 @@
 package cast
 
 import (
-	"github.com/ehwjh2010/viper/client/enums"
-	time2 "github.com/ehwjh2010/viper/helper/time"
+	"github.com/ehwjh2010/viper/global"
 	"time"
 )
 
 //==========================Format===============================
 
-func Time2StrWithLay(t time.Time, layout string) string {
-	return t.Format(layout)
+func Time2Str(t time.Time, layout string, loc *time.Location) string {
+	return t.In(loc).Format(layout)
 }
 
-func Time2Str(t time.Time) string {
-	return t.Format(enums.DefaultTimePattern)
+func Time2LocalStrWithLay(t time.Time, layout string) string {
+	return Time2Str(t, layout, time.Local)
+}
+
+func Time2UTCStrWithLay(t time.Time, layout string) string {
+	return Time2Str(t, layout, time.UTC)
+}
+
+func Time2UTCStr(t time.Time) string {
+	return Time2UTCStrWithLay(t, global.DefaultTimePattern)
+}
+
+func Time2LocalStr(t time.Time) string {
+	return Time2LocalStrWithLay(t, global.DefaultTimePattern)
 }
 
 //==========================Second===============================
@@ -28,34 +39,34 @@ func RawSec2Str(sec int64, layout string, loc *time.Location) string {
 	return Sec2Time(sec).In(loc).Format(layout)
 }
 
-// Sec2StrWithLay 秒级时间戳转UTC时区字符串
-func Sec2StrWithLay(sec int64, layout string) string {
+// Sec2UTCStrWithLay 秒级时间戳转UTC时区字符串
+func Sec2UTCStrWithLay(sec int64, layout string) string {
 	return RawSec2Str(sec, layout, time.UTC)
 }
 
-// Sec2Str 秒级时间戳转UTC时区字符串
-func Sec2Str(sec int64) string {
-	return RawSec2Str(sec, enums.DefaultTimePattern, time.UTC)
+// Sec2UTCStr 秒级时间戳转UTC时区字符串
+func Sec2UTCStr(sec int64) string {
+	return Sec2UTCStrWithLay(sec, global.DefaultTimePattern)
 }
 
-// Sec2BjStrWithLay 秒级时间戳转东八区字符串
-func Sec2BjStrWithLay(sec int64, layout string) string {
-	loc := time2.GetBJLocation()
-	return RawSec2Str(sec, layout, loc)
+// Sec2LocalStrWithLay 秒级时间戳转东八区字符串
+func Sec2LocalStrWithLay(sec int64, layout string) string {
+	return RawSec2Str(sec, layout, time.Local)
 }
 
-// Sec2BjStr 秒级时间戳转东八区字符串
-func Sec2BjStr(sec int64) string {
-	loc := time2.GetBJLocation()
-	return RawSec2Str(sec, enums.DefaultTimePattern, loc)
+// Sec2LocalStr 秒级时间戳转东八区字符串
+func Sec2LocalStr(sec int64) string {
+	return Sec2LocalStrWithLay(sec, global.DefaultTimePattern)
 }
 
+// Str2TimeWithLay 字符串转time
 func Str2TimeWithLay(str, layout string) (time.Time, error) {
 	return time.Parse(layout, str)
 }
 
+// Str2Time 字符串转time
 func Str2Time(str string) (time.Time, error) {
-	return time.Parse(enums.DefaultTimePattern, str)
+	return Str2TimeWithLay(str, global.DefaultTimePattern)
 }
 
 //==========================MillSecond===========================
@@ -70,26 +81,24 @@ func RawMillSec2Str(sec int64, layout string, loc *time.Location) string {
 	return MillSec2Time(sec).In(loc).Format(layout)
 }
 
-// MillSec2StrWithLay 毫秒级时间戳转UTC时区字符串
-func MillSec2StrWithLay(msec int64, layout string) string {
+// MillSec2UTCStrWithLay 毫秒级时间戳转UTC时区字符串
+func MillSec2UTCStrWithLay(msec int64, layout string) string {
 	return RawMillSec2Str(msec, layout, time.UTC)
 }
 
-// MillSec2Str 毫秒级时间戳转UTC时区字符串
-func MillSec2Str(msec int64) string {
-	return RawMillSec2Str(msec, enums.DefaultTimePattern, time.UTC)
+// MillSec2LocalStrWithLay 毫秒级时间戳转东八区字符串
+func MillSec2LocalStrWithLay(msec int64, layout string) string {
+	return RawMillSec2Str(msec, layout, time.Local)
 }
 
-// MillSec2BjStrWithLay 毫秒级时间戳转东八区字符串
-func MillSec2BjStrWithLay(msec int64, layout string) string {
-	loc := time2.GetBJLocation()
-	return RawMillSec2Str(msec, layout, loc)
+// MillSec2UTCStr 毫秒级时间戳转UTC时区字符串
+func MillSec2UTCStr(msec int64) string {
+	return MillSec2UTCStrWithLay(msec, global.DefaultTimePattern)
 }
 
-// MillSec2BjStr 毫秒级时间戳转东八区字符串
-func MillSec2BjStr(msec int64) string {
-	loc := time2.GetBJLocation()
-	return RawMillSec2Str(msec, enums.DefaultTimePattern, loc)
+// MillSec2LocalStr 毫秒级时间戳转东八区字符串
+func MillSec2LocalStr(msec int64) string {
+	return MillSec2LocalStrWithLay(msec, global.DefaultTimePattern)
 }
 
 //==========================MicroSecond===========================
@@ -104,24 +113,22 @@ func RawMicroSec2Str(msec int64, layout string, loc *time.Location) string {
 	return MicroSec2Time(msec).In(loc).Format(layout)
 }
 
-// MicroSec2StrWithLay 毫秒级时间戳转UTC时区字符串
-func MicroSec2StrWithLay(msec int64, layout string) string {
+// MicroSec2UTCStrWithLay 毫秒级时间戳转UTC时区字符串
+func MicroSec2UTCStrWithLay(msec int64, layout string) string {
 	return RawMicroSec2Str(msec, layout, time.UTC)
 }
 
-// MicroSec2Str 毫秒级时间戳转UTC时区字符串
-func MicroSec2Str(msec int64) string {
-	return RawMicroSec2Str(msec, enums.DefaultTimePattern, time.UTC)
+// MicroSec2LocalStrWithLay 毫秒级时间戳转东八区字符串
+func MicroSec2LocalStrWithLay(msec int64, layout string) string {
+	return RawMicroSec2Str(msec, layout, time.Local)
 }
 
-// MicroSec2BjStrWithLay 毫秒级时间戳转东八区字符串
-func MicroSec2BjStrWithLay(msec int64, layout string) string {
-	loc := time2.GetBJLocation()
-	return RawMicroSec2Str(msec, layout, loc)
+// MicroSec2UTCStr 毫秒级时间戳转UTC时区字符串
+func MicroSec2UTCStr(msec int64) string {
+	return MicroSec2UTCStrWithLay(msec, global.DefaultTimePattern)
 }
 
-// MicroSec2BjStr 毫秒级时间戳转东八区字符串
-func MicroSec2BjStr(msec int64) string {
-	loc := time2.GetBJLocation()
-	return RawMicroSec2Str(msec, enums.DefaultTimePattern, loc)
+// MicroSec2LocalStr 毫秒级时间戳转东八区字符串
+func MicroSec2LocalStr(msec int64) string {
+	return MicroSec2LocalStrWithLay(msec, global.DefaultTimePattern)
 }

@@ -4,8 +4,6 @@ import "time"
 
 const BJ = "Asia/Shanghai"
 
-const DefaultTimePattern = time.RFC3339 //默认时间格式
-
 // 常用时间 以下时间都是以秒为单位
 const (
 	OneSecond   = 1
