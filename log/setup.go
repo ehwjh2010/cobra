@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
@@ -20,10 +20,7 @@ var logger = zap.L()
 var sugaredLogger = zap.S()
 
 // InitLog 初始化Logger
-func InitLog(config *client.Log, application string) (err error) {
-	if config == nil {
-		return
-	}
+func InitLog(config settings.Log, application string) (err error) {
 
 	if str.IsNotEmpty(config.FileDir) {
 		logFilePath, err := path.Relative2Abs(config.FileDir)
@@ -49,7 +46,7 @@ func InitLog(config *client.Log, application string) (err error) {
 	//由于外部使用的都是包装后的方法, 需要加上AddCallerSkip(1),
 	//zap.AddStacktrace(zapcore.WarnLevel) 这个函数的行为会一旦打印指定级别及以上的日志时, 自动打印堆栈
 	//lg := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.WarnLevel))
-	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(3))
 	zap.ReplaceGlobals(logger) // 替换zap包中全局的logger实例，后续在其他包中只需使用zap.S()调用即可
 	sugaredLogger = zap.S()
 	return
@@ -65,7 +62,7 @@ func getEncoder() zapcore.Encoder {
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
-func getWriters(conf *client.Log, application string) zapcore.WriteSyncer {
+func getWriters(conf settings.Log, application string) zapcore.WriteSyncer {
 	var writers []io.Writer
 
 	if conf.EnableConsole {

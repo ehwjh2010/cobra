@@ -1,8 +1,8 @@
 package requests
 
 import (
-	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/routine"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/levigross/grequests"
 	"time"
 )
@@ -18,7 +18,7 @@ func NewHTTPClient(req *HTTPRequest) *HTTPClient {
 	return cli
 }
 
-//CronClearIdle 定时清理闲置连接
+// CronClearIdle 定时清理闲置连接
 func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration) error {
 	return task.AsyncDO(func() {
 		for {
@@ -28,9 +28,9 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 	})
 }
 
-var defaultHTTPClient = NewHTTPClient(NewRequest(RWithTimeout(global.ThreeSecDur)))
+var defaultHTTPClient = NewHTTPClient(NewRequest(RWithTimeout(enums.ThreeSecDur)))
 
-//Method 请求
+// Method 请求
 func (api *HTTPClient) Method(method string, url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
@@ -41,7 +41,7 @@ func (api *HTTPClient) Method(method string, url string, rOpts ...ROpt) (*HTTPRe
 	return response, err
 }
 
-//Get GET请求方法
+// Get GET请求方法
 func (api *HTTPClient) Get(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
@@ -52,7 +52,7 @@ func (api *HTTPClient) Get(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return response, err
 }
 
-//Post Post请求方法
+// Post Post请求方法
 func (api *HTTPClient) Post(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
@@ -63,7 +63,7 @@ func (api *HTTPClient) Post(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return response, err
 }
 
-//Patch PATCH请求方法
+// Patch PATCH请求方法
 func (api *HTTPClient) Patch(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
@@ -74,7 +74,7 @@ func (api *HTTPClient) Patch(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return response, err
 }
 
-//Put PUT请求方法
+// Put PUT请求方法
 func (api *HTTPClient) Put(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
@@ -85,7 +85,7 @@ func (api *HTTPClient) Put(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return response, err
 }
 
-//Delete DELETE请求方法
+// Delete DELETE请求方法
 func (api *HTTPClient) Delete(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
@@ -96,7 +96,7 @@ func (api *HTTPClient) Delete(url string, rOpts ...ROpt) (*HTTPResponse, error) 
 	return response, err
 }
 
-//Head HEAD请求方法
+// Head HEAD请求方法
 func (api *HTTPClient) Head(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
@@ -107,7 +107,7 @@ func (api *HTTPClient) Head(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return response, err
 }
 
-//Options OPTIONS请求方法
+// Options OPTIONS请求方法
 func (api *HTTPClient) Options(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 

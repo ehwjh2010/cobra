@@ -3,14 +3,14 @@ package cache
 import (
 	"context"
 	"fmt"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/go-redis/redis/v8"
 	"time"
 )
 
 const network = "tcp"
 
-func InitCacheWithGoRedis(redisConfig client.Cache) (*redis.Client, error) {
+func InitCacheWithGoRedis(redisConfig settings.Cache) (*redis.Client, error) {
 	redisClient := redis.NewClient(&redis.Options{
 		Network:      network,
 		Addr:         fmt.Sprintf("%s:%d", redisConfig.Host, redisConfig.Port),
@@ -24,7 +24,8 @@ func InitCacheWithGoRedis(redisConfig client.Cache) (*redis.Client, error) {
 		PoolSize:     redisConfig.MaxOpenConnCount,
 		MinIdleConns: redisConfig.MinFreeConnCount,
 		MaxRetries:   redisConfig.MaxRetries,
-		IdleTimeout:  time.Duration(redisConfig.FreeMaxLifetime) * time.Minute,
+		IdleTimeout:  time.Duration(redisConfig.FreeMaxLifetime) * time.Second,
+		MaxConnAge:   time.Duration(redisConfig.ConnMaxLifetime) * time.Second,
 	})
 
 	ctx := context.TODO()

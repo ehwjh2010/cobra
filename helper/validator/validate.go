@@ -61,7 +61,7 @@ func RegisterTrans(language string) (translator ut.Translator, err error) {
 	return trans, nil
 }
 
-//Translate 翻译错误信息
+// Translate 翻译错误信息
 func Translate(err error, tran ut.Translator) (errMsg string) {
 	if errs, ok := err.(validator.ValidationErrors); ok {
 		// validator.ValidationErrors类型错误则进行翻译

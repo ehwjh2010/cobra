@@ -1,12 +1,10 @@
-package global
+package enums
 
 import "time"
 
 const BJ = "Asia/Shanghai"
 
-const DefaultTimePattern = time.RFC3339 //默认时间格式
-
-//常用时间 以下时间都是以秒为单位
+// 常用时间 以下时间都是以秒为单位
 const (
 	OneSecond   = 1
 	TwoSecond   = 2
@@ -31,6 +29,7 @@ const (
 	OneDay  = 24 * OneHour
 )
 
+// 常用时间 以下时间都是以time.Duration为单位
 const (
 	OneSecDur   = time.Duration(1) * time.Second
 	ThreeSecDur = time.Duration(3) * time.Second

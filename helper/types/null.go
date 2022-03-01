@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/helper/integer"
+	"github.com/ehwjh2010/viper/helper/cast"
 	"github.com/ehwjh2010/viper/helper/serialize"
 	"strconv"
 	"time"
@@ -18,7 +18,7 @@ type NullInt64 struct {
 	sql.NullInt64
 }
 
-//Empty 判断为nil或0
+// Empty 判断为nil或0
 func (ni NullInt64) Empty() bool {
 	if !ni.Valid || ni.Int64 == 0 {
 		return true
@@ -35,17 +35,17 @@ func (ni NullInt64) String() string {
 	return strconv.FormatInt(ni.Int64, 10)
 }
 
-//IsNil 是否是Nil
-func (ni *NullInt64) IsNil() bool {
+// IsNull 是否是Nil
+func (ni *NullInt64) IsNull() bool {
 	return !ni.Valid
 }
 
-//Equal 比较是否相等
+// Equal 比较是否相等
 func (ni *NullInt64) Equal(v NullInt64) bool {
 	return ni.Valid == v.Valid && (!ni.Valid || ni.Int64 == v.Int64)
 }
 
-//GetValue 获取值
+// GetValue 获取值
 func (ni *NullInt64) GetValue() int64 {
 	return ni.Int64
 }
@@ -69,7 +69,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 	return serialize.Marshal(ni.Int64)
 }
 
-//UnmarshalJSON for NullInt64
+// UnmarshalJSON for NullInt64
 func (ni *NullInt64) UnmarshalJSON(b []byte) error {
 	if bytes.Equal(b, global.NullBytes) {
 		ni.Valid = false
@@ -94,7 +94,7 @@ type NullInt struct {
 	sql.NullInt64
 }
 
-//Empty 判断为nil或0
+// Empty 判断为nil或0
 func (ni NullInt) Empty() bool {
 	if !ni.Valid || ni.Int64 == 0 {
 		return true
@@ -111,14 +111,14 @@ func (ni NullInt) String() string {
 	return strconv.FormatInt(ni.Int64, 10)
 }
 
-//IsNil 是否是Nil
-func (ni *NullInt) IsNil() bool {
+// IsNull 是否是Nil
+func (ni *NullInt) IsNull() bool {
 	return !ni.Valid
 }
 
-//GetValue 获取值
+// GetValue 获取值
 func (ni *NullInt) GetValue() int {
-	return integer.Int64ToInt(ni.Int64)
+	return cast.Int64ToInt(ni.Int64)
 }
 
 func NewInt(v int) NullInt {
@@ -137,10 +137,10 @@ func (ni NullInt) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
-	return serialize.Marshal(integer.Int64ToInt(ni.Int64))
+	return serialize.Marshal(cast.Int64ToInt(ni.Int64))
 }
 
-//UnmarshalJSON for NullInt
+// UnmarshalJSON for NullInt
 func (ni *NullInt) UnmarshalJSON(b []byte) error {
 	if bytes.Equal(b, global.NullBytes) {
 		ni.Valid = false
@@ -157,7 +157,7 @@ func (ni *NullInt) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//Equal 比较是否相等
+// Equal 比较是否相等
 func (ni *NullInt) Equal(v NullInt) bool {
 	return ni.Valid == v.Valid && (!ni.Valid || ni.Int64 == v.Int64)
 }
@@ -169,7 +169,7 @@ type NullBool struct {
 	sql.NullBool
 }
 
-//Empty 判断为nil或false
+// Empty 判断为nil或false
 func (nb NullBool) Empty() bool {
 	if !nb.Valid || !nb.Bool {
 		return true
@@ -186,12 +186,12 @@ func (nb NullBool) String() string {
 	return strconv.FormatBool(nb.Bool)
 }
 
-//IsNil 是否是Nil
-func (nb *NullBool) IsNil() bool {
+// IsNull 是否是Nil
+func (nb *NullBool) IsNull() bool {
 	return !nb.NullBool.Valid
 }
 
-//GetValue 获取值
+// GetValue 获取值
 func (nb *NullBool) GetValue() bool {
 	return nb.NullBool.Bool
 }
@@ -215,7 +215,7 @@ func NewBoolNull() NullBool {
 	return NullBool{}
 }
 
-//UnmarshalJSON for NullBool
+// UnmarshalJSON for NullBool
 func (nb *NullBool) UnmarshalJSON(b []byte) error {
 	if bytes.Equal(b, global.NullBytes) {
 		nb.Valid = false
@@ -232,7 +232,7 @@ func (nb *NullBool) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//Equal 比较是否相等
+// Equal 比较是否相等
 func (nb *NullBool) Equal(v NullBool) bool {
 	return nb.Valid == v.Valid && (!nb.Valid || nb.Bool == v.Bool)
 }
@@ -244,7 +244,7 @@ type NullFloat64 struct {
 	sql.NullFloat64
 }
 
-//Empty 判断为nil或0
+// Empty 判断为nil或0
 func (nf NullFloat64) Empty() bool {
 	if !nf.Valid || nf.Float64 == 0 {
 		return true
@@ -261,12 +261,12 @@ func (nf NullFloat64) String() string {
 	return strconv.FormatFloat(nf.Float64, 'E', -1, 64)
 }
 
-//IsNil 是否是Nil
-func (nf *NullFloat64) IsNil() bool {
+// IsNull 是否是Nil
+func (nf *NullFloat64) IsNull() bool {
 	return !nf.NullFloat64.Valid
 }
 
-//GetValue 获取值
+// GetValue 获取值
 func (nf *NullFloat64) GetValue() float64 {
 	return nf.NullFloat64.Float64
 }
@@ -307,7 +307,7 @@ func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//Equal 比较是否相等
+// Equal 比较是否相等
 func (nf *NullFloat64) Equal(v NullFloat64) bool {
 	return nf.Valid == v.Valid && (!nf.Valid || nf.Float64 == v.Float64)
 }
@@ -319,7 +319,7 @@ type NullString struct {
 	sql.NullString
 }
 
-//Empty 判断为nil或""
+// Empty 判断为nil或""
 func (ns NullString) Empty() bool {
 	if !ns.Valid || ns.NullString.String == "" {
 		return true
@@ -336,12 +336,12 @@ func (ns NullString) String() string {
 	return ns.NullString.String
 }
 
-//IsNil 是否是Nil
-func (ns *NullString) IsNil() bool {
+// IsNull 是否是Nil
+func (ns *NullString) IsNull() bool {
 	return !ns.NullString.Valid
 }
 
-//GetValue 获取值
+// GetValue 获取值
 func (ns *NullString) GetValue() string {
 	return ns.NullString.String
 }
@@ -389,7 +389,7 @@ func (ns *NullString) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//Equal 比较是否相等
+// Equal 比较是否相等
 func (ns *NullString) Equal(v NullString) bool {
 	return ns.Valid == v.Valid && (!ns.Valid || ns.NullString.String == v.NullString.String)
 }
@@ -409,12 +409,12 @@ func (nt NullTime) String() string {
 	return nt.Time.Format(global.DefaultTimePattern)
 }
 
-//IsNil 是否是Nil
-func (nt *NullTime) IsNil() bool {
+// IsNull 是否是Nil
+func (nt *NullTime) IsNull() bool {
 	return !nt.Valid
 }
 
-//Empty 判断为nil或0
+// Empty 判断为nil或0
 func (nt NullTime) Empty() bool {
 	if !nt.Valid || nt.Time.Equal(time.Unix(0, 0)) {
 		return true
@@ -423,9 +423,14 @@ func (nt NullTime) Empty() bool {
 	return false
 }
 
-//GetValue 获取值
+// GetValue 获取值
 func (nt *NullTime) GetValue() time.Time {
 	return nt.Time
+}
+
+// TimeStamp 获取时间戳, 单位: s
+func (nt *NullTime) TimeStamp() int64 {
+	return nt.Time.Unix()
 }
 
 // MarshalJSON for NullTime
@@ -465,7 +470,7 @@ func (nt *NullTime) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//Equal 比较是否相等
+// Equal 比较是否相等
 func (nt *NullTime) Equal(v NullTime) bool {
 	return nt.Valid == v.Valid && (!nt.Valid || nt.Time == v.Time)
 }

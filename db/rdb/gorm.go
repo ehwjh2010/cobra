@@ -1,8 +1,10 @@
 package rdb
 
 import (
+	"errors"
 	"fmt"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -12,21 +14,28 @@ import (
 	"time"
 )
 
-const DefaultCreateBatchSize = 1000
+const defaultCreateBatchSize = 1000
 
-func InitDBWithGorm(dbConfig client.DB, dbType int) (*gorm.DB, error) {
+var UnsupportedDBType = errors.New("invalid db type")
+
+func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error) {
 
 	var sqlLogger = logger.Silent
 	if dbConfig.EnableRawSQL {
 		sqlLogger = logger.Info
 	}
 
-	var createBatchSize = DefaultCreateBatchSize
+	var createBatchSize = defaultCreateBatchSize
 	if dbConfig.CreateBatchSize > 0 {
 		createBatchSize = dbConfig.CreateBatchSize
 	}
 
-	db, err := gorm.Open(getDialector(dbConfig, dbType), &gorm.Config{
+	dialector, err := getDialector(dbConfig, dbType)
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := gorm.Open(dialector, &gorm.Config{
 		//打印SQL
 		Logger: logger.Default.LogMode(sqlLogger),
 		NamingStrategy: schema.NamingStrategy{
@@ -58,26 +67,29 @@ func InitDBWithGorm(dbConfig client.DB, dbType int) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(dbConfig.MaxOpenConnCount)
 
 	// SetConnMaxIdleTime 设置闲置连接最长存活时间
-	sqlDB.SetConnMaxIdleTime(dbConfig.FreeMaxLifetime * time.Minute)
+	sqlDB.SetConnMaxIdleTime(time.Duration(dbConfig.FreeMaxLifetime) * time.Second)
+
+	// SetConnMaxLifetime 设置连接最大存活时间
+	sqlDB.SetConnMaxLifetime(time.Duration(dbConfig.ConnMaxLifetime) * time.Second)
 
 	return db, nil
 }
 
-func getDialector(dbConfig client.DB, dbType int) gorm.Dialector {
+func getDialector(dbConfig settings.DB, dbType enums.DBType) (gorm.Dialector, error) {
 	switch dbType {
-	case Mysql:
+	case enums.Mysql:
 		dsn := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,
 			dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database, dbConfig.Location)
-		return mysql.Open(dsn)
+		return mysql.Open(dsn), nil
 
-	case Postgresql:
+	case enums.Postgresql:
 		dsn := fmt.Sprintf(`host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=%s`,
 			dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.Database, dbConfig.Port, dbConfig.Location)
 
-		return postgres.Open(dsn)
+		return postgres.Open(dsn), nil
 	default:
-		log.Panic("only support mysql, postgresql")
+		log.Debug("only support mysql, postgresql")
+		return nil, UnsupportedDBType
 	}
 
-	return nil
 }

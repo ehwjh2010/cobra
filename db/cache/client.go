@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
+	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/helper/serialize"
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
@@ -15,21 +17,89 @@ import (
 )
 
 type RedisClient struct {
-	client         *redis.Client
-	rawConfig      client.Cache
+	client *redis.Client
+	//rawConfig 数据库配置配置
+	rawConfig settings.Cache
+	//defaultTimeOut 默认超时时间
 	defaultTimeOut int
+	//pCount 心跳连续失败次数
+	pCount int
+	//rCount 重连连续失败次数
+	rCount int
 }
 
-func NewRedisClient(client *redis.Client, rawConfig client.Cache, defaultTimeOut int) *RedisClient {
+func NewRedisClient(client *redis.Client, rawConfig settings.Cache, defaultTimeOut int) *RedisClient {
 	return &RedisClient{client: client, defaultTimeOut: defaultTimeOut, rawConfig: rawConfig}
 }
 
-//WatchHeartbeat 监测心跳和重连
-func (r *RedisClient) WatchHeartbeat() {
-	//TODO 待实现
+// Heartbeat ping连接
+func (r RedisClient) Heartbeat() error {
+	_, err := r.client.Ping(context.TODO()).Result()
+	return err
 }
 
-//replaceDB 替换内部client
+// WatchHeartbeat 监测心跳和重连
+func (r *RedisClient) WatchHeartbeat() {
+	//TODO 监测逻辑接口化
+
+	fn := func() {
+		waitFlag := true
+		for {
+			if waitFlag {
+				<-time.After(3 * time.Second)
+			}
+
+			//重连失败次数大于0, 直接重连
+			if r.rCount > 0 {
+				if r.rCount >= 3 {
+					<-time.After(enums.OneSecDur)
+				}
+				if ok, _ := r.replaceDB(); ok {
+					r.rCount = 0
+					r.pCount = 0
+					waitFlag = true
+				} else {
+					r.rCount++
+					r.pCount++
+					waitFlag = false
+				}
+				continue
+			}
+
+			if r.Heartbeat() != nil {
+				r.pCount++
+				//心跳连续3次失败, 触发重连
+				if r.pCount >= 3 {
+					if ok, _ := r.replaceDB(); ok {
+						r.rCount = 0
+						r.pCount = 0
+						waitFlag = true
+					} else {
+						r.rCount++
+						waitFlag = false
+					}
+				}
+			} else {
+				r.rCount = 0
+				r.pCount = 0
+				waitFlag = true
+			}
+		}
+	}
+
+	//优先使用协程池监听, 如果没有使用原生协程监听
+	err := routine.AddTask(fn)
+	if err != nil {
+		if errors.Is(err, routine.NoEnableRoutinePool) {
+			go fn()
+		} else {
+			log.Warn("watch heartbeat failed")
+		}
+
+	}
+}
+
+// replaceDB 替换内部client
 func (r *RedisClient) replaceDB() (bool, error) {
 	cli, err := InitCacheWithGoRedis(r.rawConfig)
 	if err != nil {
@@ -55,7 +125,7 @@ func (r *RedisClient) Close() error {
 	}
 }
 
-//Exist 确认key是否存在
+// Exist 确认key是否存在
 func (r *RedisClient) Exist(key string) (bool, error) {
 	ctx := context.TODO()
 
@@ -73,7 +143,7 @@ func (r *RedisClient) Exist(key string) (bool, error) {
 	return exist, nil
 }
 
-//Delete 删除指定key
+// Delete 删除指定key
 func (r *RedisClient) Delete(key ...string) error {
 	ctx := context.TODO()
 
@@ -86,7 +156,7 @@ func (r *RedisClient) Delete(key ...string) error {
 	return nil
 }
 
-//FlushDB 清空DB
+// FlushDB 清空DB
 func (r *RedisClient) FlushDB() error {
 	ctx := context.TODO()
 
@@ -95,7 +165,7 @@ func (r *RedisClient) FlushDB() error {
 	return err
 }
 
-//AsyncFlushDB 异步清空DB
+// AsyncFlushDB 异步清空DB
 func (r *RedisClient) AsyncFlushDB() error {
 	ctx := context.TODO()
 
@@ -104,7 +174,7 @@ func (r *RedisClient) AsyncFlushDB() error {
 	return err
 }
 
-//SetExpire 设置过期时间, exp 单位: s
+// SetExpire 设置过期时间, exp 单位: s
 func (r *RedisClient) SetExpire(key string, exp int) error {
 	ctx := context.TODO()
 
@@ -117,10 +187,10 @@ func (r *RedisClient) SetExpire(key string, exp int) error {
 	return nil
 }
 
-//TTL 获取指定key的过期时间, 返回时间, 单位: s
-//如果结果是nil, 则key不存在
-//如果结果值-1, 则key无过期时间
-//否则值就是key的过期时间
+// TTL 获取指定key的过期时间, 返回时间, 单位: s
+// 如果结果是nil, 则key不存在
+// 如果结果值-1, 则key无过期时间
+// 否则值就是key的过期时间
 func (r *RedisClient) TTL(key string) (types.NullFloat64, error) {
 	ctx := context.TODO()
 
@@ -139,7 +209,7 @@ func (r *RedisClient) TTL(key string) (types.NullFloat64, error) {
 	}
 }
 
-//SetNX 存在不操作, 不存在则设置, exp 单位: s
+// SetNX 存在不操作, 不存在则设置, exp 单位: s
 func (r *RedisClient) SetNX(key string, value interface{}, exp int) (bool, error) {
 	ctx := context.TODO()
 
@@ -169,7 +239,7 @@ func (r *RedisClient) Set(key string, value interface{}, exp int) (err error) {
 	return nil
 }
 
-//SetWithNoExpire redis命令SET, 永久存储
+// SetWithNoExpire redis命令SET, 永久存储
 func (r *RedisClient) SetWithNoExpire(key string, value interface{}) (err error) {
 	ctx := context.TODO()
 
@@ -180,7 +250,7 @@ func (r *RedisClient) SetWithNoExpire(key string, value interface{}) (err error)
 	return nil
 }
 
-//SetJson 设置Json, exp 单位: 秒
+// SetJson 设置Json, exp 单位: 秒
 func (r *RedisClient) SetJson(key string, value interface{}, exp int) (err error) {
 
 	str, err := serialize.Marshal(value)
@@ -191,7 +261,7 @@ func (r *RedisClient) SetJson(key string, value interface{}, exp int) (err error
 	return r.Set(key, str, exp)
 }
 
-//MSet 批量Set
+// MSet 批量Set
 func (r *RedisClient) MSet(data map[string]interface{}) error {
 	ctx := context.TODO()
 
@@ -200,7 +270,7 @@ func (r *RedisClient) MSet(data map[string]interface{}) error {
 
 //===============================Command Get===================================
 
-//GetStr GetStr
+// GetStr GetStr
 func (r *RedisClient) GetStr(key string) (types.NullString, error) {
 	ctx := context.TODO()
 
@@ -217,7 +287,7 @@ func (r *RedisClient) GetStr(key string) (types.NullString, error) {
 	return types.NewStr(result), nil
 }
 
-//GetInt GetInt
+// GetInt GetInt
 func (r *RedisClient) GetInt(key string) (types.NullInt, error) {
 	ctx := context.TODO()
 
@@ -234,7 +304,7 @@ func (r *RedisClient) GetInt(key string) (types.NullInt, error) {
 	return types.NewInt(result), nil
 }
 
-//GetInt64 GetInt64
+// GetInt64 GetInt64
 func (r *RedisClient) GetInt64(key string) (types.NullInt64, error) {
 	ctx := context.TODO()
 
@@ -251,7 +321,7 @@ func (r *RedisClient) GetInt64(key string) (types.NullInt64, error) {
 	return types.NewInt64(result), nil
 }
 
-//GetFloat64 GetFloat64
+// GetFloat64 GetFloat64
 func (r *RedisClient) GetFloat64(key string) (types.NullFloat64, error) {
 	ctx := context.TODO()
 
@@ -268,7 +338,7 @@ func (r *RedisClient) GetFloat64(key string) (types.NullFloat64, error) {
 	return types.NewFloat64(result), nil
 }
 
-//GetBool GetBool
+// GetBool GetBool
 func (r *RedisClient) GetBool(key string) (types.NullBool, error) {
 	ctx := context.TODO()
 
@@ -285,7 +355,7 @@ func (r *RedisClient) GetBool(key string) (types.NullBool, error) {
 	return types.NewBool(result), nil
 }
 
-//GetTime GetTime
+// GetTime GetTime
 func (r *RedisClient) GetTime(key string) (types.NullTime, error) {
 	ctx := context.TODO()
 
@@ -302,7 +372,7 @@ func (r *RedisClient) GetTime(key string) (types.NullTime, error) {
 	return types.NewTime(result), nil
 }
 
-//GetJson GetJson
+// GetJson GetJson
 func (r *RedisClient) GetJson(key string, dst interface{}) (bool, error) {
 	ctx := context.TODO()
 
@@ -325,7 +395,7 @@ func (r *RedisClient) GetJson(key string, dst interface{}) (bool, error) {
 
 //===============================Command Count===================================
 
-//Incr Incr
+// Incr 加1
 func (r *RedisClient) Incr(key string) (int64, error) {
 	ctx := context.TODO()
 
@@ -338,7 +408,7 @@ func (r *RedisClient) Incr(key string) (int64, error) {
 	return count, nil
 }
 
-//IncrBy IncrBy
+// IncrBy 添加指定数量
 func (r *RedisClient) IncrBy(key string, incr int64) (int64, error) {
 	ctx := context.TODO()
 
@@ -351,7 +421,7 @@ func (r *RedisClient) IncrBy(key string, incr int64) (int64, error) {
 	return count, nil
 }
 
-//Decr Decr
+// Decr 减1
 func (r *RedisClient) Decr(key string) (int64, error) {
 	ctx := context.TODO()
 
@@ -364,7 +434,7 @@ func (r *RedisClient) Decr(key string) (int64, error) {
 	return count, nil
 }
 
-//DecrBy DecrBy
+// DecrBy 减少指定数量
 func (r *RedisClient) DecrBy(key string, decr int64) (int64, error) {
 	ctx := context.TODO()
 
@@ -379,14 +449,14 @@ func (r *RedisClient) DecrBy(key string, decr int64) (int64, error) {
 
 //===============================Command list===================================
 
-//LPush 往列表插入值
+// LPush 往列表插入值
 func (r *RedisClient) LPush(key string, value ...interface{}) error {
 	ctx := context.TODO()
 
 	return r.client.LPush(ctx, key, value...).Err()
 }
 
-//RPush 往列表插入值
+// RPush 往列表插入值
 func (r *RedisClient) RPush(key string, value ...interface{}) error {
 	ctx := context.TODO()
 
@@ -529,7 +599,7 @@ func (r *RedisClient) LFirstMemberFloat64(key string) (types.NullFloat64, error)
 	return types.NewFloat64Null(), nil
 }
 
-//LPop 从头部删除元素
+// LPop 从头部删除元素
 func (r *RedisClient) LPop(key string) (types.NullString, error) {
 	ctx := context.TODO()
 
@@ -546,7 +616,7 @@ func (r *RedisClient) LPop(key string) (types.NullString, error) {
 	return types.NewStr(result), nil
 }
 
-//LPopWithCount 从头部删除元素
+// LPopWithCount 从头部删除元素
 func (r *RedisClient) LPopWithCount(key string, count int) ([]string, error) {
 	ctx := context.TODO()
 
@@ -559,7 +629,7 @@ func (r *RedisClient) LPopWithCount(key string, count int) ([]string, error) {
 	return result, nil
 }
 
-//RPop 从尾部删除元素
+// RPop 从尾部删除元素
 func (r *RedisClient) RPop(key string) (types.NullString, error) {
 	ctx := context.TODO()
 
@@ -576,7 +646,7 @@ func (r *RedisClient) RPop(key string) (types.NullString, error) {
 	return types.NewStr(result), nil
 }
 
-//RPopWithCount 从头部删除元素
+// RPopWithCount 从头部删除元素
 func (r *RedisClient) RPopWithCount(key string, count int) ([]string, error) {
 	ctx := context.TODO()
 
@@ -589,7 +659,7 @@ func (r *RedisClient) RPopWithCount(key string, count int) ([]string, error) {
 	return result, nil
 }
 
-//LLen 列表长度
+// LLen 列表长度
 func (r *RedisClient) LLen(key string) (int64, error) {
 	ctx := context.TODO()
 
@@ -598,22 +668,22 @@ func (r *RedisClient) LLen(key string) (int64, error) {
 	return result, err
 }
 
-//LRem 删除列表中所有与value相等的元素
+// LRem 删除列表中所有与value相等的元素
 func (r *RedisClient) LRem(key string, value interface{}) error {
 	return r.LRemWithCount(key, value, 0)
 }
 
-//LRemFirstOne 从头部开始删除第一个value相等的元素
+// LRemFirstOne 从头部开始删除第一个value相等的元素
 func (r *RedisClient) LRemFirstOne(key string, value interface{}) error {
 	return r.LRemWithCount(key, value, 1)
 }
 
-//LRemLastOne 从尾部开始删除第一个value相等的元素
+// LRemLastOne 从尾部开始删除第一个value相等的元素
 func (r *RedisClient) LRemLastOne(key string, value interface{}) error {
 	return r.LRemWithCount(key, value, -1)
 }
 
-//LRemWithCount 删除列表中与value相等的元素, 删除个数为count
+// LRemWithCount 删除列表中与value相等的元素, 删除个数为count
 func (r *RedisClient) LRemWithCount(key string, value interface{}, count int) error {
 	ctx := context.TODO()
 
@@ -631,7 +701,7 @@ func (r *RedisClient) LTrim(key string, start, end int) error {
 	return err
 }
 
-//RPopLPush Redis命令rpoplpush
+// RPopLPush Redis命令rpoplpush
 func (r *RedisClient) RPopLPush(src, dst string) (string, error) {
 	ctx := context.TODO()
 
@@ -650,7 +720,7 @@ func (r *RedisClient) RPopLPush(src, dst string) (string, error) {
 
 //===============================Command hash===================================
 
-//HGetStr Redis命令hget
+// HGetStr Redis命令hget
 func (r *RedisClient) HGetStr(key string, field string) (types.NullString, error) {
 	ctx := context.TODO()
 
@@ -667,7 +737,7 @@ func (r *RedisClient) HGetStr(key string, field string) (types.NullString, error
 	return types.NewStr(value), nil
 }
 
-//HGetInt Redis命令hget
+// HGetInt Redis命令hget
 func (r *RedisClient) HGetInt(key string, field string) (types.NullInt, error) {
 	ctx := context.TODO()
 
@@ -684,7 +754,7 @@ func (r *RedisClient) HGetInt(key string, field string) (types.NullInt, error) {
 	return types.NewInt(value), nil
 }
 
-//HGetInt64 Redis命令hget
+// HGetInt64 Redis命令hget
 func (r *RedisClient) HGetInt64(key string, field string) (types.NullInt64, error) {
 	ctx := context.TODO()
 
@@ -701,7 +771,7 @@ func (r *RedisClient) HGetInt64(key string, field string) (types.NullInt64, erro
 	return types.NewInt64(value), nil
 }
 
-//HGetFloat64 Redis命令hget
+// HGetFloat64 Redis命令hget
 func (r *RedisClient) HGetFloat64(key string, field string) (types.NullFloat64, error) {
 	ctx := context.TODO()
 
@@ -718,7 +788,7 @@ func (r *RedisClient) HGetFloat64(key string, field string) (types.NullFloat64, 
 	return types.NewFloat64(value), nil
 }
 
-//HGetBool Redis命令hget
+// HGetBool Redis命令hget
 func (r *RedisClient) HGetBool(key string, field string) (types.NullBool, error) {
 	ctx := context.TODO()
 
@@ -735,7 +805,7 @@ func (r *RedisClient) HGetBool(key string, field string) (types.NullBool, error)
 	return types.NewBool(value), nil
 }
 
-//HGetTime Redis命令hget
+// HGetTime Redis命令hget
 func (r *RedisClient) HGetTime(key string, field string) (types.NullTime, error) {
 	ctx := context.TODO()
 
@@ -752,7 +822,7 @@ func (r *RedisClient) HGetTime(key string, field string) (types.NullTime, error)
 	return types.NewTime(value), nil
 }
 
-//HGetJson Redis命令hget
+// HGetJson Redis命令hget
 func (r *RedisClient) HGetJson(key string, field string, dst interface{}) (bool, error) {
 	ctx := context.TODO()
 
@@ -772,7 +842,7 @@ func (r *RedisClient) HGetJson(key string, field string, dst interface{}) (bool,
 	return true, nil
 }
 
-//HGetAll Redis命令hgetall
+// HGetAll Redis命令hgetall
 func (r *RedisClient) HGetAll(key string) (map[string]string, error) {
 	ctx := context.TODO()
 
@@ -789,7 +859,7 @@ func (r *RedisClient) HGetAll(key string) (map[string]string, error) {
 	return v, nil
 }
 
-//HGetAllWIthMap Redis命令hgetall, 返回值第一个是key是否存在, 第二个是错误
+// HGetAllWIthMap Redis命令hgetall, 返回值第一个是key是否存在, 第二个是错误
 func (r *RedisClient) HGetAllWIthMap(key string) (map[string]string, error) {
 	ctx := context.TODO()
 
@@ -806,7 +876,7 @@ func (r *RedisClient) HGetAllWIthMap(key string) (map[string]string, error) {
 	return v, nil
 }
 
-//HSet Redis命令Hset
+// HSet Redis命令Hset
 func (r *RedisClient) HSet(key string, info map[string]interface{}) error {
 	ctx := context.TODO()
 
@@ -817,7 +887,7 @@ func (r *RedisClient) HSet(key string, info map[string]interface{}) error {
 	return nil
 }
 
-//HSetJson Redis命令Hset
+// HSetJson Redis命令Hset
 func (r *RedisClient) HSetJson(key, field string, value interface{}) error {
 	ctx := context.TODO()
 
@@ -833,7 +903,7 @@ func (r *RedisClient) HSetJson(key, field string, value interface{}) error {
 	return nil
 }
 
-//HKeys Redis命令hkeys
+// HKeys Redis命令hkeys
 func (r *RedisClient) HKeys(key string) ([]string, error) {
 	ctx := context.TODO()
 
@@ -850,7 +920,7 @@ func (r *RedisClient) HKeys(key string) ([]string, error) {
 	return result, nil
 }
 
-//HLen Redis命令hlen
+// HLen Redis命令hlen
 func (r *RedisClient) HLen(key string) (int64, error) {
 	ctx := context.TODO()
 
@@ -869,7 +939,7 @@ func (r *RedisClient) HLen(key string) (int64, error) {
 
 //===============================Command set===================================
 
-//SAdd Redis命令sadd
+// SAdd Redis命令sadd
 func (r *RedisClient) SAdd(key string, value ...interface{}) error {
 	ctx := context.TODO()
 
@@ -880,7 +950,7 @@ func (r *RedisClient) SAdd(key string, value ...interface{}) error {
 	return nil
 }
 
-//SIsMember Redis命令sismember
+// SIsMember Redis命令sismember
 func (r *RedisClient) SIsMember(key string, value interface{}) (bool, error) {
 	ctx := context.TODO()
 
@@ -897,7 +967,7 @@ func (r *RedisClient) SIsMember(key string, value interface{}) (bool, error) {
 	return exist, nil
 }
 
-//SMembers Redis命令smembers
+// SMembers Redis命令smembers
 func (r *RedisClient) SMembers(key string) ([]string, error) {
 	ctx := context.TODO()
 	result, err := r.client.SMembers(ctx, key).Result()
@@ -912,7 +982,7 @@ func (r *RedisClient) SMembers(key string) ([]string, error) {
 	return result, nil
 }
 
-//SMembersInt Redis命令smembers
+// SMembersInt Redis命令smembers
 func (r *RedisClient) SMembersInt(key string) ([]int, error) {
 	ctx := context.TODO()
 
@@ -930,7 +1000,7 @@ func (r *RedisClient) SMembersInt(key string) ([]int, error) {
 	return ret, nil
 }
 
-//SMembersInt64 Redis命令smembers
+// SMembersInt64 Redis命令smembers
 func (r *RedisClient) SMembersInt64(key string) ([]int64, error) {
 	ctx := context.TODO()
 
@@ -948,7 +1018,7 @@ func (r *RedisClient) SMembersInt64(key string) ([]int64, error) {
 	return ret, nil
 }
 
-//SMembersFloat64 Redis命令smembers
+// SMembersFloat64 Redis命令smembers
 func (r *RedisClient) SMembersFloat64(key string) ([]float64, error) {
 	ctx := context.TODO()
 
@@ -966,7 +1036,7 @@ func (r *RedisClient) SMembersFloat64(key string) ([]float64, error) {
 	return ret, nil
 }
 
-//SMembersTime Redis命令smembers
+// SMembersTime Redis命令smembers
 func (r *RedisClient) SMembersTime(key string) ([]time.Time, error) {
 	ctx := context.TODO()
 
@@ -984,7 +1054,7 @@ func (r *RedisClient) SMembersTime(key string) ([]time.Time, error) {
 	return ret, nil
 }
 
-//SPopStr Redis命令spop, 返回删除的值
+// SPopStr Redis命令spop, 返回删除的值
 func (r *RedisClient) SPopStr(key string) (types.NullString, error) {
 	ctx := context.TODO()
 
@@ -1001,7 +1071,7 @@ func (r *RedisClient) SPopStr(key string) (types.NullString, error) {
 	return types.NewStr(result), nil
 }
 
-//SPopInt Redis命令spop
+// SPopInt Redis命令spop
 func (r *RedisClient) SPopInt(key string) (types.NullInt, error) {
 	ctx := context.TODO()
 
@@ -1018,7 +1088,7 @@ func (r *RedisClient) SPopInt(key string) (types.NullInt, error) {
 	return types.NewInt(result), nil
 }
 
-//SPopInt64 Redis命令spop
+// SPopInt64 Redis命令spop
 func (r *RedisClient) SPopInt64(key string) (types.NullInt64, error) {
 	ctx := context.TODO()
 
@@ -1035,7 +1105,7 @@ func (r *RedisClient) SPopInt64(key string) (types.NullInt64, error) {
 	return types.NewInt64(result), nil
 }
 
-//SPopBool Redis命令spop
+// SPopBool Redis命令spop
 func (r *RedisClient) SPopBool(key string) (types.NullBool, error) {
 	ctx := context.TODO()
 
@@ -1052,7 +1122,7 @@ func (r *RedisClient) SPopBool(key string) (types.NullBool, error) {
 	return types.NewBool(result), nil
 }
 
-//SPopFloat64 Redis命令spop
+// SPopFloat64 Redis命令spop
 func (r *RedisClient) SPopFloat64(key string) (float64, error) {
 	ctx := context.TODO()
 
@@ -1069,7 +1139,7 @@ func (r *RedisClient) SPopFloat64(key string) (float64, error) {
 	return result, nil
 }
 
-//SRem Redis命令srem, 返回删除个数
+// SRem Redis命令srem, 返回删除个数
 func (r *RedisClient) SRem(key string, dst ...interface{}) (int64, error) {
 	ctx := context.TODO()
 
@@ -1088,7 +1158,7 @@ func (r *RedisClient) SRem(key string, dst ...interface{}) (int64, error) {
 
 //===============================Command zset===================================
 
-//ZSet Redis命令zset
+// ZSet Redis命令zset
 func (r *RedisClient) ZSet(key string, score float64, value interface{}) error {
 	ctx := context.TODO()
 
@@ -1101,7 +1171,7 @@ func (r *RedisClient) ZSet(key string, score float64, value interface{}) error {
 	return err
 }
 
-//ZScore Redis命令zscore
+// ZScore Redis命令zscore
 func (r *RedisClient) ZScore(key string, value string) (types.NullFloat64, error) {
 	ctx := context.TODO()
 
@@ -1118,7 +1188,7 @@ func (r *RedisClient) ZScore(key string, value string) (types.NullFloat64, error
 	return types.NewFloat64(result), nil
 }
 
-//ZCount Redis命令zcount, 返回score 值在 min 和 max 之间的成员的数量
+// ZCount Redis命令zcount, 返回score 值在 min 和 max 之间的成员的数量
 func (r *RedisClient) ZCount(key string, scoreMin, scoreMax float64) (int64, error) {
 	ctx := context.TODO()
 
@@ -1138,7 +1208,7 @@ func (r *RedisClient) ZCount(key string, scoreMin, scoreMax float64) (int64, err
 	return result, nil
 }
 
-//ZRangeWithScore Redis命令zrange, 包括start, end 边界值, 返回按照score排序
+// ZRangeWithScore Redis命令zrange, 包括start, end 边界值, 返回按照score排序
 func (r *RedisClient) ZRangeWithScore(key string, start, end int, reverse bool) ([]map[string]interface{}, error) {
 	ctx := context.TODO()
 
@@ -1171,7 +1241,7 @@ func (r *RedisClient) ZRangeWithScore(key string, start, end int, reverse bool) 
 	return ret, nil
 }
 
-//ZRem Redis命令zrem, 删除指定member的field
+// ZRem Redis命令zrem, 删除指定member的field
 func (r *RedisClient) ZRem(key string, members ...interface{}) (int64, error) {
 	ctx := context.TODO()
 

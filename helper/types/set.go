@@ -6,7 +6,7 @@ func NewEmptyStruct() EmptyStruct {
 	return EmptyStruct{}
 }
 
-//SimpleSet 非线程安全Set
+// SimpleSet 非线程安全Set
 type SimpleSet struct {
 	data map[interface{}]EmptyStruct
 }
@@ -17,41 +17,41 @@ func NewSimpleSet() *SimpleSet {
 	}
 }
 
-//Add 添加元素
+// Add 添加元素
 func (set *SimpleSet) Add(v interface{}) {
 	set.data[v] = NewEmptyStruct()
 }
 
-//Del 删除元素
+// Del 删除元素
 func (set *SimpleSet) Del(v interface{}) {
 	delete(set.data, v)
 }
 
-//Update 批量添加元素
+// Update 批量添加元素
 func (set *SimpleSet) Update(vs ...interface{}) {
 	for v := range vs {
 		set.Add(v)
 	}
 }
 
-//Size 获取长度
+// Size 获取长度
 func (set SimpleSet) Size() int {
 	return len(set.data)
 }
 
-//Has 是否已包含
+// Has 是否已包含
 func (set SimpleSet) Has(v interface{}) bool {
 	_, exists := set.data[v]
 	return exists
 }
 
-//NotHas 是否不包含
+// NotHas 是否不包含
 func (set SimpleSet) NotHas(v interface{}) bool {
 	_, exists := set.data[v]
 	return !exists
 }
 
-//Values 获取所有的值
+// Values 获取所有的值
 func (set SimpleSet) Values() []interface{} {
 	j := 0
 	keys := make([]interface{}, len(set.data))
@@ -62,7 +62,7 @@ func (set SimpleSet) Values() []interface{} {
 	return keys
 }
 
-//IntValues 获取所有的值
+// IntValues 获取所有的值
 func (set SimpleSet) IntValues() []int {
 	j := 0
 	keys := make([]int, len(set.data))
@@ -73,7 +73,7 @@ func (set SimpleSet) IntValues() []int {
 	return keys
 }
 
-//Int64Values 获取所有的值
+// Int64Values 获取所有的值
 func (set SimpleSet) Int64Values() []int64 {
 	j := 0
 	keys := make([]int64, len(set.data))
@@ -84,7 +84,7 @@ func (set SimpleSet) Int64Values() []int64 {
 	return keys
 }
 
-//Int32Values 获取所有的值
+// Int32Values 获取所有的值
 func (set SimpleSet) Int32Values() []int32 {
 	j := 0
 	keys := make([]int32, len(set.data))
@@ -95,7 +95,7 @@ func (set SimpleSet) Int32Values() []int32 {
 	return keys
 }
 
-//StrValues 获取所有的值
+// StrValues 获取所有的值
 func (set SimpleSet) StrValues() []string {
 	j := 0
 	keys := make([]string, len(set.data))
@@ -106,7 +106,7 @@ func (set SimpleSet) StrValues() []string {
 	return keys
 }
 
-//Float64Values 获取所有的值
+// Float64Values 获取所有的值
 func (set SimpleSet) Float64Values() []float64 {
 	j := 0
 	keys := make([]float64, len(set.data))
@@ -117,7 +117,7 @@ func (set SimpleSet) Float64Values() []float64 {
 	return keys
 }
 
-//Float32Values 获取所有的值
+// Float32Values 获取所有的值
 func (set SimpleSet) Float32Values() []float32 {
 	j := 0
 	keys := make([]float32, len(set.data))
@@ -128,14 +128,14 @@ func (set SimpleSet) Float32Values() []float32 {
 	return keys
 }
 
-//Union 并集
+// Union 并集
 func (set SimpleSet) Union(s SimpleSet) *SimpleSet {
 	r := set.Copy()
 	r.Update(s.Values())
 	return r
 }
 
-//Common 交集
+// Common 交集
 func (set SimpleSet) Common(s SimpleSet) *SimpleSet {
 	r := NewSimpleSet()
 	for v, _ := range set.data {
@@ -146,7 +146,7 @@ func (set SimpleSet) Common(s SimpleSet) *SimpleSet {
 	return r
 }
 
-//Diff 差集
+// Diff 差集
 func (set SimpleSet) Diff(s SimpleSet) *SimpleSet {
 	r := NewSimpleSet()
 	for v, _ := range set.data {
@@ -157,7 +157,7 @@ func (set SimpleSet) Diff(s SimpleSet) *SimpleSet {
 	return r
 }
 
-//Copy copy自身
+// Copy copy自身
 func (set SimpleSet) Copy() *SimpleSet {
 	copySet := NewSimpleSet()
 

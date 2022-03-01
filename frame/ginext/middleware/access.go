@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-//AccessLog 使用ZAP接管GIN相关日志
-//timeFormat 时间格式
-//utc 是否使用UTC时间
-//skipPath 不记录日志的url
+// AccessLog 使用ZAP接管GIN相关日志
+// timeFormat 时间格式
+// utc 是否使用UTC时间
+// skipPath 不记录日志的url
 func AccessLog(skipPaths []string, utc bool, timeFormat string) gin.HandlerFunc {
 	log.Debug("Use ginzap middleware")
 	skipPaths = append(skipPaths, "/swagger")

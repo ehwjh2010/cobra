@@ -84,7 +84,7 @@ func RWithFiles(files []FileUpload) ROpt {
 	}
 }
 
-//toInternal 转换为RequestOptions
+// toInternal 转换为RequestOptions
 func (r *HTTPRequest) toInternal() *grequests.RequestOptions {
 
 	if r.UserAgent == "" {

@@ -1,12 +1,13 @@
 package rdb
 
 import (
+	"context"
 	"errors"
-	"fmt"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
+	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/routine"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"strconv"
@@ -33,39 +34,32 @@ const (
 	Like  = "like"
 )
 
-const (
-	Mysql = iota
-	Postgresql
-	Sqlite
-)
-
 type (
 	DBClient struct {
-		db *gorm.DB
-		//rawConfig 数据库配置
-		rawConfig client.DB
-		// 心跳连续失败次数
-		pCount int
-		// 重连连续失败次数
-		rCount int
-
-		//DBType 数据库类型
-		DBType int
+		db        *gorm.DB
+		rawConfig settings.DB  // 数据库配置
+		pCount    int          // 心跳连续失败次数
+		rCount    int          // 重连连续失败次数
+		DBType    enums.DBType // 数据库类型
 	}
 
 	Where struct {
-		//Column 字段名
-		Column string
-		//Value 值
-		Value interface{}
-		//Sign 符号
-		Sign string
-		//Or 添加
-		Ors []*Where
+		Column string      // 字段名
+		Value  interface{} // 值
+		Sign   string      // 符号
+		Ors    []*Where    //或条件
 	}
 )
 
-func NewDBClient(db *gorm.DB, dbType int, rawConfig client.DB) (client *DBClient) {
+type OptDBFunc func(db *gorm.DB) *gorm.DB
+
+func WithContext(ctx context.Context) OptDBFunc {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.WithContext(ctx)
+	}
+}
+
+func NewDBClient(db *gorm.DB, dbType enums.DBType, rawConfig settings.DB) (client *DBClient) {
 	client = &DBClient{
 		db:        db,
 		DBType:    dbType,
@@ -75,7 +69,11 @@ func NewDBClient(db *gorm.DB, dbType int, rawConfig client.DB) (client *DBClient
 	return client
 }
 
-//Heartbeat 检测心跳
+func (c *DBClient) RawConfig() settings.DB {
+	return c.rawConfig
+}
+
+// Heartbeat 检测心跳
 func (c *DBClient) Heartbeat() error {
 	db, err := c.db.DB()
 	if err != nil {
@@ -85,17 +83,22 @@ func (c *DBClient) Heartbeat() error {
 	return db.Ping()
 }
 
-//WatchHeartbeat 监测心跳和重连
+// WatchHeartbeat 监测心跳和重连
 func (c *DBClient) WatchHeartbeat() {
-	_ = routine.AddTask(func() {
+	//TODO 重连逻辑接口化
+	fn := func() {
 		waitFlag := true
 		for {
 			if waitFlag {
-				<-time.After(3 * time.Second)
+				<-time.After(enums.ThreeSecDur)
 			}
 
 			//重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
+				//重连次数过多, 休眠1秒后重连
+				if c.rCount >= 3 {
+					<-time.After(enums.OneSecDur)
+				}
 				if ok, _ := c.replaceDB(); ok {
 					c.rCount = 0
 					c.pCount = 0
@@ -108,6 +111,7 @@ func (c *DBClient) WatchHeartbeat() {
 				continue
 			}
 
+			//心跳检测
 			if c.Heartbeat() != nil {
 				c.pCount++
 				//心跳连续3次失败, 触发重连
@@ -127,10 +131,20 @@ func (c *DBClient) WatchHeartbeat() {
 				waitFlag = true
 			}
 		}
-	})
+	}
+
+	//优先使用协程池监听, 如果没有启用协程池, 使用原生协程监听
+	err := routine.AddTask(fn)
+	if err != nil {
+		if errors.Is(err, routine.NoEnableRoutinePool) {
+			go fn()
+		} else {
+			log.Warn("watch heartbeat failed")
+		}
+	}
 }
 
-//replaceDB 替换client内部的db对象
+// replaceDB 替换client内部的db对象
 func (c *DBClient) replaceDB() (bool, error) {
 	newDB, err := InitDBWithGorm(c.rawConfig, c.DBType)
 	if err != nil {
@@ -147,7 +161,7 @@ func (c *DBClient) replaceDB() (bool, error) {
 
 //TODO Where 指定字段, 连表查询, 聚合查询, GROUP BY, HAVING, DISTINCT, COUNT, JOIN
 
-//Or 添加Or条件
+// Or 添加Or条件
 func (where *Where) Or(w *Where) *Where {
 	if w != nil {
 		where.Ors = append(where.Ors, w)
@@ -156,74 +170,74 @@ func (where *Where) Or(w *Where) *Where {
 	return where
 }
 
-//NewWhere 设置查询条件
+// NewWhere 设置查询条件
 func NewWhere(column string, value interface{}, sign string) *Where {
 	return &Where{Column: column, Value: value, Sign: sign}
 }
 
-//NewEqWhere =
+// NewEqWhere =
 func NewEqWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Eq}
 }
 
-//NewNotEqWhere !=
+// NewNotEqWhere !=
 func NewNotEqWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Neq}
 }
 
-//NewGtWhere >
+// NewGtWhere >
 func NewGtWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Gt}
 }
 
-//NewGteWhere >=
+// NewGteWhere >=
 func NewGteWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Gte}
 }
 
-//NewLteWhere <=
+// NewLteWhere <=
 func NewLteWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Lte}
 }
 
-//NewLtWhere <
+// NewLtWhere <
 func NewLtWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Lt}
 }
 
-//NewInWhere in
+// NewInWhere in
 func NewInWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: In}
 }
 
-//NewNotInWhere not in
+// NewNotInWhere not in
 func NewNotInWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: NotIn}
 }
 
-//NewLikeWhere 模糊查询 %demo%
+// NewLikeWhere 模糊查询 %demo%
 func NewLikeWhere(column string, value string) *Where {
 	return &Where{Column: column, Value: `%` + value + `%`, Sign: Like}
 }
 
-//NewLeftLikeWhere 模糊查询 %demo
+// NewLeftLikeWhere 模糊查询 %demo
 func NewLeftLikeWhere(column string, value string) *Where {
 	return &Where{Column: column, Value: `%` + value, Sign: Like}
 }
 
-//NewRightLikeWhere 模糊查询 demo%
+// NewRightLikeWhere 模糊查询 demo%
 func NewRightLikeWhere(column string, value string) *Where {
 	return &Where{Column: column, Value: value + `%`, Sign: Like}
 }
 
-//internal 获取SQL
+// internal 获取SQL
 func (where *Where) internal() (pattern string, value interface{}) {
 	pattern = where.Column + " " + where.Sign + " " + "?"
 	value = where.Value
 	return
 }
 
-//tranArgs 暂不支持ors里面嵌套or
+// tranOr 暂不支持ors里面嵌套or
 func (where *Where) tranOr(valMap map[string]interface{}, dive bool) (args []string) {
 
 	if where.Ors == nil {
@@ -252,25 +266,25 @@ func (o Order) String() string {
 	return "order by " + o.Column + " " + o.Sort
 }
 
-//NewOrder 正排序 order by asc
+// NewOrder 正排序 order by asc
 func NewOrder(column string) (order *Order) {
 	order = &Order{Column: column, Sort: ASC}
 	return order
 }
 
-//NewDescOrder 逆排序 order by desc
+// NewDescOrder 逆排序 order by desc
 func NewDescOrder(column string) (order *Order) {
 	order = &Order{Column: column, Sort: DESC}
 	return order
 }
 
-//description 获取排序SQL
+// description 获取排序SQL
 func (o *Order) description() (description string) {
 	description = o.Column + " " + o.Sort
 	return description
 }
 
-//QueryCondition 查询条件
+// QueryCondition 查询条件
 type QueryCondition struct {
 	//Where 查询条件
 	Where []*Where
@@ -300,7 +314,7 @@ func NewQueryCondition() *QueryCondition {
 	return cond
 }
 
-//AddWhere 添加条件
+// AddWhere 添加条件
 func (qc *QueryCondition) AddWhere(where *Where) *QueryCondition {
 	if where != nil {
 		qc.Where = append(qc.Where, where)
@@ -308,7 +322,7 @@ func (qc *QueryCondition) AddWhere(where *Where) *QueryCondition {
 	return qc
 }
 
-//AddSort 添加排序
+// AddSort 添加排序
 func (qc *QueryCondition) AddSort(sort *Order) *QueryCondition {
 	if sort != nil {
 		qc.Sort = append(qc.Sort, sort)
@@ -316,25 +330,25 @@ func (qc *QueryCondition) AddSort(sort *Order) *QueryCondition {
 	return qc
 }
 
-//SetPage 设置页数
+// SetPage 设置页数
 func (qc *QueryCondition) SetPage(page int) *QueryCondition {
 	qc.Page = page
 	return qc
 }
 
-//SetPageSize 设置每页数量
+// SetPageSize 设置每页数量
 func (qc *QueryCondition) SetPageSize(pageSize int) *QueryCondition {
 	qc.PageSize = pageSize
 	return qc
 }
 
-//SetTotalCount 设置是否查询总数
+// SetTotalCount 设置是否查询总数
 func (qc *QueryCondition) SetTotalCount(query bool) *QueryCondition {
 	qc.TotalCount = query
 	return qc
 }
 
-//orderStr 获取Order排序
+// orderStr 获取Order排序
 func (qc *QueryCondition) orderStr() string {
 	if qc.Sort == nil {
 		return ""
@@ -350,7 +364,7 @@ func (qc *QueryCondition) orderStr() string {
 	return result
 }
 
-//GetOffset 获取偏移量
+// GetOffset 获取偏移量
 func (qc *QueryCondition) GetOffset() (offset int) {
 
 	if qc.Offset > 0 {
@@ -364,7 +378,7 @@ func (qc *QueryCondition) GetOffset() (offset int) {
 	return 0
 }
 
-//GetLimit 获取偏移量
+// GetLimit 获取偏移量
 func (qc *QueryCondition) GetLimit() (limit int) {
 
 	if qc.Limit > 0 {
@@ -378,7 +392,7 @@ func (qc *QueryCondition) GetLimit() (limit int) {
 	return 0
 }
 
-//getOffsetByPage 获取偏移量
+// getOffsetByPage 获取偏移量
 func (qc *QueryCondition) getOffsetByPage() (offset int) {
 	if qc.Page < 1 {
 		return 0
@@ -389,12 +403,12 @@ func (qc *QueryCondition) getOffsetByPage() (offset int) {
 	return offset
 }
 
-//getLimitByPage 获取Limit
+// getLimitByPage 获取Limit
 func (qc *QueryCondition) getLimitByPage() (limit int) {
 	return qc.PageSize
 }
 
-//occurErr 判断是否发生报错
+// occurErr 判断是否发生报错
 func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 
 	if tx.Error == nil {
@@ -430,48 +444,50 @@ func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err erro
 	return true, nil
 }
 
-//Migrate 数据库迁移
-//models 数据库模型
-//model: client.Migrate(&Product{}, &Fruit{})
+// Migrate 数据库迁移
+// models 数据库模型
+// model: client.Migrate(&Product{}, &Fruit{})
 func (c *DBClient) Migrate(pointers ...interface{}) error {
-	db := c.db
+	db := c.getDB()
 
 	return db.AutoMigrate(pointers...)
 }
 
-func (c *DBClient) QueryByPrimaryKey(pkColumnName string, pkValue, pointer interface{}) (exist bool, err error) {
-	db := c.db
+func (c *DBClient) QueryByPrimaryKey(pkColumnName string, pkValue, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	db := c.getDB(opts...)
 
-	pattern := fmt.Sprintf("%s = ?", pkColumnName)
+	for _, fn := range opts {
+		db = fn(db)
+	}
 
-	tx := db.Limit(1).Where(pattern, pkValue).Find(pointer)
+	tx := db.Limit(1).Where(pkColumnName+" = ?", pkValue).Find(pointer)
 
 	return c.check(tx)
 }
 
-//QueryById 通过主键查询
-//exist 记录是否存在
-//err 发生的错误
-func (c *DBClient) QueryById(id int64, pointer interface{}) (exist bool, err error) {
-	db := c.db
+// QueryById 通过主键查询
+// exist 记录是否存在
+// err 发生的错误
+func (c *DBClient) QueryById(id int64, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	db := c.getDB(opts...)
 
 	tx := db.Limit(1).Where("id = ?", id).Find(pointer)
 
 	return c.check(tx)
 }
 
-//QueryByIds 通过主键查询
-func (c *DBClient) QueryByIds(ids []int64, pointers interface{}) (exist bool, err error) {
-	db := c.db
+// QueryByIds 通过主键查询
+func (c *DBClient) QueryByIds(ids []int64, pointers interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	db := c.getDB(opts...)
 
 	tx := db.Where("id in ?", ids).Find(pointers)
 
 	return c.check(tx)
 }
 
-//Query 查询
-func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interface{}) (totalCount int64, err error) {
-	db := c.db
+// Query 查询
+func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interface{}, opts ...OptDBFunc) (totalCount int64, err error) {
+	db := c.getDB(opts...)
 
 	db = db.Table(tableName)
 
@@ -515,9 +531,9 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 
 }
 
-//QueryCount 查询数量
-func (c *DBClient) QueryCount(tableName string, condition *QueryCondition) (count int64, err error) {
-	db := c.db
+// QueryCount 查询数量
+func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts ...OptDBFunc) (count int64, err error) {
+	db := c.getDB(opts...)
 
 	db = db.Table(tableName)
 
@@ -545,51 +561,51 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition) (coun
 
 }
 
-//QueryByStruct 通过结构体查询, 结构体字段为零值的字段, 不会作为条件
-func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}) (exist bool, err error) {
-	db := c.db
+// QueryByStruct 通过结构体查询, 结构体字段为零值的字段, 不会作为条件
+func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	db := c.getDB(opts...)
 
 	tx := db.Where(condition).Find(dst)
 
 	return c.check(tx)
 }
 
-//QueryByMap 通过Map查询
-func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}) (exist bool, err error) {
-	db := c.db
+// QueryByMap 通过Map查询
+func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	db := c.getDB(opts...)
 
 	tx := db.Where(condition).Find(dst)
 
 	return c.check(tx)
 }
 
-//First 查询第一条记录
-func (c *DBClient) First(condition interface{}, pointer interface{}) (exist bool, err error) {
-	db := c.db
+// First 查询第一条记录
+func (c *DBClient) First(condition interface{}, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	db := c.getDB(opts...)
 
 	tx := db.Where(condition).First(pointer)
 
 	return c.check(tx, gorm.ErrRecordNotFound)
 }
 
-//Last 查询最后一条记录
-func (c *DBClient) Last(condition interface{}, pointer interface{}) (exist bool, err error) {
-	db := c.db
+// Last 查询最后一条记录
+func (c *DBClient) Last(condition interface{}, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	db := c.getDB(opts...)
 
 	tx := db.Where(condition).Last(pointer)
 
 	return c.check(tx, gorm.ErrRecordNotFound)
 }
 
-//Exist 记录是否存在
-func (c *DBClient) Exist(condition map[string]interface{}, dst interface{}) (exist bool, err error) {
+// Exist 记录是否存在
+func (c *DBClient) Exist(condition map[string]interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	return c.First(condition, dst)
 }
 
-//AddRecord 添加记录
-//data 结构体指针
-func (c *DBClient) AddRecord(data interface{}) error {
-	db := c.db
+// AddRecord 添加记录
+// data 结构体指针
+func (c *DBClient) AddRecord(data interface{}, opts ...OptDBFunc) error {
+	db := c.getDB(opts...)
 
 	tx := db.Create(data)
 
@@ -597,67 +613,75 @@ func (c *DBClient) AddRecord(data interface{}) error {
 }
 
 //AddRecords 批量添加记录
-func (c *DBClient) AddRecords(data interface{}, batchSize int) error {
-	db := c.db
+func (c *DBClient) AddRecords(data interface{}, batchSize int, opts ...OptDBFunc) error {
+	db := c.getDB(opts...)
 
 	tx := db.CreateInBatches(data, batchSize)
 
 	return tx.Error
 }
 
-//UpdateById 根据主键更新
-//data为结构体指针时, 结构体零值字段不会被更新
-//data为`map`时, 更具`map`更新属性
-func (c *DBClient) UpdateById(tableName string, id int64, data interface{}) error {
-	db := c.db
+// UpdateById 根据主键更新
+// data为结构体指针时, 结构体零值字段不会被更新
+// data为`map`时, 更具`map`更新属性
+func (c *DBClient) UpdateById(tableName string, id int64, data interface{}, opts ...OptDBFunc) error {
+	db := c.getDB(opts...)
 
 	tx := db.Table(tableName).Where("id = ?", id).Updates(data)
 
 	return tx.Error
 }
 
-//UpdateRecord 更新记录, condition必须包含条件, 否则会返回错误ErrMissingWhereClause,
-//如果想无条件更新, 请使用updateRecordWithoutCond
-//tableName  表名
-//dstValue	 struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
-//condition	 struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
-func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValue interface{}) error {
-	db := c.db
+// UpdateRecord 更新记录, condition必须包含条件, 否则会返回错误ErrMissingWhereClause,
+// 如果想无条件更新, 请使用updateRecordWithoutCond
+// tableName  表名
+// dstValue	 struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
+// condition	 struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
+func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValue interface{}, opts ...OptDBFunc) error {
+	db := c.getDB(opts...)
 
 	tx := db.Table(tableName).Where(condition).Updates(dstValue)
 
 	return tx.Error
 }
 
-//UpdateRecordNoCond 无条件更新记录
-//tableName 表名
-//dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
-func (c *DBClient) UpdateRecordNoCond(tableName string, dstValue interface{}) error {
-	db := c.db
+// UpdateRecordNoCond 无条件更新记录
+// tableName 表名
+// dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
+func (c *DBClient) UpdateRecordNoCond(tableName string, dstValue interface{}, opts ...OptDBFunc) error {
+	db := c.getDB(opts...)
 
 	tx := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Table(tableName).Updates(dstValue)
 
 	return tx.Error
 }
 
-//Save 保存记录, 会保存所有的字段，即使字段是零值
-//ptr 必须是struct指针
-func (c *DBClient) Save(ptr interface{}) error {
-	db := c.db
+// Save 保存记录, 会保存所有的字段，即使字段是零值
+// ptr 必须是struct指针
+func (c *DBClient) Save(ptr interface{}, opts ...OptDBFunc) error {
+	db := c.getDB(opts...)
 
 	tx := db.Save(ptr)
 
 	return tx.Error
 }
 
-//GetDB 获取原生DB对象
-func (c *DBClient) GetDB() *gorm.DB {
+func (c DBClient) getDB(optFn ...OptDBFunc) *gorm.DB {
 	db := c.db
+
+	for _, fn := range optFn {
+		db = fn(db)
+	}
 
 	return db
 }
 
-//Close 关闭连接池
+// GetDB 获取原生DB对象
+func (c *DBClient) GetDB() *gorm.DB {
+	return c.getDB()
+}
+
+// Close 关闭连接池
 func (c *DBClient) Close() error {
 	if c.db == nil {
 		return nil

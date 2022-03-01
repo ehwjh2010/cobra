@@ -3,41 +3,42 @@ package ginext
 import (
 	"fmt"
 	"github.com/ehwjh2010/viper"
-	"github.com/ehwjh2010/viper/client"
+	"github.com/ehwjh2010/viper/client/settings"
+	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/frame/ginext/middleware"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/routine"
 	"github.com/ehwjh2010/viper/server"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"go.uber.org/zap"
 )
 
 type App struct {
 	engine  *gin.Engine
-	setting client.Setting
+	setting settings.Setting
 }
 
-func Viper(settings client.Setting) *App {
+func Viper(settings settings.Setting) *App {
 	SetMode(settings.Debug)
 
-	if err := log.InitLog(&settings.LogConfig, settings.Application); err != nil {
-		log.Fatal("Log init failed", zap.Error(err))
+	if err := log.InitLog(settings.LogConfig, settings.Application); err != nil {
+		log.FatalErr("Log init failed", err)
 	}
 
 	if err := RegisterTrans(settings.Language); err != nil {
-		log.Fatal("Register validator translator failed, ", zap.Error(err))
+		log.FatalErr("Register validator translator failed, ", err)
 	}
 
-	newOnStartUp := make([]func() error, len(settings.OnStartUp)+1)
+	if settings.EnableRtPool {
+		newOnStartUp := make([]func() error, len(settings.OnStartUp)+1)
 
-	newOnStartUp[0] = routine.SetUpDefaultTask(settings.Routine)
+		newOnStartUp[0] = routine.SetUpDefaultTask(settings.Routine)
 
-	copy(newOnStartUp[1:], settings.OnStartUp)
+		copy(newOnStartUp[1:], settings.OnStartUp)
 
-	settings.OnStartUp = newOnStartUp
+		settings.OnStartUp = newOnStartUp
+	}
 
 	engine := gin.New()
 
@@ -56,7 +57,7 @@ func Viper(settings client.Setting) *App {
 	return app
 }
 
-//Run 启动
+// Run 启动
 func (app *App) Run() {
 	log.Infof(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
@@ -76,7 +77,7 @@ func (app *App) Run() {
 		app.setting.OnShutDown)
 }
 
-//Engine 返回引擎
+// Engine 返回引擎
 func (app *App) Engine() *gin.Engine {
 	return app.engine
 }

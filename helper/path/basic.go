@@ -12,7 +12,7 @@ import (
 var ErrPathAlreadyExist = errors.New("path no exist")
 var ErrInvalidPath = errors.New("invalid path")
 
-//EnsurePathExist 确认文件或文件夹是否存在
+// EnsurePathExist 确认文件或文件夹是否存在
 func EnsurePathExist(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -26,9 +26,9 @@ func EnsurePathExist(path string) (bool, error) {
 	return false, err
 }
 
-//MakeDir 创建单一目录, 不支持创建多级目录
-//path 路径
-//exist_no_error 路径已存在时是否返回错误
+// MakeDir 创建单一目录, 不支持创建多级目录
+// path 路径
+// exist_no_error 路径已存在时是否返回错误
 func MakeDir(path string, existReturnError bool) (err error) {
 	if path == "" {
 		return ErrInvalidPath
@@ -51,15 +51,15 @@ func MakeDir(path string, existReturnError bool) (err error) {
 	return
 }
 
-//MakeDirIfNotPresent 目录不存在, 则创建; 存在则不操作
-//path 路径
+// MakeDirIfNotPresent 目录不存在, 则创建; 存在则不操作
+// path 路径
 func MakeDirIfNotPresent(path string) error {
 	return MakeDir(path, false)
 }
 
-//RemovePath 完全删除文件夹或文件, 对于文件夹包括子文件以及子文件夹
-//path 路径
-//noExistReturnError 路径不存在时是否返回错误
+// RemovePath 完全删除文件夹或文件, 对于文件夹包括子文件以及子文件夹
+// path 路径
+// noExistReturnError 路径不存在时是否返回错误
 func RemovePath(path string, noExistReturnError bool) (bool, error) {
 	if path == "" {
 		return false, ErrInvalidPath
@@ -87,7 +87,7 @@ func RemovePath(path string, noExistReturnError bool) (bool, error) {
 	}
 }
 
-//PathJoin 路径拼接
+// PathJoin 路径拼接
 func PathJoin(paths ...string) string {
 	p := filepath.Join(paths...)
 	return p
@@ -114,14 +114,14 @@ func Relative2Abs(relativePath string) (string, error) {
 	}
 }
 
-//PathSplit 路径分割, 返回目录以及文件名
+// PathSplit 路径分割, 返回目录以及文件名
 func PathSplit(path string) (string, string) {
 	dirName := filepath.Dir(path)
 	fileName := filepath.Base(path)
 	return dirName, fileName
 }
 
-//MakeDirs 创建多级目录
+// MakeDirs 创建多级目录
 func MakeDirs(path ...string) error {
 	tmp := PathJoin(path...)
 
