@@ -10,7 +10,6 @@ import (
 	"github.com/ehwjh2010/viper/log"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -237,24 +236,6 @@ func (where *Where) internal() (pattern string, value interface{}) {
 	return
 }
 
-// tranOr 暂不支持ors里面嵌套or
-func (where *Where) tranOr(valMap map[string]interface{}, dive bool) (args []string) {
-
-	if where.Ors == nil {
-		return
-	}
-
-	// 暂不支持ors里面嵌套or
-	for idx, ele := range where.Ors {
-		placeholder := "@" + ele.Column + strconv.Itoa(idx)
-		arg := ele.Column + " " + ele.Sign + " " + placeholder
-		valMap[placeholder] = ele.Value
-		args = append(args, arg)
-	}
-
-	return
-}
-
 type Order struct {
 	//Column 字段名
 	Column string
@@ -356,6 +337,9 @@ func (qc *QueryCondition) orderStr() string {
 
 	tmp := make([]string, len(qc.Sort))
 	for index, item := range qc.Sort {
+		if item == nil {
+			continue
+		}
 		tmp[index] = item.description()
 	}
 
@@ -491,7 +475,7 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 
 	db = db.Table(tableName)
 
-	if condition.Where != nil {
+	if condition != nil && condition.Where != nil {
 	whereLoop:
 		for _, where := range condition.Where {
 			query, args := where.internal()
@@ -537,7 +521,7 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts 
 
 	db = db.Table(tableName)
 
-	if len(condition.Where) > 0 {
+	if condition != nil && len(condition.Where) > 0 {
 	whereLoop:
 		for _, where := range condition.Where {
 			query, arg := where.internal()

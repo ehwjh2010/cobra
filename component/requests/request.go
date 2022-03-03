@@ -1,22 +1,25 @@
 package requests
 
 import (
-	"github.com/ehwjh2010/viper/global"
+	"context"
+	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/levigross/grequests"
 	"net/http"
 	"time"
 )
 
 type HTTPRequest struct {
-	Url       string            //Url
-	Header    map[string]string //请求头
-	Params    map[string]string //查询字符串
-	Form      map[string]string //表单参数
-	Json      []byte            //json请求体
-	Cookie    []*http.Cookie    //Cookie
-	UserAgent string            //UserAgent
-	Timeout   time.Duration     //请求超时时间
-	Files     []FileUpload      //文件
+	Url        string            // Url
+	Header     map[string]string // 请求头
+	Params     map[string]string // 查询字符串
+	Form       map[string]string // 表单参数
+	Json       []byte            // json请求体
+	Cookie     []*http.Cookie    // Cookie
+	UserAgent  string            // UserAgent
+	Timeout    time.Duration     // 请求超时时间
+	Files      []*FileUpload     // 文件
+	RetryTimes types.NullInt     // 重试次数
+	Context    context.Context   // 上下文
 }
 
 func NewRequest(args ...ROpt) *HTTPRequest {
@@ -29,6 +32,22 @@ func NewRequest(args ...ROpt) *HTTPRequest {
 }
 
 type ROpt func(r *HTTPRequest)
+
+func RWithContext(ctx context.Context) ROpt {
+	return func(r *HTTPRequest) {
+		r.Context = ctx
+	}
+}
+
+// RWithRetryTimes 设置重试次数, 必须>=0
+func RWithRetryTimes(times int) ROpt {
+	return func(r *HTTPRequest) {
+		if times < 0 {
+			times = 0
+		}
+		r.RetryTimes = types.NewInt(times)
+	}
+}
 
 func RWithHeader(header map[string]string) ROpt {
 	return func(r *HTTPRequest) {
@@ -72,13 +91,13 @@ func RWithTimeout(timeout time.Duration) ROpt {
 	}
 }
 
-func RWithFile(file FileUpload) ROpt {
+func RWithFile(file *FileUpload) ROpt {
 	return func(r *HTTPRequest) {
-		r.Files = []FileUpload{file}
+		r.Files = []*FileUpload{file}
 	}
 }
 
-func RWithFiles(files []FileUpload) ROpt {
+func RWithFiles(files []*FileUpload) ROpt {
 	return func(r *HTTPRequest) {
 		r.Files = files
 	}
@@ -86,17 +105,13 @@ func RWithFiles(files []FileUpload) ROpt {
 
 // toInternal 转换为RequestOptions
 func (r *HTTPRequest) toInternal() *grequests.RequestOptions {
-
-	if r.UserAgent == "" {
-		r.UserAgent = global.UserAgent
-	}
-
 	rOpt := &grequests.RequestOptions{
 		Headers:        r.Header,
 		Params:         r.Params,
 		Cookies:        r.Cookie,
 		UserAgent:      r.UserAgent,
 		RequestTimeout: r.Timeout,
+		Context:        r.Context,
 	}
 
 	if r.Files != nil {

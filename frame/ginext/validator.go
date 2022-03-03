@@ -1,7 +1,7 @@
 package ginext
 
 import (
-	"github.com/ehwjh2010/viper/helper/validator"
+	"github.com/ehwjh2010/viper/component/validator"
 	ut "github.com/go-playground/universal-translator"
 )
 
