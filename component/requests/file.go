@@ -24,18 +24,18 @@ func (fileUpload *FileUpload) toInternal() grequests.FileUpload {
 }
 
 // BatchFileUpload2Internal 批量转化
-func BatchFileUpload2Internal(files []*FileUpload) []*grequests.FileUpload {
+func BatchFileUpload2Internal(files []*FileUpload) []grequests.FileUpload {
 	if files == nil {
 		return nil
 	}
 
-	result := make([]*grequests.FileUpload, len(files))
+	result := make([]grequests.FileUpload, len(files))
 	for index, file := range files {
 		if file == nil {
 			continue
 		}
 		internal := file.toInternal()
-		result[index] = &internal
+		result[index] = internal
 	}
 
 	return result
