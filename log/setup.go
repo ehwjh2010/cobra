@@ -14,7 +14,10 @@ import (
 	"os"
 )
 
-const filename = "application.log"
+const (
+	DefaultFilename = "application.log"
+	DefaultCaller   = 1
+)
 
 var logger = zap.L()
 var sugaredLogger = zap.S()
@@ -43,10 +46,13 @@ func InitLog(config settings.Log, application string) (err error) {
 	}
 	core := zapcore.NewCore(encoder, writeSyncer, l)
 
-	//由于外部使用的都是包装后的方法, 需要加上AddCallerSkip(1),
+	//由于外部使用的都是包装∫后的方法, 需要加上AddCallerSkip(1),
 	//zap.AddStacktrace(zapcore.WarnLevel) 这个函数的行为会一旦打印指定级别及以上的日志时, 自动打印堆栈
 	//lg := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.WarnLevel))
-	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(3))
+	if config.Caller == 0 {
+		config.Caller = DefaultCaller
+	}
+	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(config.Caller))
 	zap.ReplaceGlobals(logger) // 替换zap包中全局的logger实例，后续在其他包中只需使用zap.S()调用即可
 	sugaredLogger = zap.S()
 	return
@@ -71,7 +77,10 @@ func getWriters(conf settings.Log, application string) zapcore.WriteSyncer {
 
 	if str.IsNotEmpty(conf.FileDir) {
 		absPath, _ := path.Relative2Abs(conf.FileDir)
-		filePath := path.PathJoin(absPath, application, filename)
+		if conf.FileName == "" {
+			conf.FileName = DefaultFilename
+		}
+		filePath := path.PathJoin(absPath, application, conf.FileName)
 		if conf.Rotated {
 			writer := getRotedLogWriter(
 				filePath,

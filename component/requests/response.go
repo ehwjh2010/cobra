@@ -16,16 +16,16 @@ var (
 )
 
 type HTTPResponse struct {
-	response   *grequests.Response
-	cookies    []*http.Cookie
-	cookieFlag bool
+	response        *grequests.Response
+	cookies         []*http.Cookie
+	parseCookieFlag bool
 }
 
 func NewResponse(response *grequests.Response) *HTTPResponse {
 	return &HTTPResponse{response: response}
 }
 
-// OK 请求是否OK
+// OK 状态码是否在200~300之间
 func (resp *HTTPResponse) OK() bool {
 	return resp.response.Ok
 }
@@ -50,12 +50,6 @@ func (resp *HTTPResponse) Bytes() []byte {
 // Status 状态码
 func (resp *HTTPResponse) Status() int {
 	return resp.response.StatusCode
-}
-
-// Headers 返回的Header, 大小写不敏感
-func (resp *HTTPResponse) Headers(name string) []string {
-	header := resp.response.Header
-	return header.Values(name)
 }
 
 // Header 返回的Header
@@ -85,24 +79,19 @@ func (resp *HTTPResponse) Cookies() []*http.Cookie {
 
 // parseCookie 解析Cookie
 func (resp *HTTPResponse) parseCookie() {
-	if resp.cookieFlag {
+	if resp.parseCookieFlag {
 		return
 	}
 
 	cookieStr := resp.Header("Cookie")
 	if len(cookieStr) <= 0 {
-		resp.cookieFlag = true
+		resp.parseCookieFlag = true
 		return
 	}
 
 	cookies := CookieStr2Cookie(cookieStr)
 	resp.cookies = cookies
-	resp.cookieFlag = true
-}
-
-// Error 错误
-func (resp *HTTPResponse) Error() error {
-	return resp.response.Error
+	resp.parseCookieFlag = true
 }
 
 // FileName 文件名
@@ -122,8 +111,8 @@ func (resp *HTTPResponse) FileNameWithCustom(nameField string) (string, error) {
 		return "", err
 	}
 
-	value, exist := params[nameField]
-	if !exist {
+	value, exists := params[nameField]
+	if !exists {
 		return "", ErrNotFoundDstField
 	}
 
