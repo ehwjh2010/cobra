@@ -66,6 +66,19 @@ func Any2Int(v interface{}) (int, error) {
 	}
 }
 
+func Any2String(v interface{}) (string, error) {
+	if dst, ok := v.(string); !ok {
+		return "", verror.CastStringError(v)
+	} else {
+		return dst, nil
+	}
+}
+
+func MustAny2String(v interface{}) string {
+	dst, _ := Any2String(v)
+	return dst
+}
+
 func MustAny2Int(v interface{}) int {
 	dst, _ := Any2Int(v)
 	return dst

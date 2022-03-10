@@ -28,3 +28,7 @@ func CastDoubleError(value interface{}) error {
 func CastIntegerError(value interface{}) error {
 	return NewCastError(value, "cast integer error")
 }
+
+func CastStringError(value interface{}) error {
+	return NewCastError(value, "cast string error")
+}
