@@ -123,6 +123,6 @@ func getRotedLogWriter(filename string, maxSize, maxBackup, maxAge int, localTim
 }
 
 func getLogWriter(filename string) io.Writer {
-	f, _ := file.OpenFileWithAppend(filename)
+	f, _ := file.OpenFile(filename)
 	return f
 }

@@ -30,3 +30,38 @@ func MustStr2Double(v string) float64 {
 func Double2Str(v float64) string {
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
+
+func Double2Any(v interface{}) interface{} {
+	return v
+}
+
+func DoubleSlice2Any(vs []float64) []interface{} {
+	if vs == nil {
+		return nil
+	}
+
+	rs := make([]interface{}, len(vs))
+	for i, v := range vs {
+		rs[i] = v
+	}
+
+	return rs
+}
+
+func AnySlice2Double(vs []interface{}) ([]float64, error) {
+	if vs == nil {
+		return nil, nil
+	}
+
+	rs := make([]float64, len(vs))
+	for i, v := range vs {
+		tmp, err := Any2Double(v)
+		if err != nil {
+			return nil, err
+		}
+
+		rs[i] = tmp
+	}
+
+	return rs, nil
+}

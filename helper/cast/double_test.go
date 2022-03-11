@@ -1,6 +1,7 @@
 package cast
 
 import (
+	"github.com/ehwjh2010/viper/helper/equal"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
@@ -100,5 +101,43 @@ func TestDouble2Str(t *testing.T) {
 			dst := Double2Str(test.Value)
 			So(dst, ShouldEqual, test.Dest)
 		}
+	})
+}
+
+func TestDouble2Any(t *testing.T) {
+	Convey("Cast double to str", t, func() {
+		foo := 2.01
+		any := Double2Any(foo)
+		So(any.(float64), ShouldEqual, foo)
+	})
+}
+
+func TestDoubleSlice2Any(t *testing.T) {
+	Convey("Cast double to str", t, func() {
+		temp := []float64{1.2, 1, 5, 2.456}
+		tmp := DoubleSlice2Any(temp)
+		slice2Double, err := AnySlice2Double(tmp)
+		So(err, ShouldBeNil)
+		So(equal.SliceFloat64Equal(slice2Double, temp), ShouldBeTrue)
+
+		temp = nil
+		tmp = DoubleSlice2Any(temp)
+		So(tmp, ShouldBeNil)
+
+		temp = make([]float64, 0)
+		tmp = DoubleSlice2Any(temp)
+		slice2Double, err = AnySlice2Double(tmp)
+		So(err, ShouldBeNil)
+		So(equal.SliceFloat64Equal(slice2Double, temp), ShouldBeTrue)
+
+		anySlice2Double, err := AnySlice2Double(nil)
+		So(err, ShouldBeNil)
+		So(anySlice2Double, ShouldBeNil)
+
+		foo := []interface{}{1.22, "1", true}
+		double, err := AnySlice2Double(foo)
+		So(err, ShouldNotBeNil)
+		So(double, ShouldBeNil)
+
 	})
 }

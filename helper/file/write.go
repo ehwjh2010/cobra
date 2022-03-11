@@ -6,7 +6,7 @@ import "os"
 // filename 文件路径
 // data 需要写入的数据
 func WriteFile(filename string, data []byte, ifExistTrunc bool) error {
-	f, err := OpenFile(filename, ifExistTrunc)
+	f, err := openFile(filename, ifExistTrunc)
 	if err != nil {
 		return err
 	}

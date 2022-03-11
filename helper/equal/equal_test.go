@@ -1,12 +1,12 @@
 package equal
 
 import (
-	"github.com/smartystreets/goconvey/convey"
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
 func TestSliceBytesEqual(t *testing.T) {
-	convey.Convey("[]byte equal", t, func() {
+	Convey("[]byte equal", t, func() {
 		tests := []struct {
 			Value []byte
 			Dest  []byte
@@ -20,13 +20,13 @@ func TestSliceBytesEqual(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceByteEqual(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceByteEqual(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceStrEqual(t *testing.T) {
-	convey.Convey("[]string equal", t, func() {
+	Convey("[]string equal", t, func() {
 		tests := []struct {
 			Value []string
 			Dest  []string
@@ -37,17 +37,17 @@ func TestSliceStrEqual(t *testing.T) {
 			{[]string{"1"}, []string{"1", "2"}, false},
 			{[]string{"1", "3"}, []string{"1", "2"}, false},
 			{[]string{"1", "3"}, []string{"1", "3"}, true},
-			{[]string{"1", "3"}, []string{"3", "1"}, false},
+			{[]string{"1", "3"}, []string{"3", "1"}, true},
 		}
 
 		for _, test := range tests {
-			convey.So(SliceStrEqual(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceStrEqual(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceStrEqualStrict(t *testing.T) {
-	convey.Convey("[]string equal", t, func() {
+	Convey("[]string equal", t, func() {
 		tests := []struct {
 			Value []string
 			Dest  []string
@@ -62,13 +62,13 @@ func TestSliceStrEqualStrict(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceStrEqualStrict(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceStrEqualStrict(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceIntEqual(t *testing.T) {
-	convey.Convey("[]int equal", t, func() {
+	Convey("[]int equal", t, func() {
 		tests := []struct {
 			Value []int
 			Dest  []int
@@ -82,13 +82,13 @@ func TestSliceIntEqual(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceIntEqual(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceIntEqual(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceIntEqualStrict(t *testing.T) {
-	convey.Convey("[]int equal", t, func() {
+	Convey("[]int equal", t, func() {
 		tests := []struct {
 			Value []int
 			Dest  []int
@@ -103,13 +103,13 @@ func TestSliceIntEqualStrict(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceIntEqualStrict(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceIntEqualStrict(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceInt32EqualStrict(t *testing.T) {
-	convey.Convey("[]int32 equal", t, func() {
+	Convey("[]int32 equal", t, func() {
 		tests := []struct {
 			Value []int32
 			Dest  []int32
@@ -124,13 +124,13 @@ func TestSliceInt32EqualStrict(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceInt32EqualStrict(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceInt32EqualStrict(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceInt32Equal(t *testing.T) {
-	convey.Convey("[]int32 equal", t, func() {
+	Convey("[]int32 equal", t, func() {
 		tests := []struct {
 			Value []int32
 			Dest  []int32
@@ -144,13 +144,13 @@ func TestSliceInt32Equal(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceInt32Equal(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceInt32Equal(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceInt64Equal(t *testing.T) {
-	convey.Convey("[]int32 equal", t, func() {
+	Convey("[]int32 equal", t, func() {
 		tests := []struct {
 			Value []int64
 			Dest  []int64
@@ -164,13 +164,13 @@ func TestSliceInt64Equal(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceInt64Equal(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceInt64Equal(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceInt64EqualStrict(t *testing.T) {
-	convey.Convey("[]int32 equal", t, func() {
+	Convey("[]int32 equal", t, func() {
 		tests := []struct {
 			Value []int64
 			Dest  []int64
@@ -185,13 +185,13 @@ func TestSliceInt64EqualStrict(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceInt64EqualStrict(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceInt64EqualStrict(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceFloat64EqualStrict(t *testing.T) {
-	convey.Convey("[]int32 equal", t, func() {
+	Convey("[]int32 equal", t, func() {
 		tests := []struct {
 			Value []float64
 			Dest  []float64
@@ -206,13 +206,13 @@ func TestSliceFloat64EqualStrict(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceFloat64EqualStrict(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceFloat64EqualStrict(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }
 
 func TestSliceFloat64Equal(t *testing.T) {
-	convey.Convey("[]int32 equal", t, func() {
+	Convey("[]int32 equal", t, func() {
 		tests := []struct {
 			Value []float64
 			Dest  []float64
@@ -227,7 +227,7 @@ func TestSliceFloat64Equal(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			convey.So(SliceFloat64Equal(test.Value, test.Dest), convey.ShouldEqual, test.OK)
+			So(SliceFloat64Equal(test.Value, test.Dest), ShouldEqual, test.OK)
 		}
 	})
 }

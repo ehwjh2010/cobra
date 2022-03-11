@@ -66,19 +66,6 @@ func Any2Int(v interface{}) (int, error) {
 	}
 }
 
-func Any2String(v interface{}) (string, error) {
-	if dst, ok := v.(string); !ok {
-		return "", verror.CastStringError(v)
-	} else {
-		return dst, nil
-	}
-}
-
-func MustAny2String(v interface{}) string {
-	dst, _ := Any2String(v)
-	return dst
-}
-
 func MustAny2Int(v interface{}) int {
 	dst, _ := Any2Int(v)
 	return dst
@@ -119,4 +106,98 @@ func Str2Int64(v string) (int64, error) {
 func MustStr2Int64(v string) int64 {
 	dst, _ := Str2Int64(v)
 	return dst
+}
+
+func Integer2Any(v interface{}) interface{} {
+	return v
+}
+
+func IntSlice2Any(vs []int) []interface{} {
+	if vs == nil {
+		return nil
+	}
+
+	rs := make([]interface{}, len(vs))
+	for i, v := range vs {
+		rs[i] = v
+	}
+
+	return rs
+}
+
+func Int32Slice2Any(vs []int32) []interface{} {
+	if vs == nil {
+		return nil
+	}
+
+	rs := make([]interface{}, len(vs))
+	for i, v := range vs {
+		rs[i] = v
+	}
+
+	return rs
+}
+
+func Int64Slice2Any(vs []int64) []interface{} {
+	if vs == nil {
+		return nil
+	}
+
+	rs := make([]interface{}, len(vs))
+	for i, v := range vs {
+		rs[i] = v
+	}
+
+	return rs
+}
+
+func AnySlice2Int64(vs []interface{}) ([]int64, error) {
+	if vs == nil {
+		return nil, nil
+	}
+
+	rs := make([]int64, len(vs))
+	for i, v := range vs {
+		value, err := Any2Int64(v)
+		if err != nil {
+			return nil, err
+		}
+		rs[i] = value
+	}
+
+	return rs, nil
+}
+
+func AnySlice2Int32(vs []interface{}) ([]int32, error) {
+	if vs == nil {
+		return nil, nil
+	}
+
+	rs := make([]int32, len(vs))
+	for i, v := range vs {
+		value, err := Any2Int32(v)
+		if err != nil {
+			return nil, err
+		}
+		rs[i] = value
+	}
+
+	return rs, nil
+}
+
+func AnySlice2Int(vs []interface{}) ([]int, error) {
+	if vs == nil {
+		return nil, nil
+	}
+
+	rs := make([]int, len(vs))
+	for i, v := range vs {
+		value, err := Any2Int(v)
+		if err != nil {
+			return nil, err
+		}
+		rs[i] = value
+	}
+
+	return rs, nil
 }

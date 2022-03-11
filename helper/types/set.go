@@ -1,6 +1,9 @@
 package types
 
-import "github.com/ehwjh2010/viper/helper/cast"
+import (
+	"fmt"
+	"github.com/ehwjh2010/viper/helper/cast"
+)
 
 type EmptyStruct struct{}
 
@@ -8,19 +11,23 @@ func NewEmptyStruct() EmptyStruct {
 	return EmptyStruct{}
 }
 
-// SimpleSet 非线程安全Set
-type SimpleSet struct {
+// Set 非线程安全Set
+type Set struct {
 	data map[interface{}]EmptyStruct
 }
 
-func NewSimpleSet() *SimpleSet {
-	return &SimpleSet{
-		data: make(map[interface{}]EmptyStruct),
+func (set *Set) String() string {
+	return "Set<" + fmt.Sprintf("%v", set.Values()) + ">"
+}
+
+func NewSimpleSet() *Set {
+	return &Set{
+		data: make(map[interface{}]EmptyStruct, 10),
 	}
 }
 
 // Add 添加元素
-func (set *SimpleSet) Add(v interface{}) {
+func (set *Set) Add(v interface{}) {
 	if set == nil {
 		return
 	}
@@ -28,7 +35,7 @@ func (set *SimpleSet) Add(v interface{}) {
 }
 
 // Del 删除元素
-func (set *SimpleSet) Del(v interface{}) {
+func (set *Set) Del(v interface{}) {
 	if set == nil {
 		return
 	}
@@ -36,7 +43,7 @@ func (set *SimpleSet) Del(v interface{}) {
 }
 
 // Update 批量添加元素
-func (set *SimpleSet) Update(vs ...interface{}) {
+func (set *Set) Update(vs ...interface{}) {
 	if vs == nil || set == nil {
 		return
 	}
@@ -47,7 +54,7 @@ func (set *SimpleSet) Update(vs ...interface{}) {
 }
 
 // Size 获取长度
-func (set *SimpleSet) Size() int {
+func (set *Set) Size() int {
 	if set == nil {
 		return 0
 	}
@@ -55,7 +62,7 @@ func (set *SimpleSet) Size() int {
 }
 
 // Has 是否已包含
-func (set *SimpleSet) Has(v interface{}) bool {
+func (set *Set) Has(v interface{}) bool {
 	if set.IsEmpty() {
 		return false
 	}
@@ -64,12 +71,12 @@ func (set *SimpleSet) Has(v interface{}) bool {
 }
 
 // NotHas 是否不包含
-func (set *SimpleSet) NotHas(v interface{}) bool {
+func (set *Set) NotHas(v interface{}) bool {
 	return !set.Has(v)
 }
 
 // Values 获取所有的值
-func (set *SimpleSet) Values() []interface{} {
+func (set *Set) Values() []interface{} {
 	if set.IsEmpty() {
 		return make([]interface{}, 0)
 	}
@@ -84,7 +91,7 @@ func (set *SimpleSet) Values() []interface{} {
 }
 
 // IntValues 获取所有的值
-func (set *SimpleSet) IntValues() ([]int, error) {
+func (set *Set) IntValues() ([]int, error) {
 
 	if set.IsEmpty() {
 		return make([]int, 0), nil
@@ -104,7 +111,7 @@ func (set *SimpleSet) IntValues() ([]int, error) {
 }
 
 // Int64Values 获取所有的值
-func (set *SimpleSet) Int64Values() ([]int64, error) {
+func (set *Set) Int64Values() ([]int64, error) {
 	if set.IsEmpty() {
 		return make([]int64, 0), nil
 	}
@@ -123,7 +130,7 @@ func (set *SimpleSet) Int64Values() ([]int64, error) {
 }
 
 // Int32Values 获取所有的值
-func (set *SimpleSet) Int32Values() ([]int32, error) {
+func (set *Set) Int32Values() ([]int32, error) {
 	if set.IsEmpty() {
 		return make([]int32, 0), nil
 	}
@@ -142,7 +149,7 @@ func (set *SimpleSet) Int32Values() ([]int32, error) {
 }
 
 // StrValues 获取所有的值
-func (set *SimpleSet) StrValues() ([]string, error) {
+func (set *Set) StrValues() ([]string, error) {
 	if set.IsEmpty() {
 		return make([]string, 0), nil
 	}
@@ -161,7 +168,7 @@ func (set *SimpleSet) StrValues() ([]string, error) {
 }
 
 // Float64Values 获取所有的值
-func (set *SimpleSet) Float64Values() ([]float64, error) {
+func (set *Set) Float64Values() ([]float64, error) {
 	if set.IsEmpty() {
 		return make([]float64, 0), nil
 	}
@@ -180,14 +187,18 @@ func (set *SimpleSet) Float64Values() ([]float64, error) {
 }
 
 // Union 并集
-func (set *SimpleSet) Union(s *SimpleSet) *SimpleSet {
+func (set *Set) Union(s *Set) *Set {
 	r := set.Copy()
 	r.Update(s.Values()...)
 	return r
 }
 
 // Common 交集
-func (set *SimpleSet) Common(s *SimpleSet) *SimpleSet {
+func (set *Set) Common(s *Set) *Set {
+	if set.IsEmpty() || s.IsEmpty() {
+		return NewSimpleSet()
+	}
+
 	r := NewSimpleSet()
 	for v, _ := range set.data {
 		if s.Has(v) {
@@ -198,7 +209,15 @@ func (set *SimpleSet) Common(s *SimpleSet) *SimpleSet {
 }
 
 // Diff 差集
-func (set *SimpleSet) Diff(s *SimpleSet) *SimpleSet {
+func (set *Set) Diff(s *Set) *Set {
+	if set.IsEmpty() {
+		return NewSimpleSet()
+	}
+
+	if s.IsEmpty() {
+		return set.Copy()
+	}
+
 	r := NewSimpleSet()
 	for v, _ := range set.data {
 		if s.NotHas(v) {
@@ -209,9 +228,9 @@ func (set *SimpleSet) Diff(s *SimpleSet) *SimpleSet {
 }
 
 // Copy copy自身
-func (set *SimpleSet) Copy() *SimpleSet {
+func (set *Set) Copy() *Set {
 	if set.IsEmpty() {
-		return nil
+		return NewSimpleSet()
 	}
 
 	copySet := NewSimpleSet()
@@ -226,11 +245,16 @@ func (set *SimpleSet) Copy() *SimpleSet {
 	return copySet
 }
 
-// IsEmpty 空集合
-func (set *SimpleSet) IsEmpty() bool {
+// IsEmpty 判断集合是否为空
+func (set *Set) IsEmpty() bool {
 	if set == nil || len(set.data) <= 0 {
 		return true
 	}
 
 	return false
+}
+
+// IsNotEmpty 判断集合不为空
+func (set *Set) IsNotEmpty() bool {
+	return !set.IsEmpty()
 }
