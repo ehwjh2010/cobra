@@ -5,7 +5,7 @@ import (
 )
 
 func IsEmpty(str string) bool {
-	return len(str) == 0
+	return len(str) <= 0
 }
 
 func IsNotEmpty(str string) bool {
@@ -14,4 +14,12 @@ func IsNotEmpty(str string) bool {
 
 func Size(str string) int {
 	return utf8.RuneCountInString(str)
+}
+
+func IsEmptySlice(v []string) bool {
+	return len(v) <= 0
+}
+
+func IsNotEmptySlice(v []string) bool {
+	return !IsEmptySlice(v)
 }

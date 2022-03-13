@@ -44,7 +44,7 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 
 // 默认超时时间为3秒, 重试次数为0
 var defaultHTTPClient = NewHTTPClient(
-	NewRequest(RWithTimeout(enums.ThreeSecDur), RWithUserAgent(global.UserAgent)),
+	NewRequest(RWithTimeout(enums.ThreeSecD), RWithUserAgent(global.UserAgent)),
 )
 
 // Method 请求

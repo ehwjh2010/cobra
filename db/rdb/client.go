@@ -10,6 +10,7 @@ import (
 	"github.com/ehwjh2010/viper/log"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/plugin/dbresolver"
 	"strings"
 	"time"
 )
@@ -58,6 +59,12 @@ func WithContext(ctx context.Context) OptDBFunc {
 	}
 }
 
+func UseWriteNode() OptDBFunc {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(dbresolver.Write)
+	}
+}
+
 func NewDBClient(db *gorm.DB, dbType enums.DBType, rawConfig settings.DB) (client *DBClient) {
 	client = &DBClient{
 		db:        db,
@@ -89,14 +96,14 @@ func (c *DBClient) WatchHeartbeat() {
 		waitFlag := true
 		for {
 			if waitFlag {
-				<-time.After(enums.ThreeSecDur)
+				<-time.After(enums.ThreeSecD)
 			}
 
 			//重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
 				//重连次数过多, 休眠1秒后重连
 				if c.rCount >= 3 {
-					<-time.After(enums.OneSecDur)
+					<-time.After(enums.OneSecD)
 				}
 				if ok, _ := c.replaceDB(); ok {
 					c.rCount = 0
@@ -392,20 +399,20 @@ func (qc *QueryCondition) getLimitByPage() (limit int) {
 	return qc.PageSize
 }
 
-// occurErr 判断是否发生报错
-func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
+// unexpectErr 判断是否为预期外的错误
+func (c *DBClient) unexpectErr(tx *gorm.DB, excludeErrs ...error) bool {
 
 	if tx.Error == nil {
 		return false
 	}
 
-	if excludeErr == nil {
+	if excludeErrs == nil {
 		return true
 	}
 
 	txErr := tx.Error
 
-	for _, err := range excludeErr {
+	for _, err := range excludeErrs {
 		if errors.Is(txErr, err) {
 			return false
 		}
@@ -416,7 +423,7 @@ func (c *DBClient) occurErr(tx *gorm.DB, excludeErr ...error) bool {
 
 func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
 
-	if c.occurErr(tx, excludeErr...) {
+	if c.unexpectErr(tx, excludeErr...) {
 		log.Err("operate db occur err", tx.Error)
 		return false, tx.Error
 	}
@@ -432,17 +439,13 @@ func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err erro
 // models 数据库模型
 // model: client.Migrate(&Product{}, &Fruit{})
 func (c *DBClient) Migrate(pointers ...interface{}) error {
-	db := c.getDB()
+	db := c.getDB(UseWriteNode())
 
 	return db.AutoMigrate(pointers...)
 }
 
 func (c *DBClient) QueryByPrimaryKey(pkColumnName string, pkValue, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getDB(opts...)
-
-	for _, fn := range opts {
-		db = fn(db)
-	}
 
 	tx := db.Limit(1).Where(pkColumnName+" = ?", pkValue).Find(pointer)
 
@@ -650,10 +653,10 @@ func (c *DBClient) Save(ptr interface{}, opts ...OptDBFunc) error {
 	return tx.Error
 }
 
-func (c DBClient) getDB(optFn ...OptDBFunc) *gorm.DB {
+func (c DBClient) getDB(optFns ...OptDBFunc) *gorm.DB {
 	db := c.db
 
-	for _, fn := range optFn {
+	for _, fn := range optFns {
 		db = fn(db)
 	}
 
@@ -661,8 +664,8 @@ func (c DBClient) getDB(optFn ...OptDBFunc) *gorm.DB {
 }
 
 // GetDB 获取原生DB对象
-func (c *DBClient) GetDB() *gorm.DB {
-	return c.getDB()
+func (c *DBClient) GetDB(optFns ...OptDBFunc) *gorm.DB {
+	return c.getDB(optFns...)
 }
 
 // Close 关闭连接池

@@ -18,22 +18,36 @@ import (
 
 type RedisClient struct {
 	client *redis.Client
-	//rawConfig 数据库配置配置
-	rawConfig settings.Cache
-	//defaultTimeOut 默认超时时间
-	defaultTimeOut int
-	//pCount 心跳连续失败次数
+	// rawConfig 数据库配置配置
+	rawConfig *settings.Cache
+	// pCount 心跳连续失败次数
 	pCount int
-	//rCount 重连连续失败次数
+	// rCount 重连连续失败次数
 	rCount int
 }
 
-func NewRedisClient(client *redis.Client, rawConfig settings.Cache, defaultTimeOut int) *RedisClient {
-	return &RedisClient{client: client, defaultTimeOut: defaultTimeOut, rawConfig: rawConfig}
+func NewRedisClient(client *redis.Client, rawConfig *settings.Cache) *RedisClient {
+	return &RedisClient{
+		client:    client,
+		rawConfig: rawConfig,
+	}
+}
+
+//getExpire 获取过期时间
+func (r *RedisClient) getExpire(ts int) time.Duration {
+	var result time.Duration
+
+	if ts <= enums.ZeroSecond {
+		result = enums.ZeroSecD
+	} else {
+		result = time.Duration(ts) * time.Second
+	}
+
+	return result
 }
 
 // Heartbeat ping连接
-func (r RedisClient) Heartbeat() error {
+func (r *RedisClient) Heartbeat() error {
 	_, err := r.client.Ping(context.TODO()).Result()
 	return err
 }
@@ -52,7 +66,7 @@ func (r *RedisClient) WatchHeartbeat() {
 			//重连失败次数大于0, 直接重连
 			if r.rCount > 0 {
 				if r.rCount >= 3 {
-					<-time.After(enums.OneSecDur)
+					<-time.After(enums.OneSecD)
 				}
 				if ok, _ := r.replaceDB(); ok {
 					r.rCount = 0
@@ -101,7 +115,7 @@ func (r *RedisClient) WatchHeartbeat() {
 
 // replaceDB 替换内部client
 func (r *RedisClient) replaceDB() (bool, error) {
-	cli, err := InitCacheWithGoRedis(r.rawConfig)
+	cli, err := initCacheWithGoRedis(r.rawConfig)
 	if err != nil {
 		return false, err
 	}
@@ -224,15 +238,13 @@ func (r *RedisClient) SetNX(key string, value interface{}, exp int) (bool, error
 
 //===============================Command Set===================================
 
-// Set redis命令SET, exp 单位: 秒
+// Set redis命令SET, exp <=0, 则认为无过期时间, exp 单位: 秒
 func (r *RedisClient) Set(key string, value interface{}, exp int) (err error) {
 	ctx := context.TODO()
 
-	if exp <= 0 {
-		exp = r.defaultTimeOut
-	}
+	expire := r.getExpire(exp)
 
-	if err = r.client.Set(ctx, key, value, time.Duration(exp)*time.Second).Err(); err != nil {
+	if err = r.client.Set(ctx, key, value, expire).Err(); err != nil {
 		return wrapErr.Wrap(err, fmt.Sprintf("set key=%s, value=%v err", key, value))
 	}
 
@@ -243,7 +255,7 @@ func (r *RedisClient) Set(key string, value interface{}, exp int) (err error) {
 func (r *RedisClient) SetWithNoExpire(key string, value interface{}) (err error) {
 	ctx := context.TODO()
 
-	if err = r.client.Set(ctx, key, value, 0).Err(); err != nil {
+	if err = r.client.Set(ctx, key, value, enums.ZeroSecD).Err(); err != nil {
 		return wrapErr.Wrap(err, fmt.Sprintf("set key=%s, value=%v err", key, value))
 	}
 

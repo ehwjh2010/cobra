@@ -6,46 +6,48 @@ const BJ = "Asia/Shanghai"
 
 // 常用时间 以下时间都是以秒为单位
 const (
-	OneSecond   = 1
-	TwoSecond   = 2
-	ThreeSecond = 3
-	FiveSecond  = 5
-	TenSecond   = 10
-	HalfMinute  = 30
+	ZeroSecond    = 0
+	OneSecond     = 1
+	TwoSecond     = 2
+	ThreeSecond   = 3
+	FiveSecond    = 5
+	TenSecond     = 10
+	HalfOneMinute = 30
 
 	OneMinute   = 60 * OneSecond
 	TwoMinute   = 2 * OneMinute
 	ThreeMinute = 3 * OneMinute
 	FiveMinute  = 5 * OneMinute
 	TenMinute   = 10 * OneMinute
-	HalfHour    = 30 * OneMinute
+	HalfOneHour = 30 * OneMinute
 
 	OneHour    = 60 * OneMinute
 	TwoHour    = 2 * OneHour
 	SixHour    = 6 * OneHour
 	TwelveHour = 12 * OneHour
 
-	HalfDay = TwelveHour
-	OneDay  = 24 * OneHour
+	HalfOneDay = TwelveHour
+	OneDay     = 24 * OneHour
 )
 
 // 常用时间 以下时间都是以time.Duration为单位
 const (
-	OneSecDur   = time.Duration(1) * time.Second
-	ThreeSecDur = time.Duration(3) * time.Second
-	FiveSecDur  = time.Duration(5) * time.Second
-	TenSecDur   = time.Duration(10) * time.Second
-	HalfMinDur  = time.Duration(30) * time.Second
+	ZeroSecD    = time.Duration(0)
+	OneSecD     = time.Duration(1) * time.Second
+	ThreeSecD   = time.Duration(3) * time.Second
+	FiveSecD    = time.Duration(5) * time.Second
+	TenSecD     = time.Duration(10) * time.Second
+	HalfOneMinD = time.Duration(30) * time.Second
 
-	OneMinDur   = time.Duration(1) * time.Minute
-	ThreeMinDur = time.Duration(3) * time.Minute
-	FiveMinDur  = time.Duration(5) * time.Minute
-	TenMinDur   = time.Duration(10) * time.Minute
-	HalfHourDur = time.Duration(30) * time.Minute
+	OneMinD      = time.Duration(1) * time.Minute
+	ThreeMinD    = time.Duration(3) * time.Minute
+	FiveMinD     = time.Duration(5) * time.Minute
+	TenMinD      = time.Duration(10) * time.Minute
+	HalfOneHourD = time.Duration(30) * time.Minute
 
-	OneHourDur = time.Duration(1) * time.Hour
-	SixHourDur = time.Duration(6) * time.Hour
-	HalfDayDur = time.Duration(12) * time.Hour
+	OneHourD    = time.Duration(1) * time.Hour
+	SixHourD    = time.Duration(6) * time.Hour
+	HalfOneDayD = time.Duration(12) * time.Hour
 
-	OneDayDur = time.Duration(24) * time.Hour
+	OneDayD = time.Duration(24) * time.Hour
 )

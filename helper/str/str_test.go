@@ -18,3 +18,12 @@ func TestIsEmpty(t *testing.T) {
 		So(Size(a), ShouldEqual, 10)
 	})
 }
+
+func TestIsNotEmptySlice(t *testing.T) {
+	Convey("Str slice is empty", t, func() {
+		var a []string
+		So(IsEmptySlice(a), ShouldBeTrue)
+		a = append(a, "a")
+		So(IsNotEmptySlice(a), ShouldBeTrue)
+	})
+}

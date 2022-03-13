@@ -43,7 +43,7 @@ func TestSimpleSet_Add(t *testing.T) {
 }
 
 func TestSimpleSet_Int64Values(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set int64 values", t, func() {
 		foo := []int64{1, 2, 3, 4, 5, 1}
 		set := NewSimpleSet()
 		set.Update(cast.Int64Slice2Any(foo)...)
@@ -61,7 +61,7 @@ func TestSimpleSet_Int64Values(t *testing.T) {
 }
 
 func TestSimpleSet_Int32Values(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set int32 values", t, func() {
 		var vs = []int32{0, 1, 2, 3, 4}
 		set := NewSimpleSet()
 		vsi := cast.Int32Slice2Any(vs)
@@ -83,7 +83,7 @@ func TestSimpleSet_Int32Values(t *testing.T) {
 }
 
 func TestSimpleSet_StrValues(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set string values", t, func() {
 		set := NewSimpleSet()
 		set.Add("0")
 		set.Add("0")
@@ -108,7 +108,7 @@ func TestSimpleSet_StrValues(t *testing.T) {
 }
 
 func TestSimpleSet_Float64Values(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set float46 values", t, func() {
 		set := NewSimpleSet()
 		set.Add(0.0)
 		set.Add(1.1)
@@ -133,7 +133,7 @@ func TestSimpleSet_Float64Values(t *testing.T) {
 }
 
 func TestSimpleSet_Del(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set del", t, func() {
 		set := NewSimpleSet()
 		set.Add(0)
 		set.Add(0)
@@ -158,7 +158,7 @@ func TestSimpleSet_Del(t *testing.T) {
 }
 
 func TestSimpleSet_Update(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set update", t, func() {
 		set := NewSimpleSet()
 		set.Add(0)
 		set.Add(1)
@@ -180,7 +180,7 @@ func TestSimpleSet_Update(t *testing.T) {
 }
 
 func TestSimpleSet_Union(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set union", t, func() {
 		set1 := NewSimpleSet()
 		set1.Add(0)
 		set1.Add(1)
@@ -203,7 +203,7 @@ func TestSimpleSet_Union(t *testing.T) {
 }
 
 func TestSimpleSet_Diff(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set diff", t, func() {
 		set1 := NewSimpleSet()
 		set1.Add(0)
 		set1.Add(1)
@@ -234,7 +234,7 @@ func TestSimpleSet_Diff(t *testing.T) {
 }
 
 func TestSimpleSet_Common(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set set common", t, func() {
 		set1 := NewSimpleSet()
 		set1.Add(0)
 		set1.Add(1)
@@ -261,7 +261,7 @@ func TestSimpleSet_Common(t *testing.T) {
 }
 
 func TestNilSimpleSet(t *testing.T) {
-	Convey("Set add value", t, func() {
+	Convey("Set nil set", t, func() {
 		var s *Set
 		var s2 *Set
 

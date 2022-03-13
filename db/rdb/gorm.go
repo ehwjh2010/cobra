@@ -2,21 +2,22 @@ package rdb
 
 import (
 	"errors"
-	"fmt"
 	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
+	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/ehwjh2010/viper/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
+	"gorm.io/plugin/dbresolver"
 	"time"
 )
 
 const defaultCreateBatchSize = 1000
 
-var UnsupportedDBType = errors.New("invalid db type")
+var UnsupportedDBType = errors.New("unsupported db type")
 
 func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error) {
 
@@ -30,7 +31,7 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 		createBatchSize = dbConfig.CreateBatchSize
 	}
 
-	dialector, err := getDialector(dbConfig, dbType)
+	dialector, err := getDialector(dbConfig.Url, dbType)
 	if err != nil {
 		return nil, err
 	}
@@ -49,44 +50,75 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 	})
 
 	if err != nil {
-		//log.Fatalf("Connect mysql failed! err: %v", err)
 		return nil, err
 	}
 
-	sqlDB, err := db.DB()
+	maxIdleConn := dbConfig.MaxFreeConnCount
+	maxOpenConn := dbConfig.MaxOpenConnCount
+	connMaxIdleTime := time.Duration(dbConfig.FreeMaxLifetime) * time.Second
+	connMaxLifetime := time.Duration(dbConfig.ConnMaxLifetime) * time.Second
 
+	// 注册集群
+	if str.IsNotEmptySlice(dbConfig.Replicas) {
+		writeDialector, _ := getDialector(dbConfig.Url, dbType)
+		readerDialectors := make([]gorm.Dialector, len(dbConfig.Replicas))
+
+		for index, replica := range dbConfig.Replicas {
+			readerDialector, err := getDialector(replica, dbType)
+			if err != nil {
+				return nil, err
+			}
+			readerDialectors[index] = readerDialector
+		}
+
+		// 设置读写节点
+		err := db.Use(dbresolver.Register(
+			dbresolver.Config{
+				// 写节点
+				Sources: []gorm.Dialector{writeDialector},
+				// 读节点
+				Replicas: readerDialectors,
+				// sources/replicas 负载均衡策略
+				Policy: dbresolver.RandomPolicy{},
+			}).
+			// 设置连接池中空闲连接最大数
+			SetMaxIdleConns(maxIdleConn).
+			// 设置打开数据库最大连接数
+			SetMaxOpenConns(maxOpenConn).
+			// 设置闲置连接最长存活时间
+			SetConnMaxIdleTime(connMaxIdleTime).
+			// 设置连接最大存活时间
+			SetConnMaxLifetime(connMaxLifetime))
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	sqlDB, err := db.DB()
 	if err != nil {
 		//log.Fatalf("Access sqlDB failed! err: %v", err)
 		return nil, err
 	}
-
-	// SetMaxIdleConns 设置连接池中空闲连接最大数
-	sqlDB.SetMaxIdleConns(dbConfig.MaxFreeConnCount)
-
-	// SetMaxOpenConns 设置打开数据库最大连接数
-	sqlDB.SetMaxOpenConns(dbConfig.MaxOpenConnCount)
-
-	// SetConnMaxIdleTime 设置闲置连接最长存活时间
-	sqlDB.SetConnMaxIdleTime(time.Duration(dbConfig.FreeMaxLifetime) * time.Second)
-
-	// SetConnMaxLifetime 设置连接最大存活时间
-	sqlDB.SetConnMaxLifetime(time.Duration(dbConfig.ConnMaxLifetime) * time.Second)
+	// 设置连接池中空闲连接最大数
+	sqlDB.SetMaxIdleConns(maxIdleConn)
+	// 设置打开数据库最大连接数
+	sqlDB.SetMaxOpenConns(maxOpenConn)
+	// 设置闲置连接最长存活时间
+	sqlDB.SetConnMaxIdleTime(connMaxIdleTime)
+	// 设置连接最大存活时间
+	sqlDB.SetConnMaxLifetime(connMaxLifetime)
 
 	return db, nil
 }
 
-func getDialector(dbConfig settings.DB, dbType enums.DBType) (gorm.Dialector, error) {
+func getDialector(url string, dbType enums.DBType) (gorm.Dialector, error) {
 	switch dbType {
 	case enums.Mysql:
-		dsn := fmt.Sprintf(`%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=%s`,
-			dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.Database, dbConfig.Location)
-		return mysql.Open(dsn), nil
+		return mysql.Open(url), nil
 
 	case enums.Postgresql:
-		dsn := fmt.Sprintf(`host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=%s`,
-			dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.Database, dbConfig.Port, dbConfig.Location)
-
-		return postgres.Open(dsn), nil
+		return postgres.Open(url), nil
 	default:
 		log.Debug("only support mysql, postgresql")
 		return nil, UnsupportedDBType
