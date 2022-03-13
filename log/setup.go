@@ -3,6 +3,7 @@ package log
 import (
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/helper/cast"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
 	"github.com/ehwjh2010/viper/helper/str"
@@ -21,9 +22,10 @@ const (
 
 var logger = zap.L()
 var sugaredLogger = zap.S()
+var realLogFilePath string
 
 // InitLog 初始化Logger
-func InitLog(config settings.Log, application string) (err error) {
+func InitLog(config settings.Log, application string) error {
 
 	if str.IsNotEmpty(config.FileDir) {
 		logFilePath, err := path.Relative2Abs(config.FileDir)
@@ -34,28 +36,37 @@ func InitLog(config settings.Log, application string) (err error) {
 		if err := path.MakeDirs(realLogDir); err != nil {
 			return err
 		}
+
+		if str.IsEmpty(config.FileName) {
+			config.FileName = DefaultFilename
+		}
+
+		realLogFilePath = path.PathJoin(realLogDir, config.FileName)
 	}
 
-	writeSyncer := getWriters(config, application)
+	writeSyncer, err := getWriters(&config)
+	if err != nil {
+		return err
+	}
 
 	encoder := getEncoder()
 	var l = new(zapcore.Level)
-	err = l.UnmarshalText([]byte(config.Level))
+	err = l.UnmarshalText(cast.Str2Bytes(config.Level))
 	if err != nil {
-		return
+		return err
 	}
 	core := zapcore.NewCore(encoder, writeSyncer, l)
 
 	//由于外部使用的都是包装∫后的方法, 需要加上AddCallerSkip(1),
 	//zap.AddStacktrace(zapcore.WarnLevel) 这个函数的行为会一旦打印指定级别及以上的日志时, 自动打印堆栈
 	//lg := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.WarnLevel))
-	if config.Caller == 0 {
+	if config.Caller <= 0 {
 		config.Caller = DefaultCaller
 	}
 	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(config.Caller))
 	zap.ReplaceGlobals(logger) // 替换zap包中全局的logger实例，后续在其他包中只需使用zap.S()调用即可
 	sugaredLogger = zap.S()
-	return
+	return nil
 }
 
 func getEncoder() zapcore.Encoder {
@@ -68,7 +79,7 @@ func getEncoder() zapcore.Encoder {
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
-func getWriters(conf settings.Log, application string) zapcore.WriteSyncer {
+func getWriters(conf *settings.Log) (zapcore.WriteSyncer, error) {
 	var writers []io.Writer
 
 	if conf.EnableConsole {
@@ -76,22 +87,21 @@ func getWriters(conf settings.Log, application string) zapcore.WriteSyncer {
 	}
 
 	if str.IsNotEmpty(conf.FileDir) {
-		absPath, _ := path.Relative2Abs(conf.FileDir)
-		if conf.FileName == "" {
-			conf.FileName = DefaultFilename
-		}
-		filePath := path.PathJoin(absPath, application, conf.FileName)
 		if conf.Rotated {
-			writer := getRotedLogWriter(
-				filePath,
-				conf.MaxSize,
-				conf.MaxBackups,
-				conf.MaxAge,
-				conf.LocalTime,
-				conf.Compress)
+			writer := &lumberjack.Logger{
+				Filename:   realLogFilePath,
+				MaxSize:    conf.MaxSize,
+				MaxBackups: conf.MaxBackups,
+				MaxAge:     conf.MaxAge,
+				LocalTime:  conf.LocalTime,
+				Compress:   conf.Compress,
+			}
 			writers = append(writers, writer)
 		} else {
-			writer := getLogWriter(filePath)
+			writer, err := file.OpenFile(realLogFilePath)
+			if err != nil {
+				return nil, err
+			}
 			writers = append(writers, writer)
 		}
 	}
@@ -106,23 +116,5 @@ func getWriters(conf settings.Log, application string) zapcore.WriteSyncer {
 	gin.DefaultWriter = w
 	gin.DisableConsoleColor()
 
-	return zapcore.AddSync(w)
-}
-
-func getRotedLogWriter(filename string, maxSize, maxBackup, maxAge int, localTime bool, compress bool) io.Writer {
-
-	lumberJackLogger := &lumberjack.Logger{
-		Filename:   filename,
-		MaxSize:    maxSize,
-		MaxBackups: maxBackup,
-		MaxAge:     maxAge,
-		LocalTime:  localTime,
-		Compress:   compress,
-	}
-	return lumberJackLogger
-}
-
-func getLogWriter(filename string) io.Writer {
-	f, _ := file.OpenFile(filename)
-	return f
+	return zapcore.AddSync(w), nil
 }
