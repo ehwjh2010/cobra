@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/ehwjh2010/viper/helper/object"
+	"github.com/ehwjh2010/viper/helper/copy"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -122,7 +122,7 @@ func Cors(args ...CorsOpt) gin.HandlerFunc {
 
 	c := &cors.Config{}
 
-	object.CopyProperties(config, c)
+	copy.CopyProperties(config, c)
 
 	return cors.New(*c)
 }

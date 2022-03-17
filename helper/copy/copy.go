@@ -1,4 +1,4 @@
-package object
+package copy
 
 import "github.com/jinzhu/copier"
 

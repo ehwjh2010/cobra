@@ -6,7 +6,7 @@ import (
 	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/component/routine"
-	"github.com/ehwjh2010/viper/helper/str"
+	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -159,7 +159,7 @@ func (c *DBClient) replaceDB() (bool, error) {
 	}
 
 	//关闭之前的连接
-	c.Close()
+	_ = c.Close()
 	c.db = newDB
 	log.Info("reconnect db success")
 	return true, nil

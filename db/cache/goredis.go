@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
-	"github.com/ehwjh2010/viper/helper/str"
+	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/go-redis/redis/v8"
 	"time"
 )

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
-	"github.com/ehwjh2010/viper/helper/str"
+	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
