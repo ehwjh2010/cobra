@@ -11,7 +11,7 @@ type Routine struct {
 	// MaxWorkerCount 最大worker数量, 默认是10
 	MaxWorkerCount int `json:"maxWorkerCount" yaml:"maxWorkerCount"`
 
-	// FreeMaxLifetime 协程最大闲置时间, 默认是1小时, 单位: 秒
+	// FreeMaxLifetime 协程最大闲置时间, 默认是20分钟, 单位: 秒
 	FreeMaxLifetime int `json:"freeMaxLifetime" yaml:"freeMaxLifetime"`
 
 	// PanicHandler panic处理器
