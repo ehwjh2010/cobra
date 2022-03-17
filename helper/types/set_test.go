@@ -2,8 +2,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/ehwjh2010/viper/helper/cast"
-	"github.com/ehwjh2010/viper/helper/equal"
+	"github.com/ehwjh2010/viper/helper/basic/double"
+	"github.com/ehwjh2010/viper/helper/basic/integer"
+	"github.com/ehwjh2010/viper/helper/basic/str"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
@@ -21,7 +22,7 @@ func TestSimpleSet_Add(t *testing.T) {
 
 		values, _ := set.IntValues()
 
-		So(equal.SliceIntEqual(values, []int{0, 1, 2, 3, 4}), ShouldBeTrue)
+		So(integer.SliceIntEqual(values, []int{0, 1, 2, 3, 4}), ShouldBeTrue)
 		So(set.Size(), ShouldEqual, 5)
 
 		var set2 *Set
@@ -46,10 +47,10 @@ func TestSimpleSet_Int64Values(t *testing.T) {
 	Convey("Set set int64 values", t, func() {
 		foo := []int64{1, 2, 3, 4, 5, 1}
 		set := NewSimpleSet()
-		set.Update(cast.Int64Slice2Any(foo)...)
+		set.Update(integer.SliceInt64TAny(foo)...)
 		values, err := set.Int64Values()
 		So(err, ShouldBeNil)
-		So(equal.SliceInt64Equal(values, []int64{1, 2, 3, 4, 5}), ShouldBeTrue)
+		So(integer.SliceInt64Equal(values, []int64{1, 2, 3, 4, 5}), ShouldBeTrue)
 
 		set.Add(true)
 		set.Add("art")
@@ -64,13 +65,13 @@ func TestSimpleSet_Int32Values(t *testing.T) {
 	Convey("Set set int32 values", t, func() {
 		var vs = []int32{0, 1, 2, 3, 4}
 		set := NewSimpleSet()
-		vsi := cast.Int32Slice2Any(vs)
+		vsi := integer.SliceInt32TAny(vs)
 		set.Update(vsi...)
 
 		values, _ := set.Int32Values()
 		fmt.Println(values)
 
-		So(equal.SliceInt32Equal(values, []int32{0, 1, 2, 3, 4}), ShouldBeTrue)
+		So(integer.SliceInt32Equal(values, []int32{0, 1, 2, 3, 4}), ShouldBeTrue)
 		So(set.Size(), ShouldEqual, 5)
 
 		set2 := NewSimpleSet()
@@ -95,7 +96,7 @@ func TestSimpleSet_StrValues(t *testing.T) {
 
 		values, _ := set.StrValues()
 
-		So(equal.SliceStrEqual(values, []string{"0", "1", "2", "3", "4"}), ShouldBeTrue)
+		So(str.SliceStrEqual(values, []string{"0", "1", "2", "3", "4"}), ShouldBeTrue)
 		So(set.Size(), ShouldEqual, 5)
 
 		set2 := NewSimpleSet()
@@ -120,7 +121,7 @@ func TestSimpleSet_Float64Values(t *testing.T) {
 
 		values, _ := set.Float64Values()
 
-		So(equal.SliceFloat64Equal(values, []float64{0, 1.1, 2.2, 3.3, 4.4, 4.0, 5.55}), ShouldBeTrue)
+		So(double.SliceFloat64Equal(values, []float64{0, 1.1, 2.2, 3.3, 4.4, 4.0, 5.55}), ShouldBeTrue)
 		So(set.Size(), ShouldEqual, 7)
 
 		set2 := NewSimpleSet()
@@ -145,14 +146,14 @@ func TestSimpleSet_Del(t *testing.T) {
 
 		values, _ := set.IntValues()
 
-		So(equal.SliceIntEqual(values, []int{0, 1, 2, 3, 4}), ShouldBeTrue)
+		So(integer.SliceIntEqual(values, []int{0, 1, 2, 3, 4}), ShouldBeTrue)
 		So(set.Size(), ShouldEqual, 5)
 
 		set.Del(0)
 		values, _ = set.IntValues()
-		So(equal.SliceIntEqual(values, []int{0, 1, 2, 3, 4}), ShouldBeFalse)
-		So(equal.SliceIntEqual(values, []int{1, 2, 3, 4}), ShouldBeTrue)
-		So(equal.SliceIntEqual(values, []int{0, 1, 2, 3}), ShouldBeFalse)
+		So(integer.SliceIntEqual(values, []int{0, 1, 2, 3, 4}), ShouldBeFalse)
+		So(integer.SliceIntEqual(values, []int{1, 2, 3, 4}), ShouldBeTrue)
+		So(integer.SliceIntEqual(values, []int{0, 1, 2, 3}), ShouldBeFalse)
 		So(set.Size(), ShouldEqual, 4)
 	})
 }
@@ -171,7 +172,7 @@ func TestSimpleSet_Update(t *testing.T) {
 
 		values, err := set.IntValues()
 		So(err, ShouldBeNil)
-		So(equal.SliceIntEqual(values, []int{0, 1, 2, 3, 4, 9, 8}), ShouldBeTrue)
+		So(integer.SliceIntEqual(values, []int{0, 1, 2, 3, 4, 9, 8}), ShouldBeTrue)
 
 		var set2 *Set
 		set2.Update(1, 2, 3, "A")
@@ -198,7 +199,7 @@ func TestSimpleSet_Union(t *testing.T) {
 
 		s := set1.Union(set2)
 		values, _ := s.IntValues()
-		So(equal.SliceIntEqual(values, []int{0, 1, 2, 3, 4, 7, 8, 9, 22}), ShouldBeTrue)
+		So(integer.SliceIntEqual(values, []int{0, 1, 2, 3, 4, 7, 8, 9, 22}), ShouldBeTrue)
 	})
 }
 
@@ -221,11 +222,11 @@ func TestSimpleSet_Diff(t *testing.T) {
 
 		s := set1.Diff(set2)
 		values, _ := s.IntValues()
-		So(equal.SliceIntEqual(values, []int{2, 3, 4}), ShouldBeTrue)
+		So(integer.SliceIntEqual(values, []int{2, 3, 4}), ShouldBeTrue)
 
 		s2 := set2.Diff(set1)
 		values2, _ := s2.IntValues()
-		So(equal.SliceIntEqual(values2, []int{7, 8, 9, 22}), ShouldBeTrue)
+		So(integer.SliceIntEqual(values2, []int{7, 8, 9, 22}), ShouldBeTrue)
 
 		set3 := NewSimpleSet()
 		So(set3.Diff(set1).IsEmpty(), ShouldBeTrue)
@@ -252,7 +253,7 @@ func TestSimpleSet_Common(t *testing.T) {
 
 		s := set1.Common(set2)
 		values, _ := s.IntValues()
-		So(equal.SliceIntEqual(values, []int{0, 1}), ShouldBeTrue)
+		So(integer.SliceIntEqual(values, []int{0, 1}), ShouldBeTrue)
 
 		set3 := NewSimpleSet()
 		So(set1.Common(set3).IsEmpty(), ShouldBeTrue)

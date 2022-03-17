@@ -1,9 +1,15 @@
-package cast
+package double
 
 import (
 	"github.com/ehwjh2010/viper/client/verror"
 	"strconv"
 )
+
+//=================浮点与interface转化================
+
+func Double2Any(v interface{}) interface{} {
+	return v
+}
 
 func Any2Double(v interface{}) (float64, error) {
 	if dst, ok := v.(float64); !ok {
@@ -18,6 +24,12 @@ func MustAny2Double(v interface{}) float64 {
 	return dst
 }
 
+//=================浮点与字符串转化=======================
+
+func Double2Str(v float64) string {
+	return strconv.FormatFloat(v, 'f', -1, 64)
+}
+
 func Str2Double(v string) (float64, error) {
 	return strconv.ParseFloat(v, 64)
 }
@@ -27,18 +39,9 @@ func MustStr2Double(v string) float64 {
 	return dst
 }
 
-func Double2Str(v float64) string {
-	return strconv.FormatFloat(v, 'f', -1, 64)
-}
+//=================浮点切片与interface转化================
 
-func Double2Any(v interface{}) interface{} {
-	return v
-}
-
-func DoubleSlice2Any(vs []float64) []interface{} {
-	if vs == nil {
-		return nil
-	}
+func SliceDouble2Any(vs []float64) []interface{} {
 
 	rs := make([]interface{}, len(vs))
 	for i, v := range vs {
@@ -48,7 +51,7 @@ func DoubleSlice2Any(vs []float64) []interface{} {
 	return rs
 }
 
-func AnySlice2Double(vs []interface{}) ([]float64, error) {
+func SliceAny2Double(vs []interface{}) ([]float64, error) {
 	if vs == nil {
 		return nil, nil
 	}

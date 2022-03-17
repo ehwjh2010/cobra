@@ -3,10 +3,9 @@ package log
 import (
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/helper/cast"
+	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
-	"github.com/ehwjh2010/viper/helper/str"
 	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
@@ -32,7 +31,7 @@ func InitLog(config settings.Log, application string) error {
 		if err != nil {
 			return err
 		}
-		realLogDir := path.PathJoin(logFilePath, application)
+		realLogDir := path.JoinPath(logFilePath, application)
 		if err := path.MakeDirs(realLogDir); err != nil {
 			return err
 		}
@@ -41,7 +40,7 @@ func InitLog(config settings.Log, application string) error {
 			config.FileName = DefaultFilename
 		}
 
-		realLogFilePath = path.PathJoin(realLogDir, config.FileName)
+		realLogFilePath = path.JoinPath(realLogDir, config.FileName)
 	}
 
 	writeSyncer, err := getWriters(&config)
@@ -51,7 +50,7 @@ func InitLog(config settings.Log, application string) error {
 
 	encoder := getEncoder()
 	var l = new(zapcore.Level)
-	err = l.UnmarshalText(cast.Str2Bytes(config.Level))
+	err = l.UnmarshalText(str.Str2Bytes(config.Level))
 	if err != nil {
 		return err
 	}

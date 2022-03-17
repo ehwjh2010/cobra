@@ -1,9 +1,15 @@
-package cast
+package str
 
 import (
 	"github.com/ehwjh2010/viper/client/verror"
 	"go.uber.org/zap/buffer"
 )
+
+//=================str与interface转化==================
+
+func Str2Any(v string) interface{} {
+	return v
+}
 
 func Any2String(v interface{}) (string, error) {
 	if dst, ok := v.(string); !ok {
@@ -18,19 +24,7 @@ func MustAny2String(v interface{}) string {
 	return dst
 }
 
-func Str2Bytes(v string) []byte {
-	var buff buffer.Buffer
-
-	_, _ = buff.WriteString(v)
-
-	return buff.Bytes()
-}
-
-func Str2Any(v string) interface{} {
-	return v
-}
-
-func StrSlice2Any(vs []string) []interface{} {
+func SliceStr2Any(vs []string) []interface{} {
 	if vs == nil {
 		return nil
 	}
@@ -43,7 +37,7 @@ func StrSlice2Any(vs []string) []interface{} {
 	return rs
 }
 
-func AnySlice2Str(vs []interface{}) ([]string, error) {
+func SliceAny2Str(vs []interface{}) ([]string, error) {
 	if vs == nil {
 		return nil, nil
 	}
@@ -58,4 +52,14 @@ func AnySlice2Str(vs []interface{}) ([]string, error) {
 	}
 
 	return rs, nil
+}
+
+//=================str与bytes转化==================
+
+func Str2Bytes(v string) []byte {
+	var buff buffer.Buffer
+
+	_, _ = buff.WriteString(v)
+
+	return buff.Bytes()
 }

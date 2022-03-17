@@ -1,8 +1,6 @@
 package str
 
-import (
-	"unicode/utf8"
-)
+import "unicode/utf8"
 
 func IsEmpty(str string) bool {
 	return len(str) <= 0

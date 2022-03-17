@@ -2,7 +2,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/ehwjh2010/viper/helper/cast"
+	"github.com/ehwjh2010/viper/helper/basic/double"
+	"github.com/ehwjh2010/viper/helper/basic/integer"
+	"github.com/ehwjh2010/viper/helper/basic/str"
 )
 
 type EmptyStruct struct{}
@@ -83,7 +85,7 @@ func (set *Set) Values() []interface{} {
 
 	j := 0
 	keys := make([]interface{}, len(set.data))
-	for k, _ := range set.data {
+	for k := range set.data {
 		keys[j] = k
 		j++
 	}
@@ -100,7 +102,7 @@ func (set *Set) IntValues() ([]int, error) {
 	j := 0
 	values := make([]int, len(set.data))
 	for k := range set.data {
-		v, err := cast.Any2Int(k)
+		v, err := integer.Any2Int(k)
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +121,7 @@ func (set *Set) Int64Values() ([]int64, error) {
 	j := 0
 	values := make([]int64, len(set.data))
 	for k := range set.data {
-		v, err := cast.Any2Int64(k)
+		v, err := integer.Any2Int64(k)
 		if err != nil {
 			return nil, err
 		}
@@ -138,7 +140,7 @@ func (set *Set) Int32Values() ([]int32, error) {
 	j := 0
 	values := make([]int32, len(set.data))
 	for k := range set.data {
-		v, err := cast.Any2Int32(k)
+		v, err := integer.Any2Int32(k)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +159,7 @@ func (set *Set) StrValues() ([]string, error) {
 	j := 0
 	keys := make([]string, len(set.data))
 	for k := range set.data {
-		v, err := cast.Any2String(k)
+		v, err := str.Any2String(k)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +178,7 @@ func (set *Set) Float64Values() ([]float64, error) {
 	j := 0
 	values := make([]float64, len(set.data))
 	for k := range set.data {
-		v, err := cast.Any2Double(k)
+		v, err := double.Any2Double(k)
 		if err != nil {
 			return nil, err
 		}
@@ -200,7 +202,7 @@ func (set *Set) Common(s *Set) *Set {
 	}
 
 	r := NewSimpleSet()
-	for v, _ := range set.data {
+	for v := range set.data {
 		if s.Has(v) {
 			r.Add(v)
 		}
@@ -219,7 +221,7 @@ func (set *Set) Diff(s *Set) *Set {
 	}
 
 	r := NewSimpleSet()
-	for v, _ := range set.data {
+	for v := range set.data {
 		if s.NotHas(v) {
 			r.Add(v)
 		}
@@ -236,7 +238,7 @@ func (set *Set) Copy() *Set {
 	copySet := NewSimpleSet()
 
 	copyData := make(map[interface{}]EmptyStruct, len(set.data))
-	for v, _ := range set.data {
+	for v := range set.data {
 		copyData[v] = NewEmptyStruct()
 	}
 

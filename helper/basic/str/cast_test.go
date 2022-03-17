@@ -1,7 +1,6 @@
-package cast
+package str
 
 import (
-	"github.com/ehwjh2010/viper/helper/equal"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
@@ -23,7 +22,7 @@ func TestStr2Bytes(t *testing.T) {
 		var ret []byte
 		for _, test := range tests {
 			ret = Str2Bytes(test.Value)
-			So(equal.SliceByteEqual(ret, test.Dest), ShouldEqual, test.Success)
+			So(SliceByteEqual(ret, test.Dest), ShouldEqual, test.Success)
 		}
 	})
 }
@@ -54,12 +53,12 @@ func TestStr2Any(t *testing.T) {
 func TestStrSlice2Any(t *testing.T) {
 	Convey("Cast slice string to any", t, func() {
 		foo := []string{"a", "b", "c", "d"}
-		temp := StrSlice2Any(foo)
-		slice2Str, err := AnySlice2Str(temp)
+		temp := SliceStr2Any(foo)
+		slice2Str, err := SliceAny2Str(temp)
 		So(err, ShouldBeNil)
 		So(slice2Str, ShouldResemble, foo)
 
-		v := StrSlice2Any(nil)
+		v := SliceStr2Any(nil)
 		So(v, ShouldBeNil)
 
 		tmp := make([]interface{}, 3)
@@ -67,11 +66,11 @@ func TestStrSlice2Any(t *testing.T) {
 		tmp[0] = "1"
 		tmp[0] = true
 
-		slice2Str, err = AnySlice2Str(tmp)
+		slice2Str, err = SliceAny2Str(tmp)
 		So(err, ShouldNotBeNil)
 		So(slice2Str, ShouldBeEmpty)
 
-		str, err := AnySlice2Str(nil)
+		str, err := SliceAny2Str(nil)
 		So(err, ShouldBeNil)
 		So(str, ShouldBeEmpty)
 	})
