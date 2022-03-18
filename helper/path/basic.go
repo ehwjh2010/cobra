@@ -9,7 +9,8 @@ import (
 	"strings"
 )
 
-var ErrPathAlreadyExist = errors.New("path no exist")
+var ErrPathAlreadyExist = errors.New("path already exist")
+var ErrPathNoExist = errors.New("path no exist")
 var ErrInvalidPath = errors.New("invalid path")
 
 // EnsurePathExist 确认文件或文件夹是否存在
@@ -65,14 +66,14 @@ func RemovePath(path string, noExistReturnError bool) (bool, error) {
 		return false, ErrInvalidPath
 	}
 
-	exist, err := EnsurePathExist(path)
+	exists, err := EnsurePathExist(path)
 	if err != nil {
 		return false, err
 	}
 
-	if !exist {
+	if !exists {
 		if noExistReturnError {
-			return false, ErrPathAlreadyExist
+			return false, ErrPathNoExist
 		} else {
 			return true, nil
 		}
@@ -87,8 +88,8 @@ func RemovePath(path string, noExistReturnError bool) (bool, error) {
 	}
 }
 
-// PathJoin 路径拼接
-func PathJoin(paths ...string) string {
+// JoinPath 路径拼接
+func JoinPath(paths ...string) string {
 	p := filepath.Join(paths...)
 	return p
 }
@@ -123,7 +124,7 @@ func PathSplit(path string) (string, string) {
 
 // MakeDirs 创建多级目录
 func MakeDirs(path ...string) error {
-	tmp := PathJoin(path...)
+	tmp := JoinPath(path...)
 
 	if tmp == "" {
 		return nil

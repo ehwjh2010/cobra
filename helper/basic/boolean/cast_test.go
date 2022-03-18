@@ -1,4 +1,4 @@
-package cast
+package boolean
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -105,5 +105,16 @@ func TestBool2Str(t *testing.T) {
 			dst := Bool2Str(test.Value)
 			So(dst, ShouldEqual, test.Success)
 		}
+	})
+}
+
+func TestSliceBool2Any(t *testing.T) {
+	Convey("Cast bool to str", t, func() {
+		var b []bool
+		any := SliceBool2Any(b)
+		So(any, ShouldBeEmpty)
+		b = append(b, true)
+		any = SliceBool2Any(b)
+		So(any, ShouldNotBeEmpty)
 	})
 }

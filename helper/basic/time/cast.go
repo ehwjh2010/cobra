@@ -1,4 +1,4 @@
-package cast
+package time
 
 import (
 	"github.com/ehwjh2010/viper/global"

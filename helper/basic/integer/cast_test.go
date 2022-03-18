@@ -1,4 +1,4 @@
-package cast
+package integer
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -367,5 +367,97 @@ func TestMustStr2Int64(t *testing.T) {
 			dst := MustStr2Int64(test.Value)
 			So(dst, ShouldEqual, test.Dest)
 		}
+	})
+}
+
+func TestInteger2Any(t *testing.T) {
+	Convey("Cast integer to interface", t, func() {
+		foo := math.MaxInt
+		any := Int2Any(foo)
+		any2Int, err := Any2Int(any)
+		So(err, ShouldBeNil)
+		So(any2Int, ShouldEqual, foo)
+
+		foo = math.MinInt
+		any = Int2Any(foo)
+		any2Int, err = Any2Int(any)
+		So(err, ShouldBeNil)
+		So(any2Int, ShouldEqual, foo)
+	})
+}
+
+func TestIntSlice2Any(t *testing.T) {
+	Convey("Cast integer slice to interface", t, func() {
+		foo := []int{1, 2, 3, 4}
+		any := IntSlice2Any(foo)
+		any2Int, err := AnySlice2Int(any)
+		So(err, ShouldBeNil)
+		So(any2Int, ShouldResemble, foo)
+
+		slice2Any := IntSlice2Any(nil)
+		So(slice2Any, ShouldBeEmpty)
+
+		temp := []interface{}{true, 1, 3}
+		any2Int, err = AnySlice2Int(temp)
+		So(err, ShouldNotBeNil)
+		So(any2Int, ShouldBeNil)
+
+		slice2Int, err := AnySlice2Int(nil)
+		So(err, ShouldBeNil)
+		So(slice2Int, ShouldBeNil)
+	})
+}
+
+func TestInt32Slice2Any(t *testing.T) {
+	Convey("Cast integer slice to interface", t, func() {
+		foo := []int32{1, 2, 3, 4}
+		any := SliceInt32TAny(foo)
+		any2Int, err := SliceAny2Int32(any)
+		So(err, ShouldBeNil)
+		So(any2Int, ShouldResemble, foo)
+
+		slice2Any := SliceInt32TAny(nil)
+		So(slice2Any, ShouldBeEmpty)
+
+		temp := []interface{}{true, 1, 3}
+		any2Int, err = SliceAny2Int32(temp)
+		So(err, ShouldNotBeNil)
+		So(any2Int, ShouldBeNil)
+
+		slice2Int32, err := SliceAny2Int32(nil)
+		So(err, ShouldBeNil)
+		So(slice2Int32, ShouldBeNil)
+	})
+}
+
+func TestSliceInt64TAny(t *testing.T) {
+	Convey("Cast integer slice to interface", t, func() {
+		foo := []int64{1, 2, 3, 4}
+		any := SliceInt64TAny(foo)
+		any2Int, err := SliceAny2Int64(any)
+		So(err, ShouldBeNil)
+		So(any2Int, ShouldResemble, foo)
+
+		slice2Any := SliceInt64TAny(nil)
+		So(slice2Any, ShouldBeEmpty)
+
+		temp := []interface{}{true, 1, 3}
+		any2Int, err = SliceAny2Int64(temp)
+		So(err, ShouldNotBeNil)
+		So(any2Int, ShouldBeNil)
+
+		slice2Int64, err := SliceAny2Int64(nil)
+		So(err, ShouldBeNil)
+		So(slice2Int64, ShouldBeEmpty)
+	})
+}
+
+func TestInt32TAny(t *testing.T) {
+	Convey("Cast integer slice to interface", t, func() {
+		var a int32
+
+		any := Int32TAny(a)
+		So(any, ShouldNotBeNil)
+
 	})
 }

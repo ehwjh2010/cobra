@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/helper/cast"
+	"github.com/ehwjh2010/viper/helper/basic/integer"
 	"github.com/ehwjh2010/viper/helper/serialize"
 	"strconv"
 	"time"
@@ -118,7 +118,7 @@ func (ni *NullInt) IsNull() bool {
 
 // GetValue 获取值
 func (ni *NullInt) GetValue() int {
-	return cast.Int64ToInt(ni.Int64)
+	return integer.Int64ToInt(ni.Int64)
 }
 
 func NewInt(v int) NullInt {
@@ -137,7 +137,7 @@ func (ni NullInt) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
 		return []byte("null"), nil
 	}
-	return serialize.Marshal(cast.Int64ToInt(ni.Int64))
+	return serialize.Marshal(integer.Int64ToInt(ni.Int64))
 }
 
 // UnmarshalJSON for NullInt

@@ -42,7 +42,7 @@ func (c *Client) WatchHeartbeat() {
 			//重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
 				if c.rCount >= 3 {
-					<-time.After(enums.OneSecDur)
+					<-time.After(enums.OneSecD)
 				}
 				if ok, _ := c.replaceDB(); ok {
 					c.rCount = 0
