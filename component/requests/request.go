@@ -39,8 +39,8 @@ func RWithContext(ctx context.Context) ROpt {
 	}
 }
 
-// RWithRetryTimes 设置重试次数, 必须>=0
-func RWithRetryTimes(times int) ROpt {
+// RWithRetry 设置重试次数, 必须>=0
+func RWithRetry(times int) ROpt {
 	return func(r *HTTPRequest) {
 		if times < 0 {
 			times = 0
@@ -105,6 +105,10 @@ func RWithFiles(files []*FileUpload) ROpt {
 
 // toInternal 转换为RequestOptions
 func (r *HTTPRequest) toInternal() *grequests.RequestOptions {
+	if r == nil {
+		return nil
+	}
+
 	rOpt := &grequests.RequestOptions{
 		Headers:        r.Header,
 		Params:         r.Params,

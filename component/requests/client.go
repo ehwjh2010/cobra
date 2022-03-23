@@ -6,20 +6,38 @@ import (
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/types"
+	"github.com/ehwjh2010/viper/log"
 	"github.com/levigross/grequests"
 	"net/http"
 	"time"
 )
 
 type HTTPClient struct {
-	session    *grequests.Session
-	retryTimes types.NullInt
+	session  *grequests.Session
+	maxTries types.NullInt
 }
 
-func NewHTTPClient(req *HTTPRequest) *HTTPClient {
-	cli := &HTTPClient{
-		session: grequests.NewSession(req.toInternal()),
+type HOpt func(client *HTTPClient)
+
+func HWithReq(r *HTTPRequest) HOpt {
+	return func(client *HTTPClient) {
+		client.session = grequests.NewSession(r.toInternal())
 	}
+}
+
+func HWithRetryTimes(maxTries int) HOpt {
+	return func(client *HTTPClient) {
+		client.maxTries = types.NewInt(maxTries)
+	}
+}
+
+func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
+	cli := &HTTPClient{}
+
+	for _, fn := range hOPts {
+		fn(cli)
+	}
+
 	return cli
 }
 
@@ -28,6 +46,13 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 	var err error
 
 	clearFn := func() {
+
+		defer func() {
+			if e := recover(); e != nil {
+				log.Errorf("httpClient cronClearIdle occur err, err ==> ", e)
+			}
+		}()
+
 		for {
 			<-time.After(interval)
 			api.session.CloseIdleConnections()
@@ -44,23 +69,28 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 
 // 默认超时时间为3秒, 重试次数为0
 var defaultHTTPClient = NewHTTPClient(
-	NewRequest(RWithTimeout(enums.ThreeSecD), RWithUserAgent(global.UserAgent)),
+	HWithReq(NewRequest(RWithTimeout(enums.ThreeSecD), RWithUserAgent(global.UserAgent))),
 )
 
 // Method 请求
 func (api *HTTPClient) Method(method string, url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
-	retryTimes := 0
-	if !req.RetryTimes.IsNull() {
+	var (
+		retryTimes int
+		response   *HTTPResponse
+		err        error
+	)
+
+	switch {
+	case !req.RetryTimes.IsNull():
 		retryTimes = req.RetryTimes.GetValue()
-	} else {
-		retryTimes = api.retryTimes.GetValue()
+	case !api.maxTries.IsNull():
+		retryTimes = api.maxTries.GetValue()
 	}
 
-	var response *HTTPResponse
-
-	err := retry.Do(func() error {
+	// 请求函数
+	fn := func() error {
 		resp, err := grequests.Req(method, url, req.toInternal())
 		if err != nil {
 			return err
@@ -68,8 +98,13 @@ func (api *HTTPClient) Method(method string, url string, rOpts ...ROpt) (*HTTPRe
 
 		response = NewResponse(resp)
 		return nil
+	}
 
-	}, retry.Attempts(uint(retryTimes)))
+	if retryTimes > 0 {
+		err = retry.Do(fn, retry.Attempts(uint(retryTimes)))
+	} else {
+		err = fn()
+	}
 
 	if err != nil {
 		return nil, err
