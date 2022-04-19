@@ -34,6 +34,10 @@ func (task *Task) Close() {
 
 // Reboot 重启关闭的协程池
 func (task *Task) Reboot() {
+	if task == nil || task.p == nil || task.p.IsClosed() {
+		return
+	}
+
 	task.p.Reboot()
 }
 
