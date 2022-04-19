@@ -27,7 +27,7 @@ func (s *Setting) Arrange() {
 	}
 
 	if s.Port <= 0 {
-		s.Port = 9000
+		s.Port = 12345
 	}
 
 	if s.ShutDownTimeout <= 0 {

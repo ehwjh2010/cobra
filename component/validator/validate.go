@@ -2,6 +2,7 @@ package validator
 
 import (
 	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/helper/serialize"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -18,12 +19,12 @@ func RegisterTrans(language string) (translator ut.Translator, err error) {
 	var trans ut.Translator
 
 	language = strings.ToLower(language)
-	zhT := zh.New() //中文翻译器
-	enT := en.New() //英文翻译器
-	//第一个参数是备用的语言环境，后面的参数是应该支持的语言环境
+	zhT := zh.New() // 中文翻译器
+	enT := en.New() // 英文翻译器
+	// 第一个参数是备用的语言环境，后面的参数是应该支持的语言环境
 	uni := ut.New(enT, zhT, enT)
 
-	//修改gin框架中的validator引擎属性, 实现定制
+	// 修改gin框架中的validator引擎属性, 实现定制
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		// 获取json tag中的字段名
 		// TODO fix 如果是表单数据, 则会有问题, 查询字符串 待查看
@@ -63,12 +64,26 @@ func RegisterTrans(language string) (translator ut.Translator, err error) {
 
 // Translate 翻译错误信息
 func Translate(err error, tran ut.Translator) (errMsg string) {
+	if err == nil || tran == nil {
+		return
+	}
+
 	if errs, ok := err.(validator.ValidationErrors); ok {
 		// validator.ValidationErrors类型错误则进行翻译
+		var (
+			field string
+			msg   string
+		)
+		tmp := make(map[string]string, 0)
 		for _, err := range errs {
-			errMsg = err.Translate(tran)
-			break
+			field = err.Field()
+			msg = err.Translate(tran)
+			tmp[field] = msg
 		}
+
+		//fmt.Println(tmp)
+		errMsg, _ = serialize.MarshalStr(tmp)
+
 	} else {
 		// 非validator.ValidationErrors类型错误直接返回
 		errMsg = err.Error()

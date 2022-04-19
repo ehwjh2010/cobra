@@ -117,3 +117,9 @@ func getWriters(conf *settings.Log) (zapcore.WriteSyncer, error) {
 
 	return zapcore.AddSync(w), nil
 }
+
+func init() {
+	_ = InitLog(settings.Log{
+		Caller: DefaultCaller,
+	}, "application")
+}
