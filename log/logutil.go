@@ -65,6 +65,11 @@ func Err(msg string, errs ...error) {
 	logger.Error(msg, fields...)
 }
 
+// E 只打印错误
+func E(errs ...error) {
+	Err("", errs...)
+}
+
 //-----------------------------------------------------------
 
 //Fatal日志相关方法
@@ -88,6 +93,10 @@ func FatalErr(msg string, errs ...error) {
 	logger.Fatal(msg, fields...)
 }
 
+func FatalE(errs ...error) {
+	FatalErr("", errs...)
+}
+
 //-----------------------------------------------------------
 
 //Panic日志相关方法
@@ -100,4 +109,8 @@ func Panic(msg string, args ...zap.Field) {
 // Panicf 格式化打印Panic级别日志
 func Panicf(template string, args ...interface{}) {
 	sugaredLogger.Panicf(template, args...)
+}
+
+func PanicE(errs ...error) {
+	FatalErr("", errs...)
 }

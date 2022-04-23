@@ -3,6 +3,7 @@ package ginext
 import (
 	"fmt"
 	"github.com/ehwjh2010/viper"
+	cliServer "github.com/ehwjh2010/viper/client/server"
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/frame/ginext/middleware"
@@ -26,18 +27,22 @@ func Viper(settings settings.Setting) *App {
 		log.FatalErr("Log init failed", err)
 	}
 
+	gin.DisableConsoleColor()
+	writer := log.GetWriter()
+	if writer != nil {
+		gin.DefaultWriter = writer
+	}
+
 	if err := RegisterTrans(settings.Language); err != nil {
 		log.FatalErr("Register validator translator failed, ", err)
 	}
 
 	if settings.EnableRtPool {
-		newOnStartUp := make([]func() error, len(settings.OnStartUp)+1)
+		newOnStartUp := append(settings.StartUp, routine.SetUpDefaultTask(settings.Routine))
+		settings.StartUp = newOnStartUp
 
-		newOnStartUp[0] = routine.SetUpDefaultTask(settings.Routine)
-
-		copy(newOnStartUp[1:], settings.OnStartUp)
-
-		settings.OnStartUp = newOnStartUp
+		newOnShutdown := append(settings.ShutDown, routine.CloseDefaultTask)
+		settings.ShutDown = newOnShutdown
 	}
 
 	engine := gin.New()
@@ -61,20 +66,20 @@ func Viper(settings settings.Setting) *App {
 func (app *App) Run() {
 	log.Infof(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
+	addr := fmt.Sprintf("%s:%d", app.setting.Host, app.setting.Port)
+
 	if app.setting.Swagger {
-		log.Info("Use swagger, url: " +
-			fmt.Sprintf(
-				"http://%s:%d%s",
-				app.setting.Host, app.setting.Port, global.SwaggerAPIUrl))
+		log.Info("Use swagger, url: " + fmt.Sprintf("http://%s%s", addr, global.SwaggerAPIUrl))
 	}
 
-	server.GraceServer(
-		app.engine,
-		app.setting.Host,
-		app.setting.Port,
-		app.setting.ShutDownTimeout,
-		app.setting.OnStartUp,
-		app.setting.OnShutDown)
+	s := &cliServer.GraceHttp{
+		Engine:     app.engine,
+		Addr:       addr,
+		WaitSecond: app.setting.ShutDownTimeout,
+		OnHookFunc: app.setting.OnHookFunc,
+	}
+
+	log.FatalE(server.GraceHttpServer(s))
 }
 
 // Engine 返回引擎
