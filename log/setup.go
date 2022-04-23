@@ -1,12 +1,12 @@
 package log
 
 import (
+	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
-	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -15,13 +15,17 @@ import (
 )
 
 const (
-	DefaultFilename = "application.log"
-	DefaultCaller   = 1
+	DefaultFilename      = "application.log"
+	DefaultCaller        = 1
+	DefaultTimeFieldName = "time"
 )
 
-var logger = zap.L()
-var sugaredLogger = zap.S()
-var realLogFilePath string
+var (
+	logger          = zap.L()
+	sugaredLogger   = zap.S()
+	realLogFilePath string
+	writer          io.Writer
+)
 
 // InitLog 初始化Logger
 func InitLog(config settings.Log, application string) error {
@@ -48,7 +52,7 @@ func InitLog(config settings.Log, application string) error {
 		return err
 	}
 
-	encoder := getEncoder()
+	encoder := getEncoder(config.TimeFieldName, config.TimeLayout)
 	var l = new(zapcore.Level)
 	err = l.UnmarshalText(str.Str2Bytes(config.Level))
 	if err != nil {
@@ -68,10 +72,18 @@ func InitLog(config settings.Log, application string) error {
 	return nil
 }
 
-func getEncoder() zapcore.Encoder {
+func getEncoder(timeFieldName string, timeLayout string) zapcore.Encoder {
+	if str.IsEmpty(timeFieldName) {
+		timeFieldName = DefaultTimeFieldName
+	}
+
+	if str.IsEmpty(timeLayout) {
+		timeLayout = global.DefaultTimePattern
+	}
+
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(global.DefaultTimePattern)
-	encoderConfig.TimeKey = "time"
+	encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(timeLayout)
+	encoderConfig.TimeKey = timeFieldName
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.EncodeDuration = zapcore.SecondsDurationEncoder
 	encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
@@ -110,16 +122,18 @@ func getWriters(conf *settings.Log) (zapcore.WriteSyncer, error) {
 		writers = append(writers, os.Stdout)
 	}
 
-	w := io.MultiWriter(writers...)
+	writer = io.MultiWriter(writers...)
 
-	gin.DefaultWriter = w
-	gin.DisableConsoleColor()
-
-	return zapcore.AddSync(w), nil
+	return zapcore.AddSync(writer), nil
 }
 
 func init() {
 	_ = InitLog(settings.Log{
 		Caller: DefaultCaller,
+		Level:  enums.DEBUG,
 	}, "application")
+}
+
+func GetWriter() io.Writer {
+	return writer
 }

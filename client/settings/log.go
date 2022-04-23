@@ -13,4 +13,6 @@ type Log struct {
 	Compress      bool   `json:"compress" yaml:"compress"`           // 是否压缩日志文件，压缩方法gzip
 	Caller        int    `json:"caller" yaml:"caller"`               // 日志包装层数
 	FileName      string `json:"fileName" yaml:"fileName"`           // 文件名
+	TimeFieldName string `json:"timeFieldName" yaml:"timeFieldName"` // 时间字段名称, 默认是: time
+	TimeLayout    string `json:"timeLayout" yaml:"timeLayout"`       // 时间格式, 默认是: RFC3339
 }

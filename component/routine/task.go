@@ -80,6 +80,15 @@ func SetUpDefaultTask(conf settings.Routine) func() error {
 	}
 }
 
+func CloseDefaultTask() error {
+	if backgroundTask == nil {
+		return nil
+	}
+
+	backgroundTask.Close()
+	return nil
+}
+
 // AddTask 添加任务
 func AddTask(taskFunc TaskFunc) error {
 	if backgroundTask == nil {

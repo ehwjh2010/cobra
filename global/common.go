@@ -1,6 +1,10 @@
 package global
 
-import "time"
+import (
+	"os"
+	"syscall"
+	"time"
+)
 
 var NullBytes = []byte("null")
 
@@ -36,3 +40,10 @@ const (
 )
 
 const DefaultTimePattern = time.RFC3339 // 默认时间格式
+
+var ListenSignals = []os.Signal{
+	syscall.SIGINT,
+	syscall.SIGTERM,
+	syscall.SIGTERM,
+	syscall.SIGTERM,
+}
