@@ -6,6 +6,10 @@ type MultiErr struct {
 	Errs []error
 }
 
+func NewMultiErr() *MultiErr {
+	return &MultiErr{}
+}
+
 func (m *MultiErr) Error() string {
 	if m.IsEmpty() {
 		return ""

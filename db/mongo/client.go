@@ -30,7 +30,7 @@ func (c *Client) Heartbeat() error {
 
 // WatchHeartbeat 监测心跳和重连
 func (c *Client) WatchHeartbeat() {
-	//TODO 监测逻辑接口化
+	// TODO 监测逻辑接口化
 
 	fn := func() {
 		waitFlag := true
@@ -39,7 +39,7 @@ func (c *Client) WatchHeartbeat() {
 				<-time.After(3 * time.Second)
 			}
 
-			//重连失败次数大于0, 直接重连
+			// 重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
 				if c.rCount >= 3 {
 					<-time.After(enums.OneSecD)
@@ -58,7 +58,7 @@ func (c *Client) WatchHeartbeat() {
 
 			if c.Heartbeat() != nil {
 				c.pCount++
-				//心跳连续3次失败, 触发重连
+				// 心跳连续3次失败, 触发重连
 				if c.pCount >= 3 {
 					if ok, _ := c.replaceDB(); ok {
 						c.rCount = 0
@@ -77,7 +77,7 @@ func (c *Client) WatchHeartbeat() {
 		}
 	}
 
-	//优先使用协程池监听, 如果没有使用原生协程监听
+	// 优先使用协程池监听, 如果没有使用原生协程监听
 	err := routine.AddTask(fn)
 	if err != nil {
 		if errors.Is(err, routine.NoEnableRoutinePool) {
@@ -102,10 +102,20 @@ func (c *Client) replaceDB() (bool, error) {
 		return false, err
 	}
 
-	//关闭之前的连接
+	// 关闭之前的连接
 	c.Close()
 
 	c.db = db
 	c.cli = cli
 	return true, nil
+}
+
+func (c *Client) getDB() *mongo.Database {
+	db := c.db
+	return db
+}
+
+// GetDB 获取原生db
+func (c *Client) GetDB() *mongo.Database {
+	return c.getDB()
 }

@@ -8,10 +8,14 @@ type HookHandler func() error
 
 // OnHookFunc 勾子结构体
 type OnHookFunc struct {
-	// StartUp 启动前执行函数
+	// StartUp 服务启动前执行函数
 	StartUp []HookHandler
 	// ShutDown 停止服务执行函数
 	ShutDown []HookHandler
+}
+
+func NewOnHookFunc() *OnHookFunc {
+	return &OnHookFunc{}
 }
 
 // invokeFunc 执行函数

@@ -17,6 +17,7 @@ import (
 )
 
 type RedisClient struct {
+	// client redis原生client
 	client *redis.Client
 	// rawConfig 数据库配置配置
 	rawConfig *settings.Cache
@@ -33,7 +34,7 @@ func NewRedisClient(client *redis.Client, rawConfig *settings.Cache) *RedisClien
 	}
 }
 
-//getExpire 获取过期时间
+// getExpire 获取过期时间
 func (r *RedisClient) getExpire(ts int) time.Duration {
 	var result time.Duration
 
@@ -54,7 +55,7 @@ func (r *RedisClient) Heartbeat() error {
 
 // WatchHeartbeat 监测心跳和重连
 func (r *RedisClient) WatchHeartbeat() {
-	//TODO 监测逻辑接口化
+	// TODO 监测逻辑接口化
 
 	fn := func() {
 		waitFlag := true
@@ -63,7 +64,7 @@ func (r *RedisClient) WatchHeartbeat() {
 				<-time.After(3 * time.Second)
 			}
 
-			//重连失败次数大于0, 直接重连
+			// 重连失败次数大于0, 直接重连
 			if r.rCount > 0 {
 				if r.rCount >= 3 {
 					<-time.After(enums.OneSecD)
@@ -82,7 +83,7 @@ func (r *RedisClient) WatchHeartbeat() {
 
 			if r.Heartbeat() != nil {
 				r.pCount++
-				//心跳连续3次失败, 触发重连
+				// 心跳连续3次失败, 触发重连
 				if r.pCount >= 3 {
 					if ok, _ := r.replaceDB(); ok {
 						r.rCount = 0
@@ -101,7 +102,7 @@ func (r *RedisClient) WatchHeartbeat() {
 		}
 	}
 
-	//优先使用协程池监听, 如果没有使用原生协程监听
+	// 优先使用协程池监听, 如果没有使用原生协程监听
 	err := routine.AddTask(fn)
 	if err != nil {
 		if errors.Is(err, routine.NoEnableRoutinePool) {
@@ -120,7 +121,7 @@ func (r *RedisClient) replaceDB() (bool, error) {
 		return false, err
 	}
 
-	//关闭之前的连接
+	// 关闭之前的连接
 	r.client.Close()
 
 	r.client = cli
