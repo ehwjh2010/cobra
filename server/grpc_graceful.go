@@ -27,15 +27,17 @@ func GraceGrpcServer(graceGrpc *cliServer.GraceGrpc) error {
 	}
 
 	if graceGrpc.RegisterReflect {
+		// 注册 grpcurl 所需的 reflection 服务
 		reflection.Register(graceGrpc.Server)
 	}
 
+	log.Debug("execute on startup functions")
 	if err := graceGrpc.ExecuteStartUp(); err != nil {
 		return wrapErrs.Wrap(err, "on start function occur err")
 	}
 
 	defer func() {
-		log.Info("execute on shutdown functions")
+		log.Debug("execute on shutdown functions")
 		if closeErrs := graceGrpc.ExecuteShutDown(); closeErrs != nil {
 			log.E(closeErrs)
 		}

@@ -37,15 +37,15 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 	}
 
 	db, err := gorm.Open(dialector, &gorm.Config{
-		//打印SQL
+		// 打印SQL
 		Logger: logger.Default.LogMode(sqlLogger),
 		NamingStrategy: schema.NamingStrategy{
-			//指定表前缀
+			// 指定表前缀
 			TablePrefix: dbConfig.TablePrefix,
-			//表复数禁用
+			// 表复数禁用
 			SingularTable: dbConfig.SingularTable,
 		},
-		//批量操作 每批数量
+		// 批量操作 每批数量
 		CreateBatchSize: createBatchSize,
 	})
 
@@ -97,7 +97,6 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		//log.Fatalf("Access sqlDB failed! err: %v", err)
 		return nil, err
 	}
 	// 设置连接池中空闲连接最大数

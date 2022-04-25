@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	//ASC 正序
+	// ASC 正序
 	ASC = "asc"
-	//DESC 倒序
+	// DESC 倒序
 	DESC = "desc"
 )
 
@@ -91,7 +91,7 @@ func (c *DBClient) Heartbeat() error {
 
 // WatchHeartbeat 监测心跳和重连
 func (c *DBClient) WatchHeartbeat() {
-	//TODO 重连逻辑接口化
+	// TODO 重连逻辑接口化
 	fn := func() {
 		waitFlag := true
 		for {
@@ -99,9 +99,9 @@ func (c *DBClient) WatchHeartbeat() {
 				<-time.After(enums.ThreeSecD)
 			}
 
-			//重连失败次数大于0, 直接重连
+			// 重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
-				//重连次数过多, 休眠1秒后重连
+				// 重连次数过多, 休眠1秒后重连
 				if c.rCount >= 3 {
 					<-time.After(enums.OneSecD)
 				}
@@ -117,10 +117,10 @@ func (c *DBClient) WatchHeartbeat() {
 				continue
 			}
 
-			//心跳检测
+			// 心跳检测
 			if c.Heartbeat() != nil {
 				c.pCount++
-				//心跳连续3次失败, 触发重连
+				// 心跳连续3次失败, 触发重连
 				if c.pCount >= 3 {
 					if ok, _ := c.replaceDB(); ok {
 						c.rCount = 0
@@ -139,7 +139,7 @@ func (c *DBClient) WatchHeartbeat() {
 		}
 	}
 
-	//优先使用协程池监听, 如果没有启用协程池, 使用原生协程监听
+	// 优先使用协程池监听, 如果没有启用协程池, 使用原生协程监听
 	err := routine.AddTask(fn)
 	if err != nil {
 		if errors.Is(err, routine.NoEnableRoutinePool) {
@@ -158,14 +158,14 @@ func (c *DBClient) replaceDB() (bool, error) {
 		return false, err
 	}
 
-	//关闭之前的连接
+	// 关闭之前的连接
 	_ = c.Close()
 	c.db = newDB
 	log.Info("reconnect db success")
 	return true, nil
 }
 
-//TODO Where 指定字段, 连表查询, 聚合查询, GROUP BY, HAVING, DISTINCT, COUNT, JOIN
+// TODO Where 指定字段, 连表查询, 聚合查询, GROUP BY, HAVING, DISTINCT, COUNT, JOIN
 
 // Or 添加Or条件
 func (where *Where) Or(w *Where) *Where {
@@ -439,13 +439,13 @@ func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err erro
 // models 数据库模型
 // model: client.Migrate(&Product{}, &Fruit{})
 func (c *DBClient) Migrate(pointers ...interface{}) error {
-	db := c.getDB(UseWriteNode())
+	db := c.getWriteDB()
 
 	return db.AutoMigrate(pointers...)
 }
 
 func (c *DBClient) QueryByPrimaryKey(pkColumnName string, pkValue, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	tx := db.Limit(1).Where(pkColumnName+" = ?", pkValue).Find(pointer)
 
@@ -456,7 +456,7 @@ func (c *DBClient) QueryByPrimaryKey(pkColumnName string, pkValue, pointer inter
 // exist 记录是否存在
 // err 发生的错误
 func (c *DBClient) QueryById(id int64, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	tx := db.Limit(1).Where("id = ?", id).Find(pointer)
 
@@ -465,7 +465,7 @@ func (c *DBClient) QueryById(id int64, pointer interface{}, opts ...OptDBFunc) (
 
 // QueryByIds 通过主键查询
 func (c *DBClient) QueryByIds(ids []int64, pointers interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	tx := db.Where("id in ?", ids).Find(pointers)
 
@@ -474,7 +474,7 @@ func (c *DBClient) QueryByIds(ids []int64, pointers interface{}, opts ...OptDBFu
 
 // Query 查询
 func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interface{}, opts ...OptDBFunc) (totalCount int64, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	db = db.Table(tableName)
 
@@ -520,7 +520,7 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 
 // QueryCount 查询数量
 func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts ...OptDBFunc) (count int64, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	db = db.Table(tableName)
 
@@ -550,7 +550,7 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts 
 
 // QueryByStruct 通过结构体查询, 结构体字段为零值的字段, 不会作为条件
 func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	tx := db.Where(condition).Find(dst)
 
@@ -559,7 +559,7 @@ func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}, opts ..
 
 // QueryByMap 通过Map查询
 func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	tx := db.Where(condition).Find(dst)
 
@@ -568,7 +568,7 @@ func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{},
 
 // First 查询第一条记录
 func (c *DBClient) First(condition interface{}, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	tx := db.Where(condition).First(pointer)
 
@@ -577,7 +577,7 @@ func (c *DBClient) First(condition interface{}, pointer interface{}, opts ...Opt
 
 // Last 查询最后一条记录
 func (c *DBClient) Last(condition interface{}, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getDB(opts...)
+	db := c.getNormalDB(opts...)
 
 	tx := db.Where(condition).Last(pointer)
 
@@ -592,7 +592,7 @@ func (c *DBClient) Exist(condition map[string]interface{}, dst interface{}, opts
 // AddRecord 添加记录
 // data 结构体指针
 func (c *DBClient) AddRecord(data interface{}, opts ...OptDBFunc) error {
-	db := c.getDB(opts...)
+	db := c.getWriteDB(opts...)
 
 	tx := db.Create(data)
 
@@ -601,7 +601,7 @@ func (c *DBClient) AddRecord(data interface{}, opts ...OptDBFunc) error {
 
 //AddRecords 批量添加记录
 func (c *DBClient) AddRecords(data interface{}, batchSize int, opts ...OptDBFunc) error {
-	db := c.getDB(opts...)
+	db := c.getWriteDB(opts...)
 
 	tx := db.CreateInBatches(data, batchSize)
 
@@ -612,7 +612,7 @@ func (c *DBClient) AddRecords(data interface{}, batchSize int, opts ...OptDBFunc
 // data为结构体指针时, 结构体零值字段不会被更新
 // data为`map`时, 更具`map`更新属性
 func (c *DBClient) UpdateById(tableName string, id int64, data interface{}, opts ...OptDBFunc) error {
-	db := c.getDB(opts...)
+	db := c.getWriteDB(opts...)
 
 	tx := db.Table(tableName).Where("id = ?", id).Updates(data)
 
@@ -625,7 +625,7 @@ func (c *DBClient) UpdateById(tableName string, id int64, data interface{}, opts
 // dstValue	 struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
 // condition	 struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
 func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValue interface{}, opts ...OptDBFunc) error {
-	db := c.getDB(opts...)
+	db := c.getWriteDB(opts...)
 
 	tx := db.Table(tableName).Where(condition).Updates(dstValue)
 
@@ -636,7 +636,7 @@ func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValu
 // tableName 表名
 // dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
 func (c *DBClient) UpdateRecordNoCond(tableName string, dstValue interface{}, opts ...OptDBFunc) error {
-	db := c.getDB(opts...)
+	db := c.getWriteDB(opts...)
 
 	tx := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Table(tableName).Updates(dstValue)
 
@@ -646,15 +646,27 @@ func (c *DBClient) UpdateRecordNoCond(tableName string, dstValue interface{}, op
 // Save 保存记录, 会保存所有的字段，即使字段是零值
 // ptr 必须是struct指针
 func (c *DBClient) Save(ptr interface{}, opts ...OptDBFunc) error {
-	db := c.getDB(opts...)
+	db := c.getWriteDB(opts...)
 
 	tx := db.Save(ptr)
 
 	return tx.Error
 }
 
-func (c DBClient) getDB(optFns ...OptDBFunc) *gorm.DB {
-	db := c.db
+// getWriteDB 获取写节点DB
+func (c *DBClient) getWriteDB(optFns ...OptDBFunc) *gorm.DB {
+	return c.getDB(c.getDB(nil, UseWriteNode()), optFns...)
+}
+
+// getWriteDB 获取节点DB
+func (c *DBClient) getNormalDB(optFns ...OptDBFunc) *gorm.DB {
+	return c.getDB(nil, optFns...)
+}
+
+func (c DBClient) getDB(db *gorm.DB, optFns ...OptDBFunc) *gorm.DB {
+	if db == nil {
+		db = c.db
+	}
 
 	for _, fn := range optFns {
 		db = fn(db)
@@ -665,7 +677,7 @@ func (c DBClient) getDB(optFns ...OptDBFunc) *gorm.DB {
 
 // GetDB 获取原生DB对象
 func (c *DBClient) GetDB(optFns ...OptDBFunc) *gorm.DB {
-	return c.getDB(optFns...)
+	return c.getDB(nil, optFns...)
 }
 
 // Close 关闭连接池

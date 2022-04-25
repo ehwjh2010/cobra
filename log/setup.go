@@ -29,7 +29,6 @@ var (
 
 // InitLog 初始化Logger
 func InitLog(config settings.Log, application string) error {
-
 	if str.IsNotEmpty(config.FileDir) {
 		logFilePath, err := path.Relative2Abs(config.FileDir)
 		if err != nil {
@@ -60,9 +59,9 @@ func InitLog(config settings.Log, application string) error {
 	}
 	core := zapcore.NewCore(encoder, writeSyncer, l)
 
-	//由于外部使用的都是包装∫后的方法, 需要加上AddCallerSkip(1),
-	//zap.AddStacktrace(zapcore.WarnLevel) 这个函数的行为会一旦打印指定级别及以上的日志时, 自动打印堆栈
-	//lg := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.WarnLevel))
+	// 由于外部使用的都是包装∫后的方法, 需要加上AddCallerSkip(1),
+	// zap.AddStacktrace(zapcore.WarnLevel) 这个函数的行为会一旦打印指定级别及以上的日志时, 自动打印堆栈
+	// lg := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.WarnLevel))
 	if config.Caller <= 0 {
 		config.Caller = DefaultCaller
 	}
@@ -118,7 +117,7 @@ func getWriters(conf *settings.Log) (zapcore.WriteSyncer, error) {
 	}
 
 	if writers == nil {
-		Warn("No set log output, Use stdout as log output")
+		Debug("No set log output, Use stdout as log output")
 		writers = append(writers, os.Stdout)
 	}
 

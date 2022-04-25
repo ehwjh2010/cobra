@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-//SetUp 初始化mongo
+// SetUp 初始化mongo
 func SetUp(conf settings.Mongo) (*Client, error) {
 	cli, db, err := setup(conf)
 	if err != nil {
