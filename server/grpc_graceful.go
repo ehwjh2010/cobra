@@ -2,13 +2,11 @@ package server
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/client/enums"
 	cliServer "github.com/ehwjh2010/viper/client/server"
 	"github.com/ehwjh2010/viper/log"
 	wrapErrs "github.com/pkg/errors"
 	"google.golang.org/grpc/reflection"
 	"net"
-	"time"
 )
 
 var (
@@ -53,7 +51,6 @@ func GraceGrpcServer(graceGrpc *cliServer.GraceGrpc) error {
 	errChan := getErrChan()
 
 	go func() {
-		time.Sleep(enums.OneSecD)
 		if err := graceGrpc.Server.Serve(lis); err != nil {
 			errChan <- err
 		}
