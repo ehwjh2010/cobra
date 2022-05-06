@@ -1,5 +1,20 @@
 package settings
 
+import (
+	"github.com/ehwjh2010/viper/client/enums"
+	"gorm.io/gorm"
+)
+
+type CallbackFunc func(db *gorm.DB)
+
+type Callback struct {
+	OpType       enums.OperateType // 操作类型
+	Name         string            // 目的回调名字
+	When         enums.DBCbWhen    // 具体时间
+	RegisterName string            // 回调名字
+	Action       CallbackFunc      // 回调函数
+}
+
 // DB 数据库配置
 // Mysql Url eg: root:my_pass@tcp(127.0.0.1:3306)/my_db?charset=utf8mb4&parseTime=True&loc=UTC
 // Postgres Url eg: `host=127.0.0.1 user=root password=my_pass dbname=my_db port=5432 sslmode=disable TimeZone=UTC`
@@ -14,4 +29,8 @@ type DB struct {
 	MaxOpenConnCount int      `yaml:"maxOpenConnCount" json:"maxOpenConnCount"` // 最大连接数量
 	ConnMaxLifetime  int      `yaml:"connMaxLifetime" json:"connMaxLifetime"`   // 连接存活最大时长, 单位: 秒
 	FreeMaxLifetime  int      `yaml:"freeMaxLifetime" json:"freeMaxLifetime"`   // 闲置连接存活的最大时间, 单位: 秒
+	CreateCallbacks  []Callback
+	UpdateCallbacks  []Callback
+	QueryCallbacks   []Callback
+	DeleteCallbacks  []Callback
 }
