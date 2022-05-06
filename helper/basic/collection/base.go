@@ -1,29 +1,29 @@
 package collection
 
-func IsEmptyAnySlice(v []interface{}) bool {
+func IsEmptyAny(v []interface{}) bool {
 	return len(v) <= 0
 }
 
-func IsEmptyStrSlice(v []string) bool {
+func IsEmptyStr(v []string) bool {
 	return len(v) <= 0
 }
 
-func IsEmptyBytesSlice(v []byte) bool {
+func IsEmptyBytes(v []byte) bool {
 	return len(v) <= 0
 }
 
-func IsEmptyIntSlice(v []int) bool {
+func IsEmptyInt(v []int) bool {
 	return len(v) <= 0
 }
 
-func IsEmptyInt32Slice(v []int32) bool {
+func IsEmptyInt32(v []int32) bool {
 	return len(v) <= 0
 }
 
-func IsEmptyInt64Slice(v []int64) bool {
+func IsEmptyInt64(v []int64) bool {
 	return len(v) <= 0
 }
 
-func IsEmptyDoubleSlice(v []float64) bool {
+func IsEmptyDouble(v []float64) bool {
 	return len(v) <= 0
 }

@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/ehwjh2010/viper/client/enums"
 	cliServer "github.com/ehwjh2010/viper/client/server"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/log"
@@ -69,7 +68,6 @@ func GraceHttpServer(graceHttp *cliServer.GraceHttp) error {
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
 	go func() {
-		time.Sleep(enums.OneSecD)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			errChan <- err
 		}

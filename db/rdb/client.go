@@ -421,7 +421,7 @@ func (c *DBClient) unexpectErr(tx *gorm.DB, excludeErrs ...error) bool {
 	return true
 }
 
-func (c *DBClient) check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
+func (c *DBClient) Check(tx *gorm.DB, excludeErr ...error) (exist bool, err error) {
 
 	if c.unexpectErr(tx, excludeErr...) {
 		log.Err("operate db occur err", tx.Error)
@@ -445,36 +445,36 @@ func (c *DBClient) Migrate(pointers ...interface{}) error {
 }
 
 func (c *DBClient) QueryByPrimaryKey(pkColumnName string, pkValue, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	tx := db.Limit(1).Where(pkColumnName+" = ?", pkValue).Find(pointer)
 
-	return c.check(tx)
+	return c.Check(tx)
 }
 
 // QueryById 通过主键查询
 // exist 记录是否存在
 // err 发生的错误
 func (c *DBClient) QueryById(id int64, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	tx := db.Limit(1).Where("id = ?", id).Find(pointer)
 
-	return c.check(tx)
+	return c.Check(tx)
 }
 
 // QueryByIds 通过主键查询
 func (c *DBClient) QueryByIds(ids []int64, pointers interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	tx := db.Where("id in ?", ids).Find(pointers)
 
-	return c.check(tx)
+	return c.Check(tx)
 }
 
 // Query 查询
 func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interface{}, opts ...OptDBFunc) (totalCount int64, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	db = db.Table(tableName)
 
@@ -512,7 +512,7 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 
 	tx := db.Find(dst)
 
-	_, err = c.check(tx)
+	_, err = c.Check(tx)
 
 	return totalCount, err
 
@@ -520,7 +520,7 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 
 // QueryCount 查询数量
 func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts ...OptDBFunc) (count int64, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	db = db.Table(tableName)
 
@@ -542,7 +542,7 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts 
 
 	tx := db.Count(&count)
 
-	_, err = c.check(tx)
+	_, err = c.Check(tx)
 
 	return count, err
 
@@ -550,38 +550,38 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts 
 
 // QueryByStruct 通过结构体查询, 结构体字段为零值的字段, 不会作为条件
 func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	tx := db.Where(condition).Find(dst)
 
-	return c.check(tx)
+	return c.Check(tx)
 }
 
 // QueryByMap 通过Map查询
 func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	tx := db.Where(condition).Find(dst)
 
-	return c.check(tx)
+	return c.Check(tx)
 }
 
 // First 查询第一条记录
 func (c *DBClient) First(condition interface{}, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	tx := db.Where(condition).First(pointer)
 
-	return c.check(tx, gorm.ErrRecordNotFound)
+	return c.Check(tx, gorm.ErrRecordNotFound)
 }
 
 // Last 查询最后一条记录
 func (c *DBClient) Last(condition interface{}, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	db := c.getNormalDB(opts...)
+	db := c.getReadDB(opts...)
 
 	tx := db.Where(condition).Last(pointer)
 
-	return c.check(tx, gorm.ErrRecordNotFound)
+	return c.Check(tx, gorm.ErrRecordNotFound)
 }
 
 // Exist 记录是否存在
@@ -655,18 +655,20 @@ func (c *DBClient) Save(ptr interface{}, opts ...OptDBFunc) error {
 
 // getWriteDB 获取写节点DB
 func (c *DBClient) getWriteDB(optFns ...OptDBFunc) *gorm.DB {
-	return c.getDB(c.getDB(nil, UseWriteNode()), optFns...)
+
+	optFns = append(optFns, UseWriteNode())
+
+	return c.getDB(optFns...)
 }
 
-// getWriteDB 获取节点DB
-func (c *DBClient) getNormalDB(optFns ...OptDBFunc) *gorm.DB {
-	return c.getDB(nil, optFns...)
+// getReadDB 获取读节点DB
+func (c *DBClient) getReadDB(optFns ...OptDBFunc) *gorm.DB {
+	return c.getDB(optFns...)
 }
 
-func (c DBClient) getDB(db *gorm.DB, optFns ...OptDBFunc) *gorm.DB {
-	if db == nil {
-		db = c.db
-	}
+func (c DBClient) getDB(optFns ...OptDBFunc) *gorm.DB {
+
+	db := c.db
 
 	for _, fn := range optFns {
 		db = fn(db)
@@ -675,9 +677,14 @@ func (c DBClient) getDB(db *gorm.DB, optFns ...OptDBFunc) *gorm.DB {
 	return db
 }
 
-// GetDB 获取原生DB对象
-func (c *DBClient) GetDB(optFns ...OptDBFunc) *gorm.DB {
-	return c.getDB(nil, optFns...)
+// GetWriteDB 获取写节点DB对象
+func (c *DBClient) GetWriteDB(optFns ...OptDBFunc) *gorm.DB {
+	return c.getWriteDB(optFns...)
+}
+
+// GetReadDB 获取读节点DB对象
+func (c *DBClient) GetReadDB(optFns ...OptDBFunc) *gorm.DB {
+	return c.getReadDB(optFns...)
 }
 
 // Close 关闭连接池
@@ -695,9 +702,9 @@ func (c *DBClient) Close() error {
 	err = s.Close()
 
 	if err != nil {
-		log.Error("Close mysql failed!")
+		log.Error("Close db failed!")
 	} else {
-		log.Debug("Close mysql success!")
+		log.Debug("Close db success!")
 	}
 
 	return err

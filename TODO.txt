@@ -1,6 +1,5 @@
 2. 数据库连接
     2.4 ES
-6. 数据库钩子函数
 8. 根据数据库自动生成结构体
 10. 日志输出到日志中心
 13. 依赖注入  https://github.com/google/wire,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA

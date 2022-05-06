@@ -108,6 +108,127 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 	// 设置连接最大存活时间
 	sqlDB.SetConnMaxLifetime(connMaxLifetime)
 
+	// 由于gorm.processor是私有的, 无法定义函数, 有了以下重复代码
+	if len(dbConfig.CreateCallbacks) > 0 {
+		for _, item := range dbConfig.CreateCallbacks {
+			switch item.OpType {
+			case enums.Register:
+				switch item.When {
+				case enums.Before:
+					if e := db.Callback().Create().Before(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				case enums.After:
+					if e := db.Callback().Create().After(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				default:
+					if e := db.Callback().Create().Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				}
+			case enums.Replace:
+				if e := db.Callback().Create().Replace(item.Name, item.Action); e != nil {
+					return nil, e
+				}
+			case enums.Remove:
+				if e := db.Callback().Create().Remove(item.Name); e != nil {
+					return nil, e
+				}
+			}
+		}
+	}
+
+	if len(dbConfig.UpdateCallbacks) > 0 {
+		for _, item := range dbConfig.UpdateCallbacks {
+			switch item.OpType {
+			case enums.Register:
+				switch item.When {
+				case enums.Before:
+					if e := db.Callback().Update().Before(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				case enums.After:
+					if e := db.Callback().Update().After(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				default:
+					if e := db.Callback().Update().Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				}
+			case enums.Replace:
+				if e := db.Callback().Update().Replace(item.Name, item.Action); e != nil {
+					return nil, e
+				}
+			case enums.Remove:
+				if e := db.Callback().Update().Remove(item.Name); e != nil {
+					return nil, e
+				}
+			}
+		}
+	}
+
+	if len(dbConfig.QueryCallbacks) > 0 {
+		for _, item := range dbConfig.QueryCallbacks {
+			switch item.OpType {
+			case enums.Register:
+				switch item.When {
+				case enums.Before:
+					if e := db.Callback().Query().Before(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				case enums.After:
+					if e := db.Callback().Query().After(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				default:
+					if e := db.Callback().Query().Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				}
+			case enums.Replace:
+				if e := db.Callback().Query().Replace(item.Name, item.Action); e != nil {
+					return nil, e
+				}
+			case enums.Remove:
+				if e := db.Callback().Query().Remove(item.Name); e != nil {
+					return nil, e
+				}
+			}
+		}
+	}
+
+	if len(dbConfig.DeleteCallbacks) > 0 {
+		for _, item := range dbConfig.DeleteCallbacks {
+			switch item.OpType {
+			case enums.Register:
+				switch item.When {
+				case enums.Before:
+					if e := db.Callback().Delete().Before(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				case enums.After:
+					if e := db.Callback().Delete().After(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				default:
+					if e := db.Callback().Delete().Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
+				}
+			case enums.Replace:
+				if e := db.Callback().Delete().Replace(item.Name, item.Action); e != nil {
+					return nil, e
+				}
+			case enums.Remove:
+				if e := db.Callback().Delete().Remove(item.Name); e != nil {
+					return nil, e
+				}
+			}
+		}
+	}
+
 	return db, nil
 }
 
