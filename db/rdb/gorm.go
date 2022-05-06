@@ -115,16 +115,26 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 			case enums.Register:
 				switch item.When {
 				case enums.Before:
-					db.Callback().Create().Before(item.Name).Register(item.RegisterName, item.Action)
+					if e := db.Callback().Create().Before(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				case enums.After:
-					db.Callback().Create().After(item.Name).Register(item.RegisterName, item.Action)
+					if e := db.Callback().Create().After(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				default:
-					db.Callback().Create().Register(item.RegisterName, item.Action)
+					if e := db.Callback().Create().Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				}
 			case enums.Replace:
-				db.Callback().Create().Replace(item.Name, item.Action)
+				if e := db.Callback().Create().Replace(item.Name, item.Action); e != nil {
+					return nil, e
+				}
 			case enums.Remove:
-				db.Callback().Create().Remove(item.Name)
+				if e := db.Callback().Create().Remove(item.Name); e != nil {
+					return nil, e
+				}
 			}
 		}
 	}
@@ -135,16 +145,26 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 			case enums.Register:
 				switch item.When {
 				case enums.Before:
-					db.Callback().Update().Before(item.Name).Register(item.RegisterName, item.Action)
+					if e := db.Callback().Update().Before(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				case enums.After:
-					db.Callback().Update().After(item.Name).Register(item.RegisterName, item.Action)
+					if e := db.Callback().Update().After(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				default:
-					db.Callback().Update().Register(item.RegisterName, item.Action)
+					if e := db.Callback().Update().Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				}
 			case enums.Replace:
-				db.Callback().Update().Replace(item.Name, item.Action)
+				if e := db.Callback().Update().Replace(item.Name, item.Action); e != nil {
+					return nil, e
+				}
 			case enums.Remove:
-				db.Callback().Update().Remove(item.Name)
+				if e := db.Callback().Update().Remove(item.Name); e != nil {
+					return nil, e
+				}
 			}
 		}
 	}
@@ -155,16 +175,26 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 			case enums.Register:
 				switch item.When {
 				case enums.Before:
-					db.Callback().Query().Before(item.Name).Register(item.RegisterName, item.Action)
+					if e := db.Callback().Query().Before(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				case enums.After:
-					db.Callback().Query().After(item.Name).Register(item.RegisterName, item.Action)
+					if e := db.Callback().Query().After(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				default:
-					db.Callback().Query().Register(item.RegisterName, item.Action)
+					if e := db.Callback().Query().Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				}
 			case enums.Replace:
-				db.Callback().Query().Replace(item.Name, item.Action)
+				if e := db.Callback().Query().Replace(item.Name, item.Action); e != nil {
+					return nil, e
+				}
 			case enums.Remove:
-				db.Callback().Query().Remove(item.Name)
+				if e := db.Callback().Query().Remove(item.Name); e != nil {
+					return nil, e
+				}
 			}
 		}
 	}
@@ -175,16 +205,26 @@ func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error)
 			case enums.Register:
 				switch item.When {
 				case enums.Before:
-					db.Callback().Delete().Before(item.Name).Register(item.RegisterName, item.Action)
+					if e := db.Callback().Delete().Before(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				case enums.After:
-					db.Callback().Delete().After(item.Name).Register(item.RegisterName, item.Action)
+					if e := db.Callback().Delete().After(item.Name).Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				default:
-					db.Callback().Delete().Register(item.RegisterName, item.Action)
+					if e := db.Callback().Delete().Register(item.RegisterName, item.Action); e != nil {
+						return nil, e
+					}
 				}
 			case enums.Replace:
-				db.Callback().Delete().Replace(item.Name, item.Action)
+				if e := db.Callback().Delete().Replace(item.Name, item.Action); e != nil {
+					return nil, e
+				}
 			case enums.Remove:
-				db.Callback().Delete().Remove(item.Name)
+				if e := db.Callback().Delete().Remove(item.Name); e != nil {
+					return nil, e
+				}
 			}
 		}
 	}
