@@ -65,6 +65,12 @@ func UseWriteNode() OptDBFunc {
 	}
 }
 
+func FindDeleted() OptDBFunc {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Unscoped()
+	}
+}
+
 func NewDBClient(db *gorm.DB, dbType enums.DBType, rawConfig settings.DB) (client *DBClient) {
 	client = &DBClient{
 		db:        db,
