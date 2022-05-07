@@ -2,6 +2,7 @@ package rdb
 
 import (
 	"github.com/ehwjh2010/viper/helper/types"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -21,8 +22,8 @@ type BasicModel struct {
 
 // BasicDModel 表通用字段
 type BasicDModel struct {
-	ID        int64     `gorm:"column:id;primaryKey;type:bigint(20) unsigned not null auto_increment;comment:主键" json:"id"`
-	CreatedAt time.Time `gorm:"column:created_at;index:idx_create_at;autoCreateTime;type:datetime not null default current_timestamp;comment:创建时间" json:"createdAt" swaggertype:"primitive,string"`
-	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime;type:datetime not null default current_timestamp on update current_timestamp;comment:更新时间" json:"updatedAt" swaggertype:"primitive,string"`
-	Deleted   bool      `gorm:"column:deleted;index:idx_deleted;type:tinyint not null default 0;comment:逻辑删除"`
+	ID        int64          `gorm:"column:id;primaryKey;type:bigint(20) unsigned not null auto_increment;comment:主键" json:"id"`
+	CreatedAt time.Time      `gorm:"column:created_at;index:idx_create_at;autoCreateTime;type:datetime not null default current_timestamp;comment:创建时间" json:"createdAt" swaggertype:"primitive,string"`
+	UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime;type:datetime not null default current_timestamp on update current_timestamp;comment:更新时间" json:"updatedAt" swaggertype:"primitive,string"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index:idx_deleted_at;type:datetime;comment:逻辑删除"`
 }
