@@ -242,8 +242,8 @@ func NewRightLikeWhere(column string, value string) *Where {
 	return &Where{Column: column, Value: value + `%`, Sign: Like}
 }
 
-// internal 获取SQL
-func (where *Where) internal() (pattern string, value interface{}) {
+// ToSQL 获取SQL
+func (where *Where) ToSQL() (pattern string, value interface{}) {
 	pattern = where.Column + " " + where.Sign + " " + "?"
 	value = where.Value
 	return
@@ -487,14 +487,14 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 	if condition != nil && condition.Where != nil {
 	whereLoop:
 		for _, where := range condition.Where {
-			query, args := where.internal()
+			query, args := where.ToSQL()
 			db = db.Where(query, args)
 			if where.Ors == nil {
 				continue whereLoop
 			}
 
 			for _, w := range where.Ors {
-				q, ag := w.internal()
+				q, ag := w.ToSQL()
 				db = db.Or(q, ag)
 			}
 		}
@@ -533,14 +533,14 @@ func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts 
 	if condition != nil && len(condition.Where) > 0 {
 	whereLoop:
 		for _, where := range condition.Where {
-			query, arg := where.internal()
+			query, arg := where.ToSQL()
 			db = db.Where(query, arg)
 			if where.Ors == nil {
 				continue whereLoop
 			}
 
 			for _, w := range where.Ors {
-				q, ag := w.internal()
+				q, ag := w.ToSQL()
 				db = db.Or(q, ag)
 			}
 		}
