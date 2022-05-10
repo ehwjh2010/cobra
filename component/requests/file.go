@@ -1,7 +1,7 @@
 package requests
 
 import (
-	"github.com/ehwjh2010/viper/helper/copy"
+	"github.com/ehwjh2010/viper/helper/cp"
 	"github.com/levigross/grequests"
 	"io"
 )
@@ -18,7 +18,7 @@ func (fileUpload *FileUpload) toInternal() grequests.FileUpload {
 
 	var gUpload grequests.FileUpload
 
-	copy.CopyProperties(fileUpload, &gUpload)
+	cp.CopyProperties(fileUpload, &gUpload)
 
 	return gUpload
 }
