@@ -1,17 +1,19 @@
 package log
 
 import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"io"
+	"os"
+
+	"github.com/natefinch/lumberjack"
+
 	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
-	"github.com/natefinch/lumberjack"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	"io"
-	"os"
 )
 
 const (

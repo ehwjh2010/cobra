@@ -2,11 +2,13 @@ package requests
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/global"
-	"github.com/levigross/grequests"
 	"mime"
 	"net/http"
 	"strings"
+
+	"github.com/levigross/grequests"
+
+	"github.com/ehwjh2010/viper/global"
 )
 
 var (

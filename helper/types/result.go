@@ -2,8 +2,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/ehwjh2010/viper/global"
 	"math"
+
+	"github.com/ehwjh2010/viper/global"
 )
 
 const (

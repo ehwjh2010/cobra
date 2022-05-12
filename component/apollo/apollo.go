@@ -3,6 +3,7 @@ package apollo
 import (
 	"github.com/apolloconfig/agollo/v4"
 	"github.com/apolloconfig/agollo/v4/agcache"
+
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/helper/serialize"
 )

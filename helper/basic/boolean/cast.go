@@ -1,8 +1,9 @@
 package boolean
 
 import (
-	"github.com/ehwjh2010/viper/client/verror"
 	"strconv"
+
+	"github.com/ehwjh2010/viper/client/verror"
 )
 
 //=================bool与interface转化================

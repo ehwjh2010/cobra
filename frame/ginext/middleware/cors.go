@@ -1,11 +1,13 @@
 package middleware
 
 import (
-	"github.com/ehwjh2010/viper/helper/cp"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+
+	"github.com/ehwjh2010/viper/helper/cp"
 )
 
 var DefaultAllowHeaders = []string{

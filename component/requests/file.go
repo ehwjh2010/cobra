@@ -1,9 +1,11 @@
 package requests
 
 import (
-	"github.com/ehwjh2010/viper/helper/cp"
-	"github.com/levigross/grequests"
 	"io"
+
+	"github.com/levigross/grequests"
+
+	"github.com/ehwjh2010/viper/helper/cp"
 )
 
 type FileUpload struct {

@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/ehwjh2010/viper/helper/basic/double"
 	"github.com/ehwjh2010/viper/helper/basic/integer"
 	"github.com/ehwjh2010/viper/helper/basic/str"

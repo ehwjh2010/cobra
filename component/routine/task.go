@@ -2,9 +2,11 @@ package routine
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/client/settings"
-	"github.com/panjf2000/ants/v2"
 	"sync"
+
+	"github.com/panjf2000/ants/v2"
+
+	"github.com/ehwjh2010/viper/client/settings"
 )
 
 type Task struct {

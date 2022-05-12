@@ -2,6 +2,10 @@ package ginext
 
 import (
 	"fmt"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
 	"github.com/ehwjh2010/viper"
 	cliServer "github.com/ehwjh2010/viper/client/server"
 	"github.com/ehwjh2010/viper/client/settings"
@@ -11,8 +15,6 @@ import (
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/server"
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type App struct {

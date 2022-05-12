@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/basic/integer"
 	"github.com/ehwjh2010/viper/helper/serialize"
-	"strconv"
-	"time"
 )
 
 //********************int64*****************************

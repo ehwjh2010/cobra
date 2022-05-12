@@ -1,15 +1,17 @@
 package requests
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/avast/retry-go"
+	"github.com/levigross/grequests"
+
 	"github.com/ehwjh2010/viper/client/verror"
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/levigross/grequests"
-	"net/http"
-	"time"
 )
 
 type HTTPClient struct {

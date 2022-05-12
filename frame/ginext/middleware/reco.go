@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"github.com/ehwjh2010/viper/log"
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net"
 	"net/http"
@@ -10,6 +8,10 @@ import (
 	"os"
 	"runtime/debug"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/ehwjh2010/viper/log"
 )
 
 // RecoveryWithZap returns a gin.HandlerFunc (middleware)

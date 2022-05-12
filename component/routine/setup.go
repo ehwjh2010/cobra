@@ -1,11 +1,13 @@
 package routine
 
 import (
+	"time"
+
+	"github.com/panjf2000/ants/v2"
+
 	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/panjf2000/ants/v2"
-	"time"
 )
 
 type TaskFunc func()

@@ -1,9 +1,11 @@
 package rdb
 
 import (
-	"github.com/ehwjh2010/viper/helper/types"
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
+
+	"github.com/ehwjh2010/viper/helper/types"
 )
 
 // BaseModel 表通用字段

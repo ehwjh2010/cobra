@@ -2,17 +2,19 @@ package rdb
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
-	"github.com/ehwjh2010/viper/helper/basic/str"
-	"github.com/ehwjh2010/viper/log"
+	"time"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 	"gorm.io/plugin/dbresolver"
-	"time"
+
+	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/client/settings"
+	"github.com/ehwjh2010/viper/helper/basic/str"
+	"github.com/ehwjh2010/viper/log"
 )
 
 const defaultCreateBatchSize = 1000

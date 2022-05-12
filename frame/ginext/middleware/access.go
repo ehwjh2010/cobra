@@ -1,11 +1,13 @@
 package middleware
 
 import (
-	"github.com/ehwjh2010/viper/log"
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+
+	"github.com/ehwjh2010/viper/log"
 )
 
 // AccessLog 使用ZAP接管GIN相关日志

@@ -2,11 +2,12 @@ package path
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/global"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/ehwjh2010/viper/global"
 )
 
 var ErrPathAlreadyExist = errors.New("path already exist")

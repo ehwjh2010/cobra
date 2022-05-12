@@ -2,11 +2,13 @@ package server
 
 import (
 	"errors"
-	cliServer "github.com/ehwjh2010/viper/client/server"
-	"github.com/ehwjh2010/viper/log"
+	"net"
+
 	wrapErrs "github.com/pkg/errors"
 	"google.golang.org/grpc/reflection"
-	"net"
+
+	cliServer "github.com/ehwjh2010/viper/client/server"
+	"github.com/ehwjh2010/viper/log"
 )
 
 var (
