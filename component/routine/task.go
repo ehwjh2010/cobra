@@ -2,6 +2,7 @@ package routine
 
 import (
 	"errors"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 
@@ -61,7 +62,7 @@ func (task *Task) wrapperForRaw(f TaskFunc) TaskFunc {
 		defer task.decr()
 		defer func() {
 			if e := recover(); e != nil {
-				task.rawConfig.PanicHandler(e)
+				task.rawConfig.Logger.Printf("raw goroutine execute task occur panic, err: %s,  stack ==> %s", e, string(debug.Stack()))
 			}
 		}()
 
