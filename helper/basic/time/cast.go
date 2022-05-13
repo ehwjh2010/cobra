@@ -1,8 +1,9 @@
 package time
 
 import (
-	"github.com/ehwjh2010/viper/global"
 	"time"
+
+	"github.com/ehwjh2010/viper/global"
 )
 
 //==========================Format===============================

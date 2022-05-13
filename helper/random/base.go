@@ -2,9 +2,10 @@ package random
 
 import (
 	"bytes"
-	"github.com/ehwjh2010/viper/global"
 	"math/rand"
 	"time"
+
+	"github.com/ehwjh2010/viper/global"
 )
 
 func init() {

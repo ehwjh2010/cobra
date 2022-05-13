@@ -1,11 +1,13 @@
 package routine
 
 import (
+	"time"
+
+	"github.com/panjf2000/ants/v2"
+
 	"github.com/ehwjh2010/viper/client/enums"
 	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/panjf2000/ants/v2"
-	"time"
 )
 
 type TaskFunc func()
@@ -46,7 +48,7 @@ func SetUp(conf settings.Routine) (*Task, error) {
 		MaxBlockingTasks: 0,
 		// 池是否阻塞，默认阻塞。提交任务时，如果ants池中 goroutine 已到上限且全部繁忙,
 		// 阻塞的池会将任务添加的阻塞列表等待（当然受限于阻塞列表长度，见上一个选项）。非阻塞的池直接返回失败
-		Nonblocking: false,
+		Nonblocking: true,
 		// 日志记录器
 		Logger: conf.Logger,
 		// panic 处理. 遇到 panic 会调用这里设置的处理函数

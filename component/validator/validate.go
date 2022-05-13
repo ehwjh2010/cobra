@@ -1,8 +1,8 @@
 package validator
 
 import (
-	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/helper/serialize"
+	"strings"
+
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -11,7 +11,9 @@ import (
 	en2 "github.com/go-playground/validator/v10/translations/en"
 	zh2 "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/pkg/errors"
-	"strings"
+
+	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/helper/serialize"
 )
 
 // RegisterTrans 定义翻译的方法

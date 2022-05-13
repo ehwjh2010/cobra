@@ -3,14 +3,16 @@ package server
 import (
 	"context"
 	"errors"
-	cliServer "github.com/ehwjh2010/viper/client/server"
-	"github.com/ehwjh2010/viper/global"
-	"github.com/ehwjh2010/viper/log"
-	wrapErrs "github.com/pkg/errors"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	wrapErrs "github.com/pkg/errors"
+
+	cliServer "github.com/ehwjh2010/viper/client/server"
+	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/log"
 )
 
 var (

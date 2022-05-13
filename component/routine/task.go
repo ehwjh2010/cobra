@@ -2,14 +2,18 @@ package routine
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/client/settings"
-	"github.com/panjf2000/ants/v2"
 	"sync"
+	"sync/atomic"
+
+	"github.com/panjf2000/ants/v2"
+
+	"github.com/ehwjh2010/viper/client/settings"
 )
 
 type Task struct {
-	rawConfig settings.Routine
-	p         *ants.Pool
+	rawConfig         settings.Routine
+	p                 *ants.Pool
+	rawGoroutineCount int64
 }
 
 var (
@@ -41,9 +45,55 @@ func (task *Task) Reboot() {
 	task.p.Reboot()
 }
 
+// incr 原生协程数量+1
+func (task *Task) incr() {
+	atomic.AddInt64(&task.rawGoroutineCount, 1)
+}
+
+// decr 原生协程数量-1
+func (task *Task) decr() {
+	atomic.AddInt64(&task.rawGoroutineCount, -1)
+}
+
+// wrapper 包装任务函数
+func (task *Task) wrapperForRaw(f TaskFunc) TaskFunc {
+	return func() {
+		defer task.decr()
+		defer func() {
+			if e := recover(); e != nil {
+				task.rawConfig.PanicHandler(e)
+			}
+		}()
+
+		task.incr()
+		f()
+	}
+}
+
+// RawGoroutineCount 获取当前执行任务的原生协程数
+func (task *Task) RawGoroutineCount() int64 {
+	return task.rawGoroutineCount
+}
+
 // AsyncDO 添加任务, 如果有设置
 func (task *Task) AsyncDO(taskFunc TaskFunc) error {
-	return task.p.Submit(taskFunc)
+	err := task.p.Submit(taskFunc)
+
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, ants.ErrPoolOverload) {
+		if task.rawConfig.UseRawWhenBusy {
+			go task.wrapperForRaw(taskFunc)()
+			return nil
+		}
+
+		return err
+	}
+
+	return err
+
 }
 
 // CountInfo 获取协程池个数信息

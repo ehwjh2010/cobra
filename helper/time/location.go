@@ -1,10 +1,11 @@
 package time
 
 import (
-	"github.com/ehwjh2010/viper/client/enums"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ehwjh2010/viper/client/enums"
 )
 
 var locationMap sync.Map

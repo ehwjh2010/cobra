@@ -2,10 +2,12 @@ package requests
 
 import (
 	"context"
-	"github.com/ehwjh2010/viper/helper/types"
-	"github.com/levigross/grequests"
 	"net/http"
 	"time"
+
+	"github.com/levigross/grequests"
+
+	"github.com/ehwjh2010/viper/helper/types"
 )
 
 type HTTPRequest struct {

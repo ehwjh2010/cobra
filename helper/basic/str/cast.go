@@ -1,8 +1,9 @@
 package str
 
 import (
-	"github.com/ehwjh2010/viper/client/verror"
 	"go.uber.org/zap/buffer"
+
+	"github.com/ehwjh2010/viper/client/verror"
 )
 
 //=================str与interface转化==================
