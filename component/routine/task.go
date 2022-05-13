@@ -22,6 +22,7 @@ var (
 	mtx            sync.Mutex
 
 	NoEnableRoutinePool = errors.New("not enable routine pool, please add enableRtePool field to settings")
+	EmptyTaskFunc       = errors.New("task func is nil")
 )
 
 func newTask(rawConfig settings.Routine, p *ants.Pool) *Task {
@@ -57,17 +58,23 @@ func (task *Task) decr() {
 }
 
 // wrapper 包装任务函数
-func (task *Task) wrapperForRaw(f TaskFunc) TaskFunc {
+func (task *Task) wrapper(f TaskFunc) TaskFunc {
 	return func() {
-		defer task.decr()
 		defer func() {
 			if e := recover(); e != nil {
-				task.rawConfig.Logger.Printf("raw goroutine execute task occur panic, err: %s,  stack ==> %s", e, string(debug.Stack()))
+				task.rawConfig.Logger.Printf("execute task occur panic, err: %v,  stack ==> %s", e, string(debug.Stack()))
 			}
 		}()
+		f()
+	}
+}
 
+// wrapperCalcRawRoutineCount 包装函数, 用于计数原生协程数量
+func (task *Task) wrapperCalcRawRoutineCount(f TaskFunc) TaskFunc {
+	return func() {
 		task.incr()
 		f()
+		task.decr()
 	}
 }
 
@@ -78,19 +85,25 @@ func (task *Task) RawGoroutineCount() int64 {
 
 // AsyncDO 添加任务, 如果有设置
 func (task *Task) AsyncDO(taskFunc TaskFunc) error {
-	err := task.p.Submit(taskFunc)
+	if taskFunc == nil {
+		return EmptyTaskFunc
+	}
+
+	f := task.wrapper(taskFunc)
+
+	err := task.p.Submit(f)
 
 	if err == nil {
 		return nil
 	}
 
 	if errors.Is(err, ants.ErrPoolOverload) {
-		if task.rawConfig.UseRawWhenBusy {
-			go task.wrapperForRaw(taskFunc)()
-			return nil
+		if !task.rawConfig.UseRawWhenBusy {
+			return err
 		}
 
-		return err
+		go task.wrapperCalcRawRoutineCount(f)()
+		return nil
 	}
 
 	return err
