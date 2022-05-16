@@ -13,11 +13,11 @@ func SetUp(dbConfig settings.DB) (client *rdb.DBClient, err error) {
 	db, err := rdb.InitDBWithGorm(dbConfig, enums.Mysql)
 
 	if err != nil {
-		log.Debug("Connect db failed")
+		log.Debug("connect db failed")
 		return nil, err
 	}
 
-	log.Debug("Connect db success")
+	log.Debug("connect db success")
 
 	client = rdb.NewDBClient(db, enums.Mysql, dbConfig)
 

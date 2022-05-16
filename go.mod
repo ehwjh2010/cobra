@@ -11,6 +11,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.0
 	github.com/jinzhu/copier v0.3.2
 	github.com/json-iterator/go v1.1.12
 	github.com/levigross/grequests v0.0.0-20190908174114-253788527a1a
@@ -46,7 +47,6 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
-	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

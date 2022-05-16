@@ -48,12 +48,13 @@ func GraceHttpServer(graceHttp *cliServer.GraceHttp) error {
 	}
 
 	//Invoke OnStartUp
+	log.Debug("execute on startup functions")
 	if err := graceHttp.ExecuteStartUp(); err != nil {
 		return wrapErrs.Wrap(err, "on start function occur err")
 	}
 
 	defer func() {
-		log.Info("execute on shutdown functions")
+		log.Debug("execute on shutdown functions")
 		if closeErrs := graceHttp.ExecuteStartUp(); closeErrs != nil {
 			log.E(closeErrs)
 		}
