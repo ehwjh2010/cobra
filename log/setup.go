@@ -119,7 +119,7 @@ func getWriters(conf *settings.Log) (zapcore.WriteSyncer, error) {
 	}
 
 	if writers == nil {
-		Debug("No set log output, Use stdout as log output")
+		Debug("not set log output, Use stdout as log output")
 		writers = append(writers, os.Stdout)
 	}
 
