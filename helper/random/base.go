@@ -2,10 +2,9 @@ package random
 
 import (
 	"bytes"
+	"github.com/ehwjh2010/viper/constant"
 	"math/rand"
 	"time"
-
-	"github.com/ehwjh2010/viper/global"
 )
 
 func init() {
@@ -13,13 +12,13 @@ func init() {
 }
 
 var (
-	asciiLettersLower    = []byte(global.AsciiLowercase)
+	asciiLettersLower    = []byte(constant.AsciiLowercase)
 	asciiLettersLowerLen = len(asciiLettersLower)
 
-	asciiLetters    = []byte(global.AsciiLetters)
+	asciiLetters    = []byte(constant.AsciiLetters)
 	asciiLettersLen = len(asciiLetters)
 
-	asciiTotal    = []byte(global.AsciiLetters + global.Digits)
+	asciiTotal    = []byte(constant.AsciiLetters + constant.Digits)
 	asciiTotalLen = len(asciiTotal)
 )
 

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"github.com/ehwjh2010/viper/constant"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,8 +11,6 @@ import (
 
 	wrapErrs "github.com/pkg/errors"
 
-	cliServer "github.com/ehwjh2010/viper/client/server"
-	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/log"
 )
 
@@ -22,7 +21,7 @@ var (
 
 func getStopChan() chan os.Signal {
 	stopChan := make(chan os.Signal)
-	signal.Notify(stopChan, global.ListenSignals...)
+	signal.Notify(stopChan, constant.ListenSignals...)
 	return stopChan
 }
 
@@ -31,14 +30,7 @@ func getErrChan() chan error {
 	return errChan
 }
 
-type HookHandler func()
-
-type OnHookFunc struct {
-	StartUp  []HookHandler
-	ShutDown []HookHandler
-}
-
-func GraceHttpServer(graceHttp *cliServer.GraceHttp) error {
+func GraceHttpServer(graceHttp *GraceHttp) error {
 	if graceHttp == nil {
 		return InvalidHttpConf
 	}

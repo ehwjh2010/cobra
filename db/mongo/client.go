@@ -3,12 +3,11 @@ package mongo
 import (
 	"context"
 	"errors"
+	"github.com/ehwjh2010/viper/enums"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/log"
 )
@@ -16,12 +15,12 @@ import (
 type Client struct {
 	db        *mongo.Database
 	cli       *mongo.Client
-	rawConfig settings.Mongo // 数据库配置配置
-	pCount    int            // 心跳连续失败次数
-	rCount    int            // 重连连续失败次数
+	rawConfig Mongo // 数据库配置配置
+	pCount    int   // 心跳连续失败次数
+	rCount    int   // 重连连续失败次数
 }
 
-func NewClient(cli *mongo.Client, db *mongo.Database, rawConfig settings.Mongo) *Client {
+func NewClient(cli *mongo.Client, db *mongo.Database, rawConfig Mongo) *Client {
 	return &Client{db: db, rawConfig: rawConfig, cli: cli}
 }
 

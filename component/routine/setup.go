@@ -1,12 +1,11 @@
 package routine
 
 import (
+	"github.com/ehwjh2010/viper/enums"
 	"time"
 
 	"github.com/panjf2000/ants/v2"
 
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/log"
 )
 
@@ -17,7 +16,7 @@ func defaultAntsLogger(format string, args ...interface{}) {
 }
 
 // SetUp 初始化协程池
-func SetUp(conf settings.Routine) (*Task, error) {
+func SetUp(conf Routine) (*Task, error) {
 
 	if conf.MaxWorkerCount <= 0 {
 		conf.MaxWorkerCount = 10

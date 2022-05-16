@@ -4,14 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ehwjh2010/viper/enums"
 	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 	wrapErr "github.com/pkg/errors"
 
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/helper/serialize"
 	"github.com/ehwjh2010/viper/helper/types"
@@ -22,14 +21,14 @@ type RedisClient struct {
 	// client redis原生client
 	client *redis.Client
 	// rawConfig 数据库配置配置
-	rawConfig *settings.Cache
+	rawConfig *Cache
 	// pCount 心跳连续失败次数
 	pCount int
 	// rCount 重连连续失败次数
 	rCount int
 }
 
-func NewRedisClient(client *redis.Client, rawConfig *settings.Cache) *RedisClient {
+func NewRedisClient(client *redis.Client, rawConfig *Cache) *RedisClient {
 	return &RedisClient{
 		client:    client,
 		rawConfig: rawConfig,

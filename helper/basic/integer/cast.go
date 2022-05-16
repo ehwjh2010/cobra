@@ -1,9 +1,8 @@
 package integer
 
 import (
+	"github.com/ehwjh2010/viper/verror"
 	"strconv"
-
-	"github.com/ehwjh2010/viper/client/verror"
 )
 
 // 以下强转未考虑越界情况,

@@ -2,16 +2,14 @@ package ginext
 
 import (
 	"fmt"
+	"github.com/ehwjh2010/viper/constant"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/ehwjh2010/viper"
-	cliServer "github.com/ehwjh2010/viper/client/server"
-	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/frame/ginext/middleware"
-	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/server"
 	"github.com/gin-gonic/gin"
@@ -19,10 +17,10 @@ import (
 
 type App struct {
 	engine  *gin.Engine
-	setting settings.Setting
+	setting server.Setting
 }
 
-func Viper(settings settings.Setting) *App {
+func Viper(settings server.Setting) *App {
 	SetMode(settings.Debug)
 
 	if err := log.InitLog(settings.LogConfig, settings.Application); err != nil {
@@ -71,10 +69,10 @@ func (app *App) Run() {
 	addr := fmt.Sprintf("%s:%d", app.setting.Host, app.setting.Port)
 
 	if app.setting.Swagger {
-		log.Info("Use swagger, url: " + fmt.Sprintf("http://%s%s", addr, global.SwaggerAPIUrl))
+		log.Info("Use swagger, url: " + fmt.Sprintf("http://%s%s", addr, constant.SwaggerAPIUrl))
 	}
 
-	s := &cliServer.GraceHttp{
+	s := &server.GraceHttp{
 		Engine:     app.engine,
 		Addr:       addr,
 		WaitSecond: app.setting.ShutDownTimeout,

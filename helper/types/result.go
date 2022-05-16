@@ -2,9 +2,8 @@ package types
 
 import (
 	"fmt"
+	"github.com/ehwjh2010/viper/constant"
 	"math"
-
-	"github.com/ehwjh2010/viper/global"
 )
 
 const (
@@ -78,11 +77,11 @@ type Pageable struct {
 
 func NewPageable(rows interface{}, page int, pageSize int, totalCount int64) *Pageable {
 	if page <= 0 {
-		page = global.DefaultPage
+		page = constant.DefaultPage
 	}
 
 	if pageSize <= 0 {
-		pageSize = global.DefaultPageSize
+		pageSize = constant.DefaultPageSize
 	}
 
 	if totalCount < 0 {
