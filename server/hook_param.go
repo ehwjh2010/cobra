@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/ehwjh2010/viper/client/verror"
+	"github.com/ehwjh2010/viper/verror"
 )
 
 type HookHandler func() error
@@ -12,10 +12,6 @@ type OnHookFunc struct {
 	StartUp []HookHandler
 	// ShutDown 停止服务执行函数
 	ShutDown []HookHandler
-}
-
-func NewOnHookFunc() *OnHookFunc {
-	return &OnHookFunc{}
 }
 
 // invokeFunc 执行函数

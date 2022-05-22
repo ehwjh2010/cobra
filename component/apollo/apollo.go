@@ -4,7 +4,6 @@ import (
 	"github.com/apolloconfig/agollo/v4"
 	"github.com/apolloconfig/agollo/v4/agcache"
 
-	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/helper/serialize"
 )
 
@@ -13,10 +12,10 @@ type Client struct {
 
 	cache agcache.CacheInterface
 
-	rawConfig *settings.ApolloConfig
+	rawConfig *ApolloConfig
 }
 
-func NewClient(cli agollo.Client, rawConfig *settings.ApolloConfig) *Client {
+func NewClient(cli agollo.Client, rawConfig *ApolloConfig) *Client {
 
 	cache := cli.GetConfigCache(rawConfig.NamespaceName)
 

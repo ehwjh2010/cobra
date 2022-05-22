@@ -28,7 +28,3 @@ type GraceGrpc struct {
 	// OnHookFunc 勾子函数
 	OnHookFunc
 }
-
-func NewGraceGrpc() *GraceGrpc {
-	return &GraceGrpc{}
-}

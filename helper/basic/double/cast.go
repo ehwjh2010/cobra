@@ -1,9 +1,8 @@
 package double
 
 import (
+	"github.com/ehwjh2010/viper/verror"
 	"strconv"
-
-	"github.com/ehwjh2010/viper/client/verror"
 )
 
 //=================浮点与interface转化================

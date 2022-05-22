@@ -8,6 +8,6 @@ type GraceHttp struct {
 	Addr string `json:"addr" yaml:"addr"`
 	// WaitSecond 等待时间
 	WaitSecond int `json:"waitTime" yaml:"waitTime"`
-
+	// OnHookFunc 勾子函数
 	OnHookFunc
 }

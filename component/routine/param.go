@@ -1,4 +1,4 @@
-package settings
+package routine
 
 type LogHandlerFunc func(string, ...interface{})
 

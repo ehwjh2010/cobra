@@ -1,4 +1,4 @@
-package settings
+package log
 
 // Log 日志配置
 type Log struct {

@@ -1,15 +1,15 @@
 package requests
 
 import (
+	"github.com/ehwjh2010/viper/constant"
+	"github.com/ehwjh2010/viper/verror"
 	"net/http"
 	"time"
 
 	"github.com/avast/retry-go"
 	"github.com/levigross/grequests"
 
-	"github.com/ehwjh2010/viper/client/verror"
 	"github.com/ehwjh2010/viper/component/routine"
-	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
 )
@@ -72,7 +72,7 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 
 // 默认超时时间为3秒, 重试次数为0
 var defaultHTTPClient = NewHTTPClient(
-	HWithReq(NewRequest(RWithUserAgent(global.UserAgent))),
+	HWithReq(NewRequest(RWithUserAgent(constant.UserAgent))),
 )
 
 // method 请求

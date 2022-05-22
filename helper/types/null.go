@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"github.com/ehwjh2010/viper/constant"
 	"strconv"
 	"time"
 
-	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/basic/integer"
 	"github.com/ehwjh2010/viper/helper/serialize"
 )
@@ -30,7 +30,7 @@ func (ni NullInt64) Empty() bool {
 
 func (ni NullInt64) String() string {
 	if !ni.Valid {
-		return global.NullStr
+		return constant.NullStr
 	}
 
 	return strconv.FormatInt(ni.Int64, 10)
@@ -72,7 +72,7 @@ func (ni NullInt64) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullInt64
 func (ni *NullInt64) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, global.NullBytes) {
+	if bytes.Equal(b, constant.NullBytes) {
 		ni.Valid = false
 		return nil
 	}
@@ -106,7 +106,7 @@ func (ni NullInt) Empty() bool {
 
 func (ni NullInt) String() string {
 	if !ni.Valid {
-		return global.NullStr
+		return constant.NullStr
 	}
 
 	return strconv.FormatInt(ni.Int64, 10)
@@ -143,7 +143,7 @@ func (ni NullInt) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullInt
 func (ni *NullInt) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, global.NullBytes) {
+	if bytes.Equal(b, constant.NullBytes) {
 		ni.Valid = false
 		return nil
 	}
@@ -181,7 +181,7 @@ func (nb NullBool) Empty() bool {
 
 func (nb NullBool) String() string {
 	if !nb.Valid {
-		return global.NullStr
+		return constant.NullStr
 	}
 
 	return strconv.FormatBool(nb.Bool)
@@ -218,7 +218,7 @@ func NewBoolNull() NullBool {
 
 // UnmarshalJSON for NullBool
 func (nb *NullBool) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, global.NullBytes) {
+	if bytes.Equal(b, constant.NullBytes) {
 		nb.Valid = false
 		return nil
 	}
@@ -256,7 +256,7 @@ func (nf NullFloat64) Empty() bool {
 
 func (nf NullFloat64) String() string {
 	if !nf.Valid {
-		return global.NullStr
+		return constant.NullStr
 	}
 
 	return strconv.FormatFloat(nf.Float64, 'E', -1, 64)
@@ -293,7 +293,7 @@ func NewFloat64Null() NullFloat64 {
 
 // UnmarshalJSON for NullFloat64
 func (nf *NullFloat64) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, global.NullBytes) {
+	if bytes.Equal(b, constant.NullBytes) {
 		nf.Valid = false
 		return nil
 	}
@@ -331,7 +331,7 @@ func (ns NullString) Empty() bool {
 
 func (ns NullString) String() string {
 	if !ns.Valid {
-		return global.NullStr
+		return constant.NullStr
 	}
 
 	return ns.NullString.String
@@ -375,7 +375,7 @@ func (ns NullString) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON for NullString
 func (ns *NullString) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, global.NullBytes) {
+	if bytes.Equal(b, constant.NullBytes) {
 		ns.Valid = false
 		return nil
 	}
@@ -404,10 +404,10 @@ type NullTime struct {
 
 func (nt NullTime) String() string {
 	if !nt.Valid {
-		return global.NullStr
+		return constant.NullStr
 	}
 
-	return nt.Time.Format(global.DefaultTimePattern)
+	return nt.Time.Format(constant.DefaultTimePattern)
 }
 
 // IsNull 是否是Nil
@@ -437,9 +437,9 @@ func (nt *NullTime) TimeStamp() int64 {
 // MarshalJSON for NullTime
 func (nt NullTime) MarshalJSON() ([]byte, error) {
 	if !nt.Valid {
-		return global.NullBytes, nil
+		return constant.NullBytes, nil
 	}
-	val := fmt.Sprintf("\"%s\"", nt.Time.Format(global.DefaultTimePattern))
+	val := fmt.Sprintf("\"%s\"", nt.Time.Format(constant.DefaultTimePattern))
 	return []byte(val), nil
 }
 
@@ -456,7 +456,7 @@ func NewTimeNull() NullTime {
 
 // UnmarshalJSON for NullTime
 func (nt *NullTime) UnmarshalJSON(b []byte) error {
-	if bytes.Equal(b, global.NullBytes) {
+	if bytes.Equal(b, constant.NullBytes) {
 		nt.Valid = false
 		return nil
 	}

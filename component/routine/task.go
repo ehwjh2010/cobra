@@ -7,12 +7,10 @@ import (
 	"sync/atomic"
 
 	"github.com/panjf2000/ants/v2"
-
-	"github.com/ehwjh2010/viper/client/settings"
 )
 
 type Task struct {
-	rawConfig         settings.Routine
+	rawConfig         Routine
 	p                 *ants.Pool
 	rawGoroutineCount int64
 }
@@ -25,7 +23,7 @@ var (
 	EmptyTaskFunc       = errors.New("task func is nil")
 )
 
-func newTask(rawConfig settings.Routine, p *ants.Pool) *Task {
+func newTask(rawConfig Routine, p *ants.Pool) *Task {
 	return &Task{rawConfig: rawConfig, p: p}
 }
 
@@ -122,7 +120,7 @@ func (task Task) CountInfo() map[string]int {
 }
 
 // SetUpDefaultTask 初始化后台任务
-func SetUpDefaultTask(conf settings.Routine) func() error {
+func SetUpDefaultTask(conf Routine) func() error {
 	return func() error {
 		if backgroundTask != nil {
 			return nil

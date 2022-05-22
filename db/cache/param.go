@@ -1,4 +1,4 @@
-package settings
+package cache
 
 // Cache 缓存配置
 type Cache struct {

@@ -13,9 +13,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	cliServer "github.com/ehwjh2010/viper/client/server"
-	"github.com/ehwjh2010/viper/client/verror"
 	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/verror"
 )
 
 var (
@@ -24,7 +23,7 @@ var (
 )
 
 // GraceGrpcServer 优雅启动grpc服务
-func GraceGrpcServer(graceGrpc *cliServer.GraceGrpc) error {
+func GraceGrpcServer(graceGrpc *GraceGrpc) error {
 	if graceGrpc == nil {
 		return InvalidGrpcConf
 	}
@@ -108,7 +107,7 @@ func GraceGrpcServer(graceGrpc *cliServer.GraceGrpc) error {
 		}
 		graceGrpc.Server.GracefulStop()
 		return err
-
+	// TODO 未区分gateway和grpc错误, 直接返回错误
 	case e := <-errChan:
 		return e
 	}

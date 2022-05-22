@@ -1,4 +1,4 @@
-package settings
+package apollo
 
 type ApolloConfig struct {
 	AppID         string `json:"appID" yaml:"appID"`                 // 应用ID

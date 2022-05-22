@@ -2,12 +2,11 @@ package cache
 
 import (
 	"context"
+	"github.com/ehwjh2010/viper/enums"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 )
 
@@ -25,7 +24,7 @@ const (
 	maxRetries       = 3
 )
 
-func initCacheWithGoRedis(conf *settings.Cache) (*redis.Client, error) {
+func initCacheWithGoRedis(conf *Cache) (*redis.Client, error) {
 	// 设置默认配置
 	setRedisDefaultConf(conf)
 
@@ -72,7 +71,7 @@ func integerToTime(ts int) time.Duration {
 	return result
 }
 
-func setRedisDefaultConf(conf *settings.Cache) {
+func setRedisDefaultConf(conf *Cache) {
 	if str.IsEmpty(conf.Network) {
 		conf.Network = network
 	}

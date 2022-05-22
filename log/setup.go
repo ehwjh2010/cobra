@@ -1,16 +1,15 @@
 package log
 
 import (
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/ehwjh2010/viper/constant"
 	"io"
 	"os"
 
 	"github.com/natefinch/lumberjack"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
-	"github.com/ehwjh2010/viper/global"
+	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
@@ -30,7 +29,7 @@ var (
 )
 
 // InitLog 初始化Logger
-func InitLog(config settings.Log, application string) error {
+func InitLog(config Log, application string) error {
 	if str.IsNotEmpty(config.FileDir) {
 		logFilePath, err := path.Relative2Abs(config.FileDir)
 		if err != nil {
@@ -79,7 +78,7 @@ func getEncoder(timeFieldName string, timeLayout string) zapcore.Encoder {
 	}
 
 	if str.IsEmpty(timeLayout) {
-		timeLayout = global.DefaultTimePattern
+		timeLayout = constant.DefaultTimePattern
 	}
 
 	encoderConfig := zap.NewProductionEncoderConfig()
@@ -91,7 +90,7 @@ func getEncoder(timeFieldName string, timeLayout string) zapcore.Encoder {
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
-func getWriters(conf *settings.Log) (zapcore.WriteSyncer, error) {
+func getWriters(conf *Log) (zapcore.WriteSyncer, error) {
 	var writers []io.Writer
 
 	if conf.EnableConsole {
@@ -129,7 +128,7 @@ func getWriters(conf *settings.Log) (zapcore.WriteSyncer, error) {
 }
 
 func init() {
-	_ = InitLog(settings.Log{
+	_ = InitLog(Log{
 		Caller: DefaultCaller,
 		Level:  enums.DEBUG,
 	}, "application")

@@ -2,6 +2,7 @@ package rdb
 
 import (
 	"errors"
+	"github.com/ehwjh2010/viper/enums"
 	"time"
 
 	"gorm.io/driver/mysql"
@@ -11,8 +12,6 @@ import (
 	"gorm.io/gorm/schema"
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
 )
@@ -21,7 +20,7 @@ const defaultCreateBatchSize = 1000
 
 var UnsupportedDBType = errors.New("unsupported db type")
 
-func InitDBWithGorm(dbConfig settings.DB, dbType enums.DBType) (*gorm.DB, error) {
+func InitDBWithGorm(dbConfig DB, dbType enums.DBType) (*gorm.DB, error) {
 
 	var sqlLogger = logger.Silent
 	if dbConfig.EnableRawSQL {

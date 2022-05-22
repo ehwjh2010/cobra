@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"github.com/ehwjh2010/viper/constant"
 	"strings"
 
 	"github.com/gin-gonic/gin/binding"
@@ -12,7 +13,6 @@ import (
 	zh2 "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/pkg/errors"
 
-	"github.com/ehwjh2010/viper/global"
 	"github.com/ehwjh2010/viper/helper/serialize"
 )
 
@@ -40,18 +40,18 @@ func RegisterTrans(language string) (translator ut.Translator, err error) {
 		//})
 
 		switch language {
-		case global.English:
+		case constant.English:
 			trans, _ = uni.GetTranslator(enT.Locale())
-		case global.Chinese:
+		case constant.Chinese:
 			trans, _ = uni.GetTranslator(zhT.Locale())
 		default:
 			trans, _ = uni.GetTranslator(enT.Locale())
 		}
 
 		switch language {
-		case global.English:
+		case constant.English:
 			err = en2.RegisterDefaultTranslations(v, trans)
-		case global.Chinese:
+		case constant.Chinese:
 			err = zh2.RegisterDefaultTranslations(v, trans)
 		default:
 			err = en2.RegisterDefaultTranslations(v, trans)

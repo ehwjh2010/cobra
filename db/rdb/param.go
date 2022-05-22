@@ -1,7 +1,7 @@
-package settings
+package rdb
 
 import (
-	"github.com/ehwjh2010/viper/client/enums"
+	"github.com/ehwjh2010/viper/enums"
 	"gorm.io/gorm"
 )
 

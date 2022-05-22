@@ -2,13 +2,12 @@ package requests
 
 import (
 	"errors"
+	"github.com/ehwjh2010/viper/constant"
 	"mime"
 	"net/http"
 	"strings"
 
 	"github.com/levigross/grequests"
-
-	"github.com/ehwjh2010/viper/global"
 )
 
 var (
@@ -103,7 +102,7 @@ func (resp *HTTPResponse) FileName() (string, error) {
 
 // FileNameWithCustom 文件名
 func (resp *HTTPResponse) FileNameWithCustom(nameField string) (string, error) {
-	contentDisposition := resp.Header(global.ContentDisposition)
+	contentDisposition := resp.Header(constant.ContentDisposition)
 	if len(contentDisposition) <= 0 {
 		return "", ErrNoDisposition
 	}
@@ -123,5 +122,5 @@ func (resp *HTTPResponse) FileNameWithCustom(nameField string) (string, error) {
 
 // ContentType 获取Content-Type
 func (resp *HTTPResponse) ContentType() string {
-	return resp.Header(global.ContentType)
+	return resp.Header(constant.ContentType)
 }

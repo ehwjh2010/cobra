@@ -2,12 +2,11 @@ package path
 
 import (
 	"errors"
+	"github.com/ehwjh2010/viper/constant"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/ehwjh2010/viper/global"
 )
 
 var ErrPathAlreadyExist = errors.New("path already exist")
@@ -102,9 +101,9 @@ func Relative2Abs(relativePath string) (string, error) {
 		return "", nil
 	}
 
-	if strings.HasPrefix(relativePath, global.HomeShortCut) {
+	if strings.HasPrefix(relativePath, constant.HomeShortCut) {
 		home := os.Getenv("HOME")
-		relativePath = strings.Replace(relativePath, global.HomeShortCut, home, 1)
+		relativePath = strings.Replace(relativePath, constant.HomeShortCut, home, 1)
 	}
 
 	absPath, err := filepath.Abs(relativePath)

@@ -3,6 +3,7 @@ package rdb
 import (
 	"context"
 	"errors"
+	enums2 "github.com/ehwjh2010/viper/enums"
 	"strings"
 	"time"
 
@@ -10,8 +11,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/plugin/dbresolver"
 
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
@@ -39,10 +38,10 @@ const (
 type (
 	DBClient struct {
 		db        *gorm.DB
-		rawConfig settings.DB  // 数据库配置
-		pCount    int          // 心跳连续失败次数
-		rCount    int          // 重连连续失败次数
-		DBType    enums.DBType // 数据库类型
+		rawConfig DB            // 数据库配置
+		pCount    int           // 心跳连续失败次数
+		rCount    int           // 重连连续失败次数
+		DBType    enums2.DBType // 数据库类型
 	}
 
 	Where struct {
@@ -73,7 +72,7 @@ func FindDeleted() OptDBFunc {
 	}
 }
 
-func NewDBClient(db *gorm.DB, dbType enums.DBType, rawConfig settings.DB) (client *DBClient) {
+func NewDBClient(db *gorm.DB, dbType enums2.DBType, rawConfig DB) (client *DBClient) {
 	client = &DBClient{
 		db:        db,
 		DBType:    dbType,
@@ -83,7 +82,7 @@ func NewDBClient(db *gorm.DB, dbType enums.DBType, rawConfig settings.DB) (clien
 	return client
 }
 
-func (c *DBClient) RawConfig() settings.DB {
+func (c *DBClient) RawConfig() DB {
 	return c.rawConfig
 }
 
@@ -104,14 +103,14 @@ func (c *DBClient) WatchHeartbeat() {
 		waitFlag := true
 		for {
 			if waitFlag {
-				<-time.After(enums.ThreeSecD)
+				<-time.After(enums2.ThreeSecD)
 			}
 
 			// 重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
 				// 重连次数过多, 休眠1秒后重连
 				if c.rCount >= 3 {
-					<-time.After(enums.OneSecD)
+					<-time.After(enums2.OneSecD)
 				}
 				if ok, _ := c.replaceDB(); ok {
 					c.rCount = 0

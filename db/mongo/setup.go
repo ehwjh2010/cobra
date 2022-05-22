@@ -2,17 +2,15 @@ package mongo
 
 import (
 	"context"
+	"github.com/ehwjh2010/viper/enums"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"github.com/ehwjh2010/viper/client/enums"
-	"github.com/ehwjh2010/viper/client/settings"
 )
 
 // SetUp 初始化mongo
-func SetUp(conf settings.Mongo) (*Client, error) {
+func SetUp(conf Mongo) (*Client, error) {
 	cli, db, err := setup(conf)
 	if err != nil {
 		return nil, err
@@ -22,7 +20,7 @@ func SetUp(conf settings.Mongo) (*Client, error) {
 	return c, nil
 }
 
-func setup(conf settings.Mongo) (*mongo.Client, *mongo.Database, error) {
+func setup(conf Mongo) (*mongo.Client, *mongo.Database, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), enums.FiveMinute)
 	defer cancel()
 	o := options.Client().ApplyURI(conf.Uri)
