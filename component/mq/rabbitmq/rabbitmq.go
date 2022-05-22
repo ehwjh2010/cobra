@@ -1,11 +1,13 @@
 package rabbitmq
 
 import (
+	"github.com/ehwjh2010/viper/helper/wrapper"
+	"github.com/streadway/amqp"
+	"go.uber.org/zap"
+
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/verror"
-	"github.com/streadway/amqp"
-	"go.uber.org/zap"
 )
 
 type SendCallback func(body []byte) error
@@ -20,12 +22,15 @@ type RabbitMQ struct {
 	SendTeardown           SendCallback // 不论失败还是成功, 发送后定触发的函数
 	ConsumeSuccessCallback func([]byte, error) error
 
-	PullBatchSize int  `json:"pullBatchSize" yaml:"pullBatchSize"` // 批量拉取数量
-	AutoAck       bool `json:"autoAck" yaml:"autoAck"`             // 自动提交
-	Exclusive     bool `json:"exclusive" yaml:"exclusive"`
-	NoWait        bool `json:"noWait" yaml:"noWait"`
-	Args          map[string]interface{}
+	// 消费配置
+	PullBatchSize int                    `json:"pullBatchSize" yaml:"pullBatchSize"` // 批量拉取数量
+	AutoAck       bool                   `json:"autoAck" yaml:"autoAck"`             // 自动提交
+	Exclusive     bool                   `json:"exclusive" yaml:"exclusive"`         // 是否排他
+	NoLocal       bool                   `json:"noLocal" yaml:"noLocal"`             // 是否接收只同一个连接中的消息，若为true，则只能接收别的conn中发送的消息
+	NoWait        bool                   `json:"noWait" yaml:"noWait"`               // 非阻塞
+	Args          map[string]interface{} // 额外参数
 
+	// 内部参数
 	startFlag   bool
 	connection  *amqp.Connection
 	sendChannel *amqp.Channel
@@ -205,7 +210,13 @@ func (r *RabbitMQ) BindExchangeQueue(ch *amqp.Channel) error {
 		return EmptyRoutingKeys
 	}
 
-	if err := ch.QueueBind(r.Queue.Name, r.RoutingKey, r.Exchange.Name, false, nil); err != nil {
+	if err := ch.QueueBind(
+		r.Queue.Name,    // 绑定的队列名称
+		r.RoutingKey,    // bindkey 用于消息路由分发的key
+		r.Exchange.Name, // 绑定的exchange名
+		false,           // 是否阻塞
+		nil,             // 额外属性
+	); err != nil {
 		return err
 	}
 
@@ -228,10 +239,15 @@ func (r *RabbitMQ) sendMsg(body []byte) error {
 		return err
 	}
 
-	err := r.sendChannel.Publish(r.Exchange.Name, r.RoutingKey, false, false, amqp.Publishing{
-		ContentType: "text/plain",
-		Body:        body,
-	})
+	err := r.sendChannel.Publish(
+		r.Exchange.Name, // 交换器名
+		r.RoutingKey,    // routing key
+		false,           // 是否返回消息(匹配队列)，如果为true, 会根据binding规则匹配queue，如未匹配queue，则把发送的消息返回给发送者
+		false,           // 是否返回消息(匹配消费者)，如果为true, 消息发送到queue后发现没有绑定消费者，则把发送的消息返回给发送者
+		amqp.Publishing{
+			ContentType: "text/plain", // 消息内容的类型
+			Body:        body,         // 消息内容
+		})
 
 	return err
 }
@@ -285,7 +301,7 @@ func (r *RabbitMQ) RecvMsg() (<-chan amqp.Delivery, error) {
 		return nil, err
 	}
 
-	c, err := r.recvChannel.Consume(r.Queue.Name, "", r.AutoAck, r.Exclusive, false, r.NoWait, r.Args)
+	c, err := r.recvChannel.Consume(r.Queue.Name, "", r.AutoAck, r.Exclusive, r.NoLocal, r.NoWait, r.Args)
 
 	if err != nil {
 		return nil, err
@@ -302,18 +318,27 @@ func (r *RabbitMQ) consumeMsg(consumer Consumer) error {
 	}
 
 	for d := range c {
-		err := consumer.Consume(d.Body)
+
+		err := func() error {
+			defer wrapper.PanicHandler()
+			return consumer.Consume(d.Body)
+		}()
+
 		if err != nil {
-			consumer.ConsumeFailConsumeCallback(d.MessageId, d.Body, err)
+			func() {
+				defer wrapper.PanicHandler()
+				consumer.ConsumeFailConsumeCallback(d.MessageId, d.Body, err)
+			}()
 			continue
-		}
-		if !r.AutoAck {
-			err := d.Ack(false)
-			if err != nil {
-				log.Error("ack msg err", zap.ByteString("body", d.Body), zap.String("messageId", d.MessageId))
+		} else {
+			if !r.AutoAck {
+				err := d.Ack(false)
+				if err != nil {
+					log.Error("ack msg err", zap.ByteString("body", d.Body), zap.String("messageId", d.MessageId))
+				}
 			}
+			consumer.ConsumeSuccessCallback(d.MessageId, d.Body)
 		}
-		consumer.ConsumeSuccessCallback(d.MessageId, d.Body)
 	}
 
 	return nil
