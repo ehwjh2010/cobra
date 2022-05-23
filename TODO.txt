@@ -2,7 +2,6 @@
     2.4 ES
 8. 根据数据库自动生成结构体
 10. 日志输出到日志中心
-13. 依赖注入  https://github.com/google/wire,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
 17. 定时器 https://github.com/robfig/cron,  https://segmentfault.com/a/1190000023029219,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
 24. gorm持续优化, 提供连表查询, 查询指定字段
 30. 框架层面支持traceID
@@ -11,6 +10,7 @@
 34. 支持文件响应, 文本响应
 35. 使用testify完善单元测试
 36. redis支持集群
+37. rabbitmq 支持重连
 
 优先级:
-4. 支持消息中间件kafka, rabbitMQ
+4. 支持消息中间件kafka

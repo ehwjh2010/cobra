@@ -58,7 +58,13 @@ func (r *RabbitMQ) Close() error {
 		return nil
 	}
 
-	err := r.connection.Close()
+	var multiErr verror.MultiErr
+
+	multiErr.AddErr(r.CloseChannel())
+	multiErr.AddErr(r.connection.Close())
+
+	err := multiErr.AsStdErr()
+
 	if err != nil {
 		log.Error("close rabbitmq failed", zap.Error(err), zap.String("Url", r.Url))
 		return err
@@ -318,27 +324,21 @@ func (r *RabbitMQ) consumeMsg(consumer Consumer) error {
 	}
 
 	for d := range c {
-
-		err := func() error {
+		func() {
 			defer wrapper.PanicHandler()
-			return consumer.Consume(d.Body)
-		}()
-
-		if err != nil {
-			func() {
-				defer wrapper.PanicHandler()
+			err := consumer.Consume(d.Body)
+			if err != nil {
 				consumer.ConsumeFailConsumeCallback(d.MessageId, d.Body, err)
-			}()
-			continue
-		} else {
-			if !r.AutoAck {
-				err := d.Ack(false)
-				if err != nil {
-					log.Error("ack msg err", zap.ByteString("body", d.Body), zap.String("messageId", d.MessageId))
+			} else {
+				if !r.AutoAck {
+					err := d.Ack(false)
+					if err != nil {
+						log.Error("ack msg err", zap.ByteString("body", d.Body), zap.String("messageId", d.MessageId))
+					}
 				}
 			}
-			consumer.ConsumeSuccessCallback(d.MessageId, d.Body)
-		}
+		}()
+
 	}
 
 	return nil
