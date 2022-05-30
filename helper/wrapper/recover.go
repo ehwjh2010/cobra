@@ -2,7 +2,7 @@ package wrapper
 
 import (
 	"github.com/ehwjh2010/viper/log"
-	"go.uber.org/zap"
+	"runtime/debug"
 )
 
 //type NoInputWithErr func() error
@@ -11,7 +11,7 @@ import (
 
 func PanicHandler() {
 	if e := recover(); e != nil {
-		log.Error("catch panic", zap.Any("panic", e))
+		log.Errorf("catch panic, %v\n%s", e, string(debug.Stack()))
 	}
 }
 

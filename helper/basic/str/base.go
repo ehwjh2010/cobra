@@ -21,3 +21,25 @@ func IsEmptySlice(v []string) bool {
 func IsNotEmptySlice(v []string) bool {
 	return !IsEmptySlice(v)
 }
+
+// SubStr 字符串截取
+func SubStr(s string, start, end int) string {
+	if s == "" || start >= end {
+		return ""
+	}
+
+	sLen := utf8.RuneCountInString(s)
+	if start >= sLen {
+		return ""
+	}
+
+	var size, n, st int
+	for i := 0; i < end && n < len(s); i++ {
+		if i == start {
+			st = n
+		}
+		_, size = utf8.DecodeRuneInString(s[n:])
+		n += size
+	}
+	return s[st:n]
+}
