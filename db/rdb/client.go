@@ -565,35 +565,35 @@ func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}, opts ..
 }
 
 // QueryByMap 通过Map查询
-func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
+func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}, tableName string, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
-	tx := db.Where(condition).Find(dst)
+	tx := db.Table(tableName).Where(condition).Find(dst)
 
 	return c.Check(tx)
 }
 
 // First 查询第一条记录
-func (c *DBClient) First(condition interface{}, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
+func (c *DBClient) First(condition interface{}, pointer interface{}, tableName string, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
-	tx := db.Where(condition).First(pointer)
+	tx := db.Table(tableName).Where(condition).First(pointer)
 
 	return c.Check(tx, gorm.ErrRecordNotFound)
 }
 
 // Last 查询最后一条记录
-func (c *DBClient) Last(condition interface{}, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
+func (c *DBClient) Last(condition interface{}, pointer interface{}, tableName string, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
-	tx := db.Where(condition).Last(pointer)
+	tx := db.Table(tableName).Where(condition).Last(pointer)
 
 	return c.Check(tx, gorm.ErrRecordNotFound)
 }
 
 // Exist 记录是否存在
-func (c *DBClient) Exist(condition map[string]interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	return c.First(condition, dst)
+func (c *DBClient) Exist(condition map[string]interface{}, tableName string, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	return c.First(condition, dst, tableName)
 }
 
 // AddRecord 添加记录
