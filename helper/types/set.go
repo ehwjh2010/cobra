@@ -56,6 +56,72 @@ func (set *Set) Update(vs ...interface{}) {
 	}
 }
 
+// UpdateInt64s 批量添加元素
+func (set *Set) UpdateInt64s(vs ...int64) {
+	if vs == nil || set == nil {
+		return
+	}
+
+	for _, v := range vs {
+		set.Add(v)
+	}
+}
+
+// UpdateStrings 批量添加元素
+func (set *Set) UpdateStrings(vs ...string) {
+	if vs == nil || set == nil {
+		return
+	}
+
+	for _, v := range vs {
+		set.Add(v)
+	}
+}
+
+// UpdateFloat64s 批量添加元素
+func (set *Set) UpdateFloat64s(vs ...float64) {
+	if vs == nil || set == nil {
+		return
+	}
+
+	for _, v := range vs {
+		set.Add(v)
+	}
+}
+
+// UpdateFloat32s 批量添加元素
+func (set *Set) UpdateFloat32s(vs ...float32) {
+	if vs == nil || set == nil {
+		return
+	}
+
+	for _, v := range vs {
+		set.Add(v)
+	}
+}
+
+// UpdateInt32s 批量添加元素
+func (set *Set) UpdateInt32s(vs ...int32) {
+	if vs == nil || set == nil {
+		return
+	}
+
+	for _, v := range vs {
+		set.Add(v)
+	}
+}
+
+// UpdateInts 批量添加元素
+func (set *Set) UpdateInts(vs ...int) {
+	if vs == nil || set == nil {
+		return
+	}
+
+	for _, v := range vs {
+		set.Add(v)
+	}
+}
+
 // Size 获取长度
 func (set *Set) Size() int {
 	if set == nil {
@@ -113,6 +179,23 @@ func (set *Set) IntValues() ([]int, error) {
 	return values, nil
 }
 
+// MustIntValues 获取所有的值
+func (set *Set) MustIntValues() []int {
+
+	if set.IsEmpty() {
+		return make([]int, 0)
+	}
+
+	j := 0
+	values := make([]int, len(set.data))
+	for k := range set.data {
+		v := integer.MustAny2Int(k)
+		values[j] = v
+		j++
+	}
+	return values
+}
+
 // Int64Values 获取所有的值
 func (set *Set) Int64Values() ([]int64, error) {
 	if set.IsEmpty() {
@@ -130,6 +213,22 @@ func (set *Set) Int64Values() ([]int64, error) {
 		j++
 	}
 	return values, nil
+}
+
+// MustInt64Values 获取所有的值
+func (set *Set) MustInt64Values() []int64 {
+	if set.IsEmpty() {
+		return make([]int64, 0)
+	}
+
+	j := 0
+	values := make([]int64, len(set.data))
+	for k := range set.data {
+		v := integer.MustAny2Int64(k)
+		values[j] = v
+		j++
+	}
+	return values
 }
 
 // Int32Values 获取所有的值
@@ -151,6 +250,22 @@ func (set *Set) Int32Values() ([]int32, error) {
 	return values, nil
 }
 
+// MustInt32Values 获取所有的值
+func (set *Set) MustInt32Values() []int32 {
+	if set.IsEmpty() {
+		return make([]int32, 0)
+	}
+
+	j := 0
+	values := make([]int32, len(set.data))
+	for k := range set.data {
+		v := integer.MustAny2Int32(k)
+		values[j] = v
+		j++
+	}
+	return values
+}
+
 // StrValues 获取所有的值
 func (set *Set) StrValues() ([]string, error) {
 	if set.IsEmpty() {
@@ -170,6 +285,22 @@ func (set *Set) StrValues() ([]string, error) {
 	return keys, nil
 }
 
+// MustStrValues 获取所有的值
+func (set *Set) MustStrValues() []string {
+	if set.IsEmpty() {
+		return make([]string, 0)
+	}
+
+	j := 0
+	keys := make([]string, len(set.data))
+	for k := range set.data {
+		v := str.MustAny2String(k)
+		keys[j] = v
+		j++
+	}
+	return keys
+}
+
 // Float64Values 获取所有的值
 func (set *Set) Float64Values() ([]float64, error) {
 	if set.IsEmpty() {
@@ -187,6 +318,22 @@ func (set *Set) Float64Values() ([]float64, error) {
 		j++
 	}
 	return values, nil
+}
+
+// MustFloat64Values 获取所有的值
+func (set *Set) MustFloat64Values() []float64 {
+	if set.IsEmpty() {
+		return make([]float64, 0)
+	}
+
+	j := 0
+	values := make([]float64, len(set.data))
+	for k := range set.data {
+		v := double.MustAny2Double(k)
+		values[j] = v
+		j++
+	}
+	return values
 }
 
 // Union 并集
