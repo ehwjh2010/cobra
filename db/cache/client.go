@@ -1238,14 +1238,51 @@ func (r *RedisClient) ZRange(key string, start, end int64) ([]string, error) {
 	return result, nil
 }
 
+func (r *RedisClient) ZRevRange(key string, start, end int64) ([]string, error) {
+	ctx := context.TODO()
+
+	strings, err := r.client.ZRevRange(ctx, key, start, end).Result()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return strings, nil
+
+}
+
+func (r *RedisClient) ZRank(key string, member string) (int64, error) {
+	ctx := context.TODO()
+
+	score, err := r.client.ZRank(ctx, key, member).Result()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return score, nil
+}
+
+func (r *RedisClient) ZRevRank(key string, member string) (int64, error) {
+	ctx := context.TODO()
+
+	score, err := r.client.ZRevRank(ctx, key, member).Result()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return score, nil
+}
+
 // ZRangeByScore Redis命令zrange, 包括start, end 边界值, 返回按照score排序
-func (r *RedisClient) ZRangeByScore(key string, start, end int, reverse bool) ([]redis.Z, error) {
+func (r *RedisClient) ZRangeByScore(key string, scoreMin, scoreMax string, reverse bool) ([]redis.Z, error) {
 	ctx := context.TODO()
 
 	z := redis.ZRangeArgs{
 		Key:     key,
-		Start:   start,
-		Stop:    end,
+		Start:   scoreMin,
+		Stop:    scoreMax,
 		ByScore: true,
 		Rev:     reverse,
 	}
