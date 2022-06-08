@@ -3,7 +3,8 @@ package rdb
 import (
 	"context"
 	"errors"
-	enums2 "github.com/ehwjh2010/viper/enums"
+	"github.com/ehwjh2010/viper/enums"
+	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"strings"
 	"time"
 
@@ -38,10 +39,10 @@ const (
 type (
 	DBClient struct {
 		db        *gorm.DB
-		rawConfig DB            // 数据库配置
-		pCount    int           // 心跳连续失败次数
-		rCount    int           // 重连连续失败次数
-		DBType    enums2.DBType // 数据库类型
+		rawConfig DB           // 数据库配置
+		pCount    int          // 心跳连续失败次数
+		rCount    int          // 重连连续失败次数
+		DBType    enums.DBType // 数据库类型
 	}
 
 	Where struct {
@@ -66,13 +67,19 @@ func UseWriteNode() OptDBFunc {
 	}
 }
 
+func UseReadNode() OptDBFunc {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(dbresolver.Read)
+	}
+}
+
 func FindDeleted() OptDBFunc {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Unscoped()
 	}
 }
 
-func NewDBClient(db *gorm.DB, dbType enums2.DBType, rawConfig DB) (client *DBClient) {
+func NewDBClient(db *gorm.DB, dbType enums.DBType, rawConfig DB) (client *DBClient) {
 	client = &DBClient{
 		db:        db,
 		DBType:    dbType,
@@ -103,14 +110,14 @@ func (c *DBClient) WatchHeartbeat() {
 		waitFlag := true
 		for {
 			if waitFlag {
-				<-time.After(enums2.ThreeSecD)
+				<-time.After(enums.ThreeSecD)
 			}
 
 			// 重连失败次数大于0, 直接重连
 			if c.rCount > 0 {
 				// 重连次数过多, 休眠1秒后重连
 				if c.rCount >= 3 {
-					<-time.After(enums2.OneSecD)
+					<-time.After(enums.OneSecD)
 				}
 				if ok, _ := c.replaceDB(); ok {
 					c.rCount = 0
@@ -663,17 +670,24 @@ func (c *DBClient) Save(ptr interface{}, opts ...OptDBFunc) error {
 // getWriteDB 获取写节点DB
 func (c *DBClient) getWriteDB(optFns ...OptDBFunc) *gorm.DB {
 
-	optFns = append(optFns, UseWriteNode())
+	if !collection.IsEmptyStr(c.rawConfig.Replicas) {
+		optFns = append(optFns, UseWriteNode())
+	}
 
 	return c.getDB(optFns...)
 }
 
 // getReadDB 获取读节点DB
 func (c *DBClient) getReadDB(optFns ...OptDBFunc) *gorm.DB {
+
+	if !collection.IsEmptyStr(c.rawConfig.Replicas) {
+		optFns = append(optFns, UseReadNode())
+	}
+
 	return c.getDB(optFns...)
 }
 
-func (c DBClient) getDB(optFns ...OptDBFunc) *gorm.DB {
+func (c *DBClient) getDB(optFns ...OptDBFunc) *gorm.DB {
 
 	db := c.db
 

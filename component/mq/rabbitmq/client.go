@@ -35,7 +35,7 @@ func DefaultSuccessCallback(body []byte) error {
 }
 
 func DefaultFailCallback(body []byte) error {
-	log.Info("send rabbitmq msg fail", zap.ByteString("body", body))
+	log.Error("send rabbitmq msg fail", zap.ByteString("body", body))
 	return nil
 }
 

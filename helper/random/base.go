@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func init() {
+func seed() {
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -24,16 +24,19 @@ var (
 
 // Random 返回[0,1)的随机数
 func Random() float64 {
+	seed()
 	return rand.Float64()
 }
 
 // RandInt 返回[0,n)的随机数
 func RandInt(n int) int {
+	seed()
 	return rand.Intn(n)
 }
 
 // SimpleRandInt 返回[0,10)的随机数
 func SimpleRandInt() int {
+	seed()
 	return rand.Intn(10)
 }
 

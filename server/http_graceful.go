@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"github.com/ehwjh2010/viper"
 	"github.com/ehwjh2010/viper/constant"
 	"net/http"
 	"os"
@@ -31,6 +32,8 @@ func getErrChan() chan error {
 }
 
 func GraceHttpServer(graceHttp *GraceHttp) error {
+	log.Info(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
+
 	if graceHttp == nil {
 		return InvalidHttpConf
 	}
