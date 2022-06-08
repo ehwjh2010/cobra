@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"github.com/ehwjh2010/viper"
 	"net"
 	"net/http"
 
@@ -24,6 +25,8 @@ var (
 
 // GraceGrpcServer 优雅启动grpc服务
 func GraceGrpcServer(graceGrpc *GraceGrpc) error {
+	log.Info(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
+
 	if graceGrpc == nil {
 		return InvalidGrpcConf
 	}

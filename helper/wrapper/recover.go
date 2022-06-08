@@ -2,29 +2,12 @@ package wrapper
 
 import (
 	"github.com/ehwjh2010/viper/log"
+	"go.uber.org/zap"
 	"runtime/debug"
 )
 
-//type NoInputWithErr func() error
-//
-//type NoInputNoOutput func()
-
 func PanicHandler() {
 	if e := recover(); e != nil {
-		log.Errorf("catch panic, %v\n%s", e, string(debug.Stack()))
+		log.Error("catch panic, ", zap.Any("err", e), zap.ByteString("stack", debug.Stack()))
 	}
 }
-
-//func WrapRecoverWithError(fn NoInputWithErr) NoInputWithErr {
-//	return func() error {
-//		defer PanicHandler()
-//		return fn()
-//	}
-//}
-//
-//func WrapRecoverWithSimple(fn NoInputNoOutput) NoInputNoOutput {
-//	return func() {
-//		defer PanicHandler()
-//		fn()
-//	}
-//}

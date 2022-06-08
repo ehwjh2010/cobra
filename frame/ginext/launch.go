@@ -7,7 +7,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"github.com/ehwjh2010/viper"
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/frame/ginext/middleware"
 	"github.com/ehwjh2010/viper/log"
@@ -64,8 +63,6 @@ func Viper(settings server.Setting) *App {
 
 // Run 启动
 func (app *App) Run() {
-	log.Infof(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
-
 	addr := fmt.Sprintf("%s:%d", app.setting.Host, app.setting.Port)
 
 	if app.setting.Swagger {
