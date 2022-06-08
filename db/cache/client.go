@@ -5,7 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ehwjh2010/viper/enums"
-	"strconv"
+	"github.com/ehwjh2010/viper/helper/basic/double"
+	"github.com/ehwjh2010/viper/helper/basic/integer"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -1202,13 +1203,10 @@ func (r *RedisClient) ZScore(key string, value string) (types.NullFloat64, error
 }
 
 // ZCount Redis命令zcount, 返回score 值在 min 和 max 之间的成员的数量
-func (r *RedisClient) ZCount(key string, scoreMin, scoreMax float64) (int64, error) {
+func (r *RedisClient) ZCount(key string, scoreMin, scoreMax string) (int64, error) {
 	ctx := context.TODO()
 
-	min := strconv.FormatFloat(scoreMin, 'f', 6, 64)
-	max := strconv.FormatFloat(scoreMax, 'f', 6, 64)
-
-	result, err := r.client.ZCount(ctx, key, min, max).Result()
+	result, err := r.client.ZCount(ctx, key, scoreMin, scoreMax).Result()
 
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -1219,6 +1217,31 @@ func (r *RedisClient) ZCount(key string, scoreMin, scoreMax float64) (int64, err
 	}
 
 	return result, nil
+}
+
+func (r *RedisClient) ZCountWithFloat64(key string, scoreMin, scoreMax float64) (int64, error) {
+
+	min := double.Double2Str(scoreMin)
+	max := double.Double2Str(scoreMax)
+	return r.ZCount(key, min, max)
+}
+
+func (r *RedisClient) ZCountWithInt(key string, scoreMin, scoreMax int) (int64, error) {
+	min := integer.Int2Str(scoreMin)
+	max := integer.Int2Str(scoreMax)
+	return r.ZCount(key, min, max)
+}
+
+func (r *RedisClient) ZCountWithInt32(key string, scoreMin, scoreMax int32) (int64, error) {
+	min := integer.Int32ToStr(scoreMin)
+	max := integer.Int32ToStr(scoreMax)
+	return r.ZCount(key, min, max)
+}
+
+func (r *RedisClient) ZCountWithInt64(key string, scoreMin, scoreMax int64) (int64, error) {
+	min := integer.Int64ToStr(scoreMin)
+	max := integer.Int64ToStr(scoreMax)
+	return r.ZCount(key, min, max)
 }
 
 // ZRange Redis命令zrange, 包括start, end 边界值, 返回按照score排序
@@ -1238,6 +1261,10 @@ func (r *RedisClient) ZRange(key string, start, end int64) ([]string, error) {
 	return result, nil
 }
 
+func (r *RedisClient) ZRangeWithCount(key string, count int64) ([]string, error) {
+	return r.ZRange(key, 0, count-1)
+}
+
 func (r *RedisClient) ZRevRange(key string, start, end int64) ([]string, error) {
 	ctx := context.TODO()
 
@@ -1249,6 +1276,10 @@ func (r *RedisClient) ZRevRange(key string, start, end int64) ([]string, error) 
 
 	return strings, nil
 
+}
+
+func (r *RedisClient) ZRrvRangeWithCount(key string, count int64) ([]string, error) {
+	return r.ZRevRange(key, 0, count-1)
 }
 
 func (r *RedisClient) ZRank(key string, member string) (int64, error) {

@@ -27,6 +27,19 @@ func Int2Any(v interface{}) interface{} {
 	return v
 }
 
+func Int2Str(v int) string {
+	str := strconv.Itoa(v)
+	return str
+}
+
+func Int32ToStr(v int32) string {
+	return Int64ToStr(int64(v))
+}
+
+func Int64ToStr(v int64) string {
+	return strconv.FormatInt(v, 10)
+}
+
 func IntSlice2Any(vs []int) []interface{} {
 	rs := make([]interface{}, len(vs))
 	for i, v := range vs {
