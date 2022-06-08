@@ -1172,16 +1172,15 @@ func (r *RedisClient) SRem(key string, dst ...interface{}) (int64, error) {
 
 //===============================Command zset===================================
 
-// ZSet Redis命令zset
-func (r *RedisClient) ZSet(key string, score float64, value interface{}) error {
+// ZAdd Redis命令 zadd
+func (r *RedisClient) ZAdd(key string, members ...*redis.Z) error {
 	ctx := context.TODO()
 
-	z := &redis.Z{
-		Score:  score,
-		Member: value,
+	if len(members) <= 0 {
+		return nil
 	}
 
-	_, err := r.client.ZAdd(ctx, key, z).Result()
+	_, err := r.client.ZAdd(ctx, key, members...).Result()
 	return err
 }
 
@@ -1222,8 +1221,25 @@ func (r *RedisClient) ZCount(key string, scoreMin, scoreMax float64) (int64, err
 	return result, nil
 }
 
-// ZRangeWithScore Redis命令zrange, 包括start, end 边界值, 返回按照score排序
-func (r *RedisClient) ZRangeWithScore(key string, start, end int, reverse bool) ([]map[string]interface{}, error) {
+// ZRange Redis命令zrange, 包括start, end 边界值, 返回按照score排序
+func (r *RedisClient) ZRange(key string, start, end int64) ([]string, error) {
+	ctx := context.TODO()
+
+	result, err := r.client.ZRange(ctx, key, start, end).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	return result, nil
+}
+
+// ZRangeByScore Redis命令zrange, 包括start, end 边界值, 返回按照score排序
+func (r *RedisClient) ZRangeByScore(key string, start, end int, reverse bool) ([]redis.Z, error) {
 	ctx := context.TODO()
 
 	z := redis.ZRangeArgs{
@@ -1244,15 +1260,33 @@ func (r *RedisClient) ZRangeWithScore(key string, start, end int, reverse bool) 
 		}
 	}
 
-	ret := make([]map[string]interface{}, len(result))
-	for _, z := range result {
-		ret = append(ret, map[string]interface{}{
-			"score":  z.Score,
-			"member": z.Member,
-		})
+	return result, nil
+}
+
+// ZRemRangeByRank Redis命令ZREMRANGEBYRANK
+func (r *RedisClient) ZRemRangeByRank(key string, start, end int64) (uint64, error) {
+	ctx := context.TODO()
+
+	count, err := r.client.ZRemRangeByRank(ctx, key, start, end).Uint64()
+
+	if err != nil {
+		return 0, err
 	}
 
-	return ret, nil
+	return count, nil
+}
+
+// ZRemRangeByScore Redis命令ZREMRANGEBYSCORE
+func (r *RedisClient) ZRemRangeByScore(key string, min, max string) (uint64, error) {
+	ctx := context.TODO()
+
+	count, err := r.client.ZRemRangeByScore(ctx, key, min, max).Uint64()
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // ZRem Redis命令zrem, 删除指定member的field
