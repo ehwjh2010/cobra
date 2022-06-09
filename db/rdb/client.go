@@ -487,10 +487,10 @@ func (c *DBClient) QueryByIds(ids []int64, pointers interface{}, opts ...OptDBFu
 }
 
 // Query 查询
-func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interface{}, opts ...OptDBFunc) (totalCount int64, err error) {
+func (c *DBClient) Query(modelPtr interface{}, condition *QueryCondition, dst interface{}, opts ...OptDBFunc) (totalCount int64, err error) {
 	db := c.getReadDB(opts...)
 
-	db = db.Table(tableName)
+	db = db.Model(modelPtr)
 
 	if condition != nil && condition.Where != nil {
 	whereLoop:
@@ -533,10 +533,10 @@ func (c *DBClient) Query(tableName string, condition *QueryCondition, dst interf
 }
 
 // QueryCount 查询数量
-func (c *DBClient) QueryCount(tableName string, condition *QueryCondition, opts ...OptDBFunc) (count int64, err error) {
+func (c *DBClient) QueryCount(modelPtr interface{}, condition *QueryCondition, opts ...OptDBFunc) (count int64, err error) {
 	db := c.getReadDB(opts...)
 
-	db = db.Table(tableName)
+	db = db.Model(modelPtr)
 
 	if condition != nil && len(condition.Where) > 0 {
 	whereLoop:
@@ -572,35 +572,35 @@ func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}, opts ..
 }
 
 // QueryByMap 通过Map查询
-func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}, tableName string, opts ...OptDBFunc) (exist bool, err error) {
+func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}, modelPtr interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
-	tx := db.Table(tableName).Where(condition).Find(dst)
+	tx := db.Model(modelPtr).Where(condition).Find(dst)
 
 	return c.Check(tx)
 }
 
 // First 查询第一条记录
-func (c *DBClient) First(condition interface{}, pointer interface{}, tableName string, opts ...OptDBFunc) (exist bool, err error) {
+func (c *DBClient) First(condition interface{}, pointer interface{}, modelPtr interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
-	tx := db.Table(tableName).Where(condition).First(pointer)
+	tx := db.Model(modelPtr).Where(condition).First(pointer)
 
 	return c.Check(tx, gorm.ErrRecordNotFound)
 }
 
 // Last 查询最后一条记录
-func (c *DBClient) Last(condition interface{}, pointer interface{}, tableName string, opts ...OptDBFunc) (exist bool, err error) {
+func (c *DBClient) Last(condition interface{}, pointer interface{}, modelPtr interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
-	tx := db.Table(tableName).Where(condition).Last(pointer)
+	tx := db.Model(modelPtr).Where(condition).Last(pointer)
 
 	return c.Check(tx, gorm.ErrRecordNotFound)
 }
 
 // Exist 记录是否存在
-func (c *DBClient) Exist(condition map[string]interface{}, tableName string, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
-	return c.First(condition, dst, tableName)
+func (c *DBClient) Exist(condition map[string]interface{}, modelPtr interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
+	return c.First(condition, dst, modelPtr)
 }
 
 // AddRecord 添加记录
@@ -625,34 +625,34 @@ func (c *DBClient) AddRecords(data interface{}, batchSize int, opts ...OptDBFunc
 // UpdateById 根据主键更新
 // data为结构体指针时, 结构体零值字段不会被更新
 // data为`map`时, 更具`map`更新属性
-func (c *DBClient) UpdateById(tableName string, id int64, data interface{}, opts ...OptDBFunc) error {
+func (c *DBClient) UpdateById(modelPtr interface{}, id int64, data interface{}, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
-	tx := db.Table(tableName).Where("id = ?", id).Updates(data)
+	tx := db.Model(modelPtr).Where("id = ?", id).Updates(data)
 
 	return tx.Error
 }
 
 // UpdateRecord 更新记录, condition必须包含条件, 否则会返回错误ErrMissingWhereClause,
 // 如果想无条件更新, 请使用updateRecordWithoutCond
-// tableName  表名
+// modelPtr  表名
 // dstValue	 struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
 // condition	 struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
-func (c *DBClient) UpdateRecord(tableName string, condition interface{}, dstValue interface{}, opts ...OptDBFunc) error {
+func (c *DBClient) UpdateRecord(modelPtr interface{}, condition interface{}, dstValue interface{}, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
-	tx := db.Table(tableName).Where(condition).Updates(dstValue)
+	tx := db.Model(modelPtr).Where(condition).Updates(dstValue)
 
 	return tx.Error
 }
 
 // UpdateRecordNoCond 无条件更新记录
-// tableName 表名
+// modelPtr 模型
 // dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
-func (c *DBClient) UpdateRecordNoCond(tableName string, dstValue interface{}, opts ...OptDBFunc) error {
+func (c *DBClient) UpdateRecordNoCond(modelPtr interface{}, dstValue interface{}, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
-	tx := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Table(tableName).Updates(dstValue)
+	tx := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(modelPtr).Updates(dstValue)
 
 	return tx.Error
 }
@@ -706,6 +706,79 @@ func (c *DBClient) GetWriteDB(optFns ...OptDBFunc) *gorm.DB {
 // GetReadDB 获取读节点DB对象
 func (c *DBClient) GetReadDB(optFns ...OptDBFunc) *gorm.DB {
 	return c.getReadDB(optFns...)
+}
+
+func (c *DBClient) DelRecordById(modelPtr interface{}, id int64) (int64, error) {
+	return c.DelRecords(modelPtr, map[string]int64{"id": id}, nil)
+}
+
+func (c *DBClient) DelRecordsByIds(modelPtr interface{}, ids []int64) (int64, error) {
+	return c.DelRecords(modelPtr, map[string][]int64{"id": ids}, nil)
+}
+
+// DelRecords 逻辑删除
+// modelPtr 模型指针
+// condition 删除条件
+// extraData 额外更新数据
+func (c *DBClient) DelRecords(modelPtr interface{}, condition interface{}, extraData map[string]interface{}) (int64, error) {
+	updateData := map[string]interface{}{
+		"deleted_at": time.Now(),
+	}
+
+	if len(extraData) > 0 {
+		for k, v := range extraData {
+			updateData[k] = v
+		}
+	}
+
+	db := c.getWriteDB()
+
+	db = db.Model(modelPtr)
+
+	if condition != nil {
+		db = db.Where(condition)
+	}
+
+	tx := db.Updates(&updateData)
+
+	if err := tx.Error; err != nil {
+		return 0, err
+	}
+
+	delCount := tx.RowsAffected
+
+	return delCount, nil
+}
+
+// RecoverRecords 恢复记录
+func (c *DBClient) RecoverRecords(modelPtr interface{}, condition interface{}, extraData map[string]interface{}) (int64, error) {
+	updateData := map[string]interface{}{
+		"deleted_at": gorm.Expr("NULL"),
+	}
+
+	if len(extraData) > 0 {
+		for k, v := range extraData {
+			updateData[k] = v
+		}
+	}
+
+	db := c.getWriteDB()
+
+	db = db.Model(modelPtr)
+
+	if condition != nil {
+		db = db.Where(condition)
+	}
+
+	tx := db.Updates(&updateData)
+
+	if err := tx.Error; err != nil {
+		return 0, err
+	}
+
+	recoverCount := tx.RowsAffected
+
+	return recoverCount, nil
 }
 
 // Close 关闭连接池
