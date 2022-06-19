@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/ehwjh2010/viper"
 	"github.com/ehwjh2010/viper/constant"
+	"github.com/ehwjh2010/viper/verror"
 	"net/http"
 	"os"
 	"os/signal"
@@ -71,15 +72,27 @@ func GraceHttpServer(graceHttp *GraceHttp) error {
 		}
 	}()
 
+	var grpcFlag bool
+	if graceHttp.GraceGrpc != nil {
+		graceGrpcServer(graceHttp.GraceGrpc, errChan)
+		grpcFlag = true
+	}
+
 	select {
 	case <-stopChan:
+		var multiErr verror.MultiErr
 		log.Info("Shutting down gracefully")
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(graceHttp.WaitSecond)*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
-			return wrapErrs.Wrap(err, "stop server failed!!!")
+			multiErr.AddErr(wrapErrs.Wrap(err, "stop server failed!!!"))
 		}
-		return nil
+
+		if grpcFlag {
+			graceHttp.GraceGrpc.Server.GracefulStop()
+		}
+
+		return multiErr.AsStdErr()
 	case e := <-errChan:
 		return e
 	}

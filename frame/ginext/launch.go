@@ -74,6 +74,7 @@ func (app *App) Run() {
 		Addr:       addr,
 		WaitSecond: app.setting.ShutDownTimeout,
 		OnHookFunc: app.setting.OnHookFunc,
+		GraceGrpc:  app.setting.GrpcConf,
 	}
 
 	log.FatalE(server.GraceHttpServer(s))

@@ -26,10 +26,10 @@ func WriteFileWithObj(f *os.File, data []byte) error {
 	return err
 }
 
-// WriteFileWithNoClose 写数据到文件, 文件对象不会关闭
+// WriteFileWithoutClose 写数据到文件, 文件对象不会关闭
 // f 文件对象指针
 // data 需要写入的数据
-func WriteFileWithNoClose(f *os.File, data []byte) error {
+func WriteFileWithoutClose(f *os.File, data []byte) error {
 	_, err := f.Write(data)
 	return err
 }

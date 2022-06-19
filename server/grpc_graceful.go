@@ -4,15 +4,13 @@ import (
 	"context"
 	"errors"
 	"github.com/ehwjh2010/viper"
-	"net"
-	"net/http"
-
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	wrapErrs "github.com/pkg/errors"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+	"net"
+	"net/http"
 
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/verror"
@@ -23,16 +21,16 @@ var (
 	InvalidGrpcConf   = errors.New("invalid grpc config")
 )
 
-// GraceGrpcServer 优雅启动grpc服务
-func GraceGrpcServer(graceGrpc *GraceGrpc) error {
+// graceGrpcServer 优雅启动grpc服务
+func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
 	log.Info(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
 	if graceGrpc == nil {
-		return InvalidGrpcConf
+		panic(InvalidGrpcConf)
 	}
 
 	if graceGrpc.Server == nil {
-		return InvalidGrpcServer
+		panic(InvalidGrpcServer)
 	}
 
 	if graceGrpc.RegisterReflect {
@@ -40,13 +38,13 @@ func GraceGrpcServer(graceGrpc *GraceGrpc) error {
 		reflection.Register(graceGrpc.Server)
 	}
 
-	log.Debug("execute on startup functions")
+	log.Debug("execute grpc on startup functions")
 	if err := graceGrpc.ExecuteStartUp(); err != nil {
-		return wrapErrs.Wrap(err, "on start function occur err")
+		panic(wrapErrs.Wrap(err, "on start function occur err"))
 	}
 
 	defer func() {
-		log.Debug("execute on shutdown functions")
+		log.Debug("execute grpc on shutdown functions")
 		if closeErrs := graceGrpc.ExecuteShutDown(); closeErrs != nil {
 			log.E(closeErrs)
 		}
@@ -54,12 +52,8 @@ func GraceGrpcServer(graceGrpc *GraceGrpc) error {
 
 	lis, err := net.Listen("tcp", graceGrpc.Addr)
 	if err != nil {
-		//return errors.
-		return wrapErrs.Wrap(err, "listen addr err")
+		panic(wrapErrs.Wrap(err, "listen addr err"))
 	}
-
-	stopChan := getStopChan()
-	errChan := getErrChan()
 
 	go func() {
 		if err := graceGrpc.Server.Serve(lis); err != nil {
@@ -94,22 +88,19 @@ func GraceGrpcServer(graceGrpc *GraceGrpc) error {
 		}()
 	}
 
+}
+
+// GraceGrpcServer 优雅启动grpc服务
+func GraceGrpcServer(graceGrpc *GraceGrpc) error {
+	stopChan := getStopChan()
+	errChan := getErrChan()
+
+	graceGrpcServer(graceGrpc, errChan)
+
 	select {
 	case <-stopChan:
-		var err error
-		log.Info("start shutting down gracefully")
-		if gatewayFlag {
-			ctx, cancel := context.WithTimeout(context.Background(), graceGrpc.GatewayWaitTime)
-			defer cancel()
-			err = gatewayServer.Shutdown(ctx)
-			if err == nil {
-				log.Debug("shutting down gateway success")
-			} else {
-				log.Debug("shutting down gateway failed", zap.Error(err))
-			}
-		}
 		graceGrpc.Server.GracefulStop()
-		return err
+		return nil
 	// TODO 未区分gateway和grpc错误, 直接返回错误
 	case e := <-errChan:
 		return e
