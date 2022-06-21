@@ -19,16 +19,16 @@ type NullInt64 struct {
 	sql.NullInt64
 }
 
-// Empty 判断为nil或0
-func (ni NullInt64) Empty() bool {
-	if !ni.Valid || ni.Int64 == 0 {
+// IsEmpty 判断为nil或0
+func (ni *NullInt64) IsEmpty() bool {
+	if ni == nil || !ni.Valid || ni.Int64 == 0 {
 		return true
 	}
 
 	return false
 }
 
-func (ni NullInt64) String() string {
+func (ni *NullInt64) String() string {
 	if !ni.Valid {
 		return constant.NullStr
 	}
@@ -38,7 +38,7 @@ func (ni NullInt64) String() string {
 
 // IsNull 是否是Nil
 func (ni *NullInt64) IsNull() bool {
-	return !ni.Valid
+	return ni == nil || !ni.Valid
 }
 
 // Equal 比较是否相等
@@ -88,7 +88,7 @@ func (ni *NullInt64) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-//********************int64*****************************
+//********************int*****************************
 
 // NullInt is an alias for sql.NullInt64 data type
 type NullInt struct {
@@ -96,8 +96,8 @@ type NullInt struct {
 }
 
 // Empty 判断为nil或0
-func (ni NullInt) Empty() bool {
-	if !ni.Valid || ni.Int64 == 0 {
+func (ni *NullInt) Empty() bool {
+	if ni == nil || !ni.Valid || ni.Int64 == 0 {
 		return true
 	}
 
@@ -114,7 +114,7 @@ func (ni NullInt) String() string {
 
 // IsNull 是否是Nil
 func (ni *NullInt) IsNull() bool {
-	return !ni.Valid
+	return ni == nil || !ni.Valid
 }
 
 // GetValue 获取值
@@ -163,6 +163,81 @@ func (ni *NullInt) Equal(v NullInt) bool {
 	return ni.Valid == v.Valid && (!ni.Valid || ni.Int64 == v.Int64)
 }
 
+//********************int32*****************************
+
+// NullInt32 is an alias for sql.NullInt64 data type
+type NullInt32 struct {
+	sql.NullInt32
+}
+
+// Empty 判断为nil或0
+func (ni *NullInt32) Empty() bool {
+	if ni == nil || !ni.Valid || ni.Int32 == 0 {
+		return true
+	}
+
+	return false
+}
+
+func (ni NullInt32) String() string {
+	if !ni.Valid {
+		return constant.NullStr
+	}
+
+	return strconv.FormatInt(int64(ni.Int32), 10)
+}
+
+// IsNull 是否是Nil
+func (ni *NullInt32) IsNull() bool {
+	return !ni.Valid
+}
+
+// GetValue 获取值
+func (ni *NullInt32) GetValue() int32 {
+	return ni.Int32
+}
+
+func NewInt32(v int32) NullInt32 {
+	return NullInt32{NullInt32: sql.NullInt32{
+		Int32: v,
+		Valid: true,
+	}}
+}
+
+func NewInt32Null() NullInt32 {
+	return NullInt32{}
+}
+
+// MarshalJSON for NullInt
+func (ni NullInt32) MarshalJSON() ([]byte, error) {
+	if !ni.Valid {
+		return []byte("null"), nil
+	}
+	return serialize.Marshal(ni.Int32)
+}
+
+// UnmarshalJSON for NullInt
+func (ni *NullInt32) UnmarshalJSON(b []byte) error {
+	if bytes.Equal(b, constant.NullBytes) {
+		ni.Valid = false
+		return nil
+	}
+
+	err := serialize.Unmarshal(b, &ni.Int32)
+	if err != nil {
+		ni.Valid = false
+	} else {
+		ni.Valid = true
+	}
+
+	return err
+}
+
+// Equal 比较是否相等
+func (ni *NullInt32) Equal(v NullInt32) bool {
+	return ni.Valid == v.Valid && (!ni.Valid || ni.Int32 == v.Int32)
+}
+
 //********************bool*****************************
 
 // NullBool is an alias for sql.NullBool data type
@@ -171,8 +246,8 @@ type NullBool struct {
 }
 
 // Empty 判断为nil或false
-func (nb NullBool) Empty() bool {
-	if !nb.Valid || !nb.Bool {
+func (nb *NullBool) Empty() bool {
+	if nb == nil || !nb.Valid || !nb.Bool {
 		return true
 	}
 
