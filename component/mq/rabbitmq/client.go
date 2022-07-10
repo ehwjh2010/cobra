@@ -30,7 +30,7 @@ const (
 )
 
 func DefaultSuccessCallback(body []byte) error {
-	log.Info("send rabbitmq msg success", zap.ByteString("body", body))
+	log.Debug("send rabbitmq msg success", zap.ByteString("body", body))
 	return nil
 }
 

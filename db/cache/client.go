@@ -7,6 +7,7 @@ import (
 	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/helper/basic/double"
 	"github.com/ehwjh2010/viper/helper/basic/integer"
+	"github.com/ehwjh2010/viper/helper/nano"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -18,6 +19,45 @@ import (
 	"github.com/ehwjh2010/viper/log"
 )
 
+const (
+	LuaScript = `
+        if redis.call("get",KEYS[1]) == ARGV[1] then
+            return redis.call("del",KEYS[1])
+        else
+            return -1
+        end`
+
+	RenewExpireScript = `
+		local t = redis.call("ttl",KEYS[1])
+		local threshold = tonumber(ARGV[1])
+		local exp = tonumber(ARGV[2])
+		if t == -2 then 
+			return -2
+		end
+		if t <= threshold then
+			return redis.call("expire",KEYS[1],exp)
+		else
+			return 0
+		end
+		`
+)
+
+const (
+	KeyNoExists int64 = -2
+	NoOperate   int64 = 0
+	ReNewExp    int64 = 1
+)
+
+var AcquireLockFailed = errors.New("acquire distribute lock failed")
+
+type distributeItem struct {
+	key           string
+	value         string
+	ch            chan struct{}
+	addMillSec    int
+	periodMillSec int
+}
+
 type RedisClient struct {
 	// client redis原生client
 	client *redis.Client
@@ -27,12 +67,15 @@ type RedisClient struct {
 	pCount int
 	// rCount 重连连续失败次数
 	rCount int
+	// dLockMap 分布式锁Map
+	dLockMap map[string]*distributeItem
 }
 
 func NewRedisClient(client *redis.Client, rawConfig *Cache) *RedisClient {
 	return &RedisClient{
 		client:    client,
 		rawConfig: rawConfig,
+		dLockMap:  make(map[string]*distributeItem),
 	}
 }
 
@@ -191,11 +234,24 @@ func (r *RedisClient) AsyncFlushDB() error {
 	return err
 }
 
-// SetExpire 设置过期时间, exp 单位: s
-func (r *RedisClient) SetExpire(key string, exp int) error {
+// Expire 设置过期时间
+func (r *RedisClient) Expire(key string, timeoutSeconds int) error {
 	ctx := context.TODO()
 
-	_, err := r.client.Expire(ctx, key, time.Duration(exp)*time.Second).Result()
+	_, err := r.client.Expire(ctx, key, time.Duration(timeoutSeconds)*time.Second).Result()
+
+	if err != nil && !errors.Is(err, redis.Nil) {
+		return err
+	}
+
+	return nil
+}
+
+// ExpireAt 设置过期时间
+func (r *RedisClient) ExpireAt(key string, expireAt time.Time) error {
+	ctx := context.TODO()
+
+	_, err := r.client.ExpireAt(ctx, key, expireAt).Result()
 
 	if err != nil && !errors.Is(err, redis.Nil) {
 		return err
@@ -226,11 +282,11 @@ func (r *RedisClient) TTL(key string) (types.NullFloat64, error) {
 	}
 }
 
-// SetNX 存在不操作, 不存在则设置, exp 单位: s
-func (r *RedisClient) SetNX(key string, value interface{}, exp int) (bool, error) {
+// SetNX 存在不操作, 不存在则设置
+func (r *RedisClient) SetNX(key string, value interface{}, timeoutSeconds int) (bool, error) {
 	ctx := context.TODO()
 
-	ok, err := r.client.SetNX(ctx, key, value, time.Duration(exp)*time.Second).Result()
+	ok, err := r.client.SetNX(ctx, key, value, time.Duration(timeoutSeconds)*time.Second).Result()
 
 	if err != nil {
 		return false, err
@@ -241,11 +297,11 @@ func (r *RedisClient) SetNX(key string, value interface{}, exp int) (bool, error
 
 //===============================Command Set===================================
 
-// Set redis命令SET, exp <=0, 则认为无过期时间, exp 单位: 秒
-func (r *RedisClient) Set(key string, value interface{}, exp int) (err error) {
+// Set redis命令SET, timeoutSeconds <=0, 则认为无过期时间
+func (r *RedisClient) Set(key string, value interface{}, timeoutSeconds int) (err error) {
 	ctx := context.TODO()
 
-	expire := r.getExpire(exp)
+	expire := r.getExpire(timeoutSeconds)
 
 	if err = r.client.Set(ctx, key, value, expire).Err(); err != nil {
 		return wrapErr.Wrap(err, fmt.Sprintf("set key=%s, value=%v err", key, value))
@@ -265,15 +321,19 @@ func (r *RedisClient) SetWithNoExpire(key string, value interface{}) (err error)
 	return nil
 }
 
-// SetJson 设置Json, exp 单位: 秒
-func (r *RedisClient) SetJson(key string, value interface{}, exp int) (err error) {
+// SetJson 设置Json
+func (r *RedisClient) SetJson(key string, value interface{}, timeoutSeconds int) (err error) {
+
+	if value == nil {
+		return nil
+	}
 
 	str, err := serialize.Marshal(value)
 	if err != nil {
 		return err
 	}
 
-	return r.Set(key, str, exp)
+	return r.Set(key, str, timeoutSeconds)
 }
 
 // MSet 批量Set
@@ -569,6 +629,7 @@ func (r *RedisClient) LFirstMemberStr(key string) (types.NullString, error) {
 	return types.NewStrNull(), nil
 }
 
+// LFirstMemberInt 获取第一个元素, 如果值是nil, 代表列表为空或key不存在
 func (r *RedisClient) LFirstMemberInt(key string) (types.NullInt, error) {
 
 	result, err := r.LMembersInt(key, 0, 0)
@@ -1382,4 +1443,128 @@ func (r *RedisClient) ZRem(key string, members ...interface{}) (int64, error) {
 	}
 
 	return result, nil
+}
+
+// Pipeline 获取管道
+func (r *RedisClient) Pipeline() redis.Pipeliner {
+	pipeliner := r.client.Pipeline()
+	return pipeliner
+}
+
+// Scan 扫描
+func (r *RedisClient) Scan(cursor uint64, match string, count int64) ([]string, uint64, error) {
+	ctx := context.TODO()
+	keys, cur, err := r.client.Scan(ctx, cursor, match, count).Result()
+	return keys, cur, err
+}
+
+// ScanPattern 扫描key, 扫描整张表
+func (r *RedisClient) ScanPattern(match string, count int64, ch chan<- string, sleepSeconds int) {
+	var cursor uint64
+	sleepFlag := sleepSeconds > 0
+
+	for {
+		strings, temp, err := r.Scan(cursor, match, count)
+		if err != nil {
+			close(ch)
+			panic(err)
+		}
+
+		cursor = temp
+		for _, str := range strings {
+			ch <- str
+		}
+
+		if cursor == 0 {
+			close(ch)
+			break
+		}
+
+		if sleepFlag {
+			time.Sleep(time.Duration(sleepSeconds) * time.Second)
+		}
+	}
+}
+
+// SetArgs 设置
+// 如果设置了NX, 并且key已存在, 返回redis.Nil错误
+// 成功设置返回OK
+func (r *RedisClient) SetArgs(key string, value interface{}, args redis.SetArgs) (string, error) {
+	ctx := context.TODO()
+	result, err := r.client.SetArgs(ctx, key, value, args).Result()
+	return result, err
+}
+
+// GetClient 获取原生client
+func (r *RedisClient) GetClient() *redis.Client {
+	cli := r.client
+	return cli
+}
+
+// DoWithDistributeLock 使用分布式锁执行任务
+func (r *RedisClient) DoWithDistributeLock(req *DistributeKeyParam) error {
+	expireAt := time.Now().Add(req.AcquireTime).Unix()
+	value := nano.MustGetNanoId()
+
+	var acquire bool
+	for time.Now().Unix() <= expireAt {
+		if _, err := r.SetArgs(req.Key, value, redis.SetArgs{
+			Mode: "NX",
+			TTL:  req.LockTime,
+		}); err != nil {
+			time.Sleep(time.Duration(100) * time.Millisecond)
+			continue
+		}
+
+		acquire = true
+		break
+	}
+
+	if !acquire {
+		return AcquireLockFailed
+	}
+
+	ch := make(chan struct{})
+	go r.scheduleDistributeLock(req.Key, req.Period, req.LockTime, ch)
+	defer func() {
+		ch <- struct{}{}
+		ctx := context.TODO()
+		r.client.Eval(ctx, LuaScript, []string{req.Key}, value)
+	}()
+
+	return req.Fn()
+}
+
+// scheduleDistributeLock 添加定时任务, 定时给分布式Key重置过期时间
+func (r *RedisClient) scheduleDistributeLock(key string, period time.Duration, expire time.Duration, stopChan <-chan struct{}) {
+	t := time.NewTicker(period)
+
+	seconds := int64(expire.Seconds())
+	renewThreshold := seconds / 2
+	values := []interface{}{+renewThreshold, +seconds}
+
+	for {
+		select {
+		case <-t.C:
+			ctx := context.TODO()
+			result, err := r.client.Eval(ctx, RenewExpireScript, []string{key}, values...).Result()
+			if err != nil {
+				log.Errorf("renew expire failed, err=%v", err)
+			} else {
+				r := result.(int64)
+				switch r {
+				case KeyNoExists:
+					log.Debug("distribute key no exists")
+					return
+				case NoOperate:
+					log.Debug("no operate distribute key")
+				case ReNewExp:
+					log.Debug("renew expire")
+				}
+			}
+		case <-stopChan:
+			log.Debug("receive stop signal")
+			return
+		}
+	}
 }

@@ -1,6 +1,7 @@
 package integer
 
 import (
+	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"github.com/ehwjh2010/viper/verror"
 	"strconv"
 )
@@ -19,25 +20,12 @@ func Any2Int(v interface{}) (int, error) {
 }
 
 func MustAny2Int(v interface{}) int {
-	dst, _ := Any2Int(v)
+	dst := v.(int)
 	return dst
 }
 
 func Int2Any(v interface{}) interface{} {
 	return v
-}
-
-func Int2Str(v int) string {
-	str := strconv.Itoa(v)
-	return str
-}
-
-func Int32ToStr(v int32) string {
-	return Int64ToStr(int64(v))
-}
-
-func Int64ToStr(v int64) string {
-	return strconv.FormatInt(v, 10)
 }
 
 func IntSlice2Any(vs []int) []interface{} {
@@ -66,6 +54,35 @@ func AnySlice2Int(vs []interface{}) ([]int, error) {
 	return rs, nil
 }
 
+func MustAnySlice2Int(vs []interface{}) []int {
+	if vs == nil {
+		return nil
+	}
+
+	rs := make([]int, len(vs))
+	for i, v := range vs {
+		value, _ := Any2Int(v)
+		rs[i] = value
+	}
+
+	return rs
+}
+
+//=======================int与str转化=====================
+
+func Int2Str(v int) string {
+	str := strconv.Itoa(v)
+	return str
+}
+
+func Int32ToStr(v int32) string {
+	return Int64ToStr(int64(v))
+}
+
+func Int64ToStr(v int64) string {
+	return strconv.FormatInt(v, 10)
+}
+
 //=======================int32与interface转化=====================
 
 func Any2Int32(v interface{}) (int32, error) {
@@ -77,7 +94,7 @@ func Any2Int32(v interface{}) (int32, error) {
 }
 
 func MustAny2Int32(v interface{}) int32 {
-	dst, _ := Any2Int32(v)
+	dst := v.(int32)
 	return dst
 }
 
@@ -115,6 +132,20 @@ func SliceAny2Int32(vs []interface{}) ([]int32, error) {
 	return rs, nil
 }
 
+func MustAnySlice2Int32(vs []interface{}) []int32 {
+	if vs == nil {
+		return nil
+	}
+
+	rs := make([]int32, len(vs))
+	for i, v := range vs {
+		value := v.(int32)
+		rs[i] = value
+	}
+
+	return rs
+}
+
 //=======================int64与interface转化=====================
 
 func Any2Int64(v interface{}) (int64, error) {
@@ -126,7 +157,7 @@ func Any2Int64(v interface{}) (int64, error) {
 }
 
 func MustAny2Int64(v interface{}) int64 {
-	dst, _ := Any2Int64(v)
+	dst := v.(int64)
 	return dst
 }
 
@@ -156,14 +187,54 @@ func SliceAny2Int64(vs []interface{}) ([]int64, error) {
 	return rs, nil
 }
 
+func MustAnySlice2Int64(vs []interface{}) []int64 {
+	if vs == nil {
+		return nil
+	}
+
+	rs := make([]int64, len(vs))
+	for i, v := range vs {
+		value := v.(int64)
+		rs[i] = value
+	}
+
+	return rs
+}
+
 //=======================int与int32转化=========================
 
 func IntToInt32(v int) int32 {
 	return int32(v)
 }
 
+func SliceInt2Int32(vs []int) []int32 {
+	if collection.IsEmptyInt(vs) {
+		return nil
+	}
+
+	result := make([]int32, len(vs))
+	for idx, v := range vs {
+		result[idx] = int32(v)
+	}
+
+	return result
+}
+
 func Int32ToInt(v int32) int {
 	return int(v)
+}
+
+func SliceInt32Int(vs []int32) []int {
+	if collection.IsEmptyInt32(vs) {
+		return nil
+	}
+
+	result := make([]int, len(vs))
+	for idx, v := range vs {
+		result[idx] = int(v)
+	}
+
+	return result
 }
 
 //=======================int与int64转化=========================
@@ -172,8 +243,34 @@ func IntToInt64(v int) int64 {
 	return int64(v)
 }
 
+func SliceInt2Int64(vs []int) []int64 {
+	if collection.IsEmptyInt(vs) {
+		return nil
+	}
+
+	result := make([]int64, len(vs))
+	for idx, v := range vs {
+		result[idx] = int64(v)
+	}
+
+	return result
+}
+
 func Int64ToInt(v int64) int {
 	return int(v)
+}
+
+func SliceInt64TInt(vs []int64) []int {
+	if collection.IsEmptyInt64(vs) {
+		return nil
+	}
+
+	result := make([]int, len(vs))
+	for idx, v := range vs {
+		result[idx] = int(v)
+	}
+
+	return result
 }
 
 //=======================int32与int64转化=======================
@@ -182,49 +279,32 @@ func Int32ToInt64(v int32) int64 {
 	return int64(v)
 }
 
+func SliceInt32TInt64(vs []int32) []int64 {
+	if collection.IsEmptyInt32(vs) {
+		return nil
+	}
+
+	result := make([]int64, len(vs))
+	for idx, v := range vs {
+		result[idx] = int64(v)
+	}
+
+	return result
+}
+
 func Int64ToInt32(v int64) int32 {
 	return int32(v)
 }
 
-//=======================str与int转化=======================
-
-func Str2Int(v string) (int, error) {
-	return strconv.Atoi(v)
-}
-
-func MustStr2Int(v string) int {
-	dst, _ := Str2Int(v)
-	return dst
-}
-
-//=======================str与int32转化=======================
-
-func Str2Int32(v string) (int32, error) {
-	parseInt, err := strconv.ParseInt(v, 10, 32)
-	if err != nil {
-		return 0, err
+func SliceInt64TInt32(vs []int64) []int32 {
+	if collection.IsEmptyInt64(vs) {
+		return nil
 	}
 
-	return int32(parseInt), err
-}
-
-func MustStr2Int32(v string) int32 {
-	dst, _ := Str2Int32(v)
-	return dst
-}
-
-//=======================str与int64转化=======================
-
-func Str2Int64(v string) (int64, error) {
-	parseInt, err := strconv.ParseInt(v, 10, 64)
-	if err != nil {
-		return 0, err
+	result := make([]int32, len(vs))
+	for idx, v := range vs {
+		result[idx] = int32(v)
 	}
 
-	return parseInt, err
-}
-
-func MustStr2Int64(v string) int64 {
-	dst, _ := Str2Int64(v)
-	return dst
+	return result
 }

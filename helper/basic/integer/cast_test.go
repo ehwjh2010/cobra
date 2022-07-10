@@ -1,6 +1,7 @@
 package integer
 
 import (
+	"github.com/ehwjh2010/viper/helper/basic/str"
 	. "github.com/smartystreets/goconvey/convey"
 	"math"
 	"testing"
@@ -262,7 +263,7 @@ func TestStr2Int(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			dst, err := Str2Int(test.Value)
+			dst, err := str.Char2Int(test.Value)
 			So(err == nil, ShouldEqual, test.Success)
 			if test.Success {
 				So(dst, ShouldEqual, test.Dest)
@@ -282,7 +283,7 @@ func TestMustStr2Int(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			dst := MustStr2Int(test.Value)
+			dst := str.MustChar2Int(test.Value)
 			So(dst, ShouldEqual, test.Dest)
 		}
 	})
@@ -303,7 +304,7 @@ func TestStr2Int32(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			dst, err := Str2Int32(test.Value)
+			dst, err := str.Char2Int32(test.Value)
 			So(err == nil, ShouldEqual, test.Success)
 			if test.Success {
 				So(dst, ShouldEqual, test.Dest)
@@ -323,7 +324,7 @@ func TestMustStr2Int32(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			dst := MustStr2Int32(test.Value)
+			dst := str.MustChar2Int32(test.Value)
 			So(dst, ShouldEqual, test.Dest)
 		}
 	})
@@ -344,7 +345,7 @@ func TestStr2Int64(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			dst, err := Str2Int64(test.Value)
+			dst, err := str.Char2Int64(test.Value)
 			So(err == nil, ShouldEqual, test.Success)
 			if test.Success {
 				So(dst, ShouldEqual, test.Dest)
@@ -364,7 +365,7 @@ func TestMustStr2Int64(t *testing.T) {
 		}
 
 		for _, test := range tests {
-			dst := MustStr2Int64(test.Value)
+			dst := str.MustChar2Int64(test.Value)
 			So(dst, ShouldEqual, test.Dest)
 		}
 	})
