@@ -10,4 +10,6 @@ type GraceHttp struct {
 	WaitSecond int `json:"waitTime" yaml:"waitTime"`
 	// OnHookFunc 勾子函数
 	OnHookFunc
+
+	GraceGrpc *GraceGrpc
 }

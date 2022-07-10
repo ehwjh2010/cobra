@@ -175,7 +175,7 @@ func (c *DBClient) replaceDB() (bool, error) {
 	// 关闭之前的连接
 	_ = c.Close()
 	c.db = newDB
-	log.Info("reconnect db success")
+	log.Debug("reconnect db success")
 	return true, nil
 }
 

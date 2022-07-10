@@ -1,5 +1,7 @@
 package cache
 
+import "time"
+
 // Cache 缓存配置
 type Cache struct {
 	Network          string `yaml:"network" json:"network"`                   // 网络类型, tcp or unix，默认tcp
@@ -16,4 +18,14 @@ type Cache struct {
 	WriteTimeout     int    `yaml:"writeTimeout" json:"writeTimeout"`         // 写超时时间, 默认和ReadTimeout保持一致, 单位: 秒
 	BusyWaitTimeOut  int    `yaml:"busyWaitTimeOut" json:"busyWaitTimeOut"`   // 当所有连接都处在繁忙状态时, 客户端等待可用连接的最大等待时长，默认为3秒
 	MaxRetries       int    `yaml:"maxRetries" json:"maxRetries"`             // 最大尝试次数, -1表示不重试, 默认是3
+	PeriodMillSec    int    `yaml:"periodSeconds" json:"periodSeconds"`       // 分布式锁, 多久续一次分布式锁时长, 单位: ms, 默认是3s
+	AddMillSec       int    `yaml:"addSeconds" json:"addSeconds"`             // 分布式锁每次添加多长时间, 单位: ms, 默认是: 5s
+}
+
+type DistributeKeyParam struct {
+	Key         string        // 分布式Key
+	AcquireTime time.Duration // 获取锁超时时间
+	LockTime    time.Duration // 锁的超时时间
+	Period      time.Duration // watchDog多久执行一次
+	Fn          func() error  // 执行函数
 }

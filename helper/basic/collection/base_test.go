@@ -11,13 +11,13 @@ func TestIsEmptyAnySlice(t *testing.T) {
 		So(IsEmptyAny(demo), ShouldBeTrue)
 
 		demo = append(demo, 1)
-		So(IsEmptyAny(demo), ShouldBeFalse)
+		So(IsNotEmptyAny(demo), ShouldBeTrue)
 
 		demo2 := make([]interface{}, 0)
 		So(IsEmptyAny(demo2), ShouldBeTrue)
 
 		demo2 = append(demo2, 4)
-		So(IsEmptyAny(demo), ShouldBeFalse)
+		So(IsNotEmptyAny(demo), ShouldBeTrue)
 	})
 }
 
@@ -27,13 +27,13 @@ func TestIsEmptyBytesSlice(t *testing.T) {
 		So(IsEmptyBytes(demo), ShouldBeTrue)
 
 		demo = append(demo, '1')
-		So(IsEmptyBytes(demo), ShouldBeFalse)
+		So(IsNotEmptyBytes(demo), ShouldBeTrue)
 
 		demo2 := make([]byte, 0)
 		So(IsEmptyBytes(demo2), ShouldBeTrue)
 
 		demo2 = append(demo2, '4')
-		So(IsEmptyBytes(demo), ShouldBeFalse)
+		So(IsNotEmptyBytes(demo), ShouldBeTrue)
 	})
 }
 
@@ -43,13 +43,13 @@ func TestIsEmptyStrSlice(t *testing.T) {
 		So(IsEmptyStr(demo), ShouldBeTrue)
 
 		demo = append(demo, "!")
-		So(IsEmptyStr(demo), ShouldBeFalse)
+		So(IsNotEmptyStr(demo), ShouldBeTrue)
 
 		demo2 := make([]string, 0)
 		So(IsEmptyStr(demo2), ShouldBeTrue)
 
 		demo2 = append(demo2, "3")
-		So(IsEmptyStr(demo), ShouldBeFalse)
+		So(IsNotEmptyStr(demo), ShouldBeTrue)
 	})
 }
 
@@ -59,13 +59,13 @@ func TestIsEmptyIntSlice(t *testing.T) {
 		So(IsEmptyInt(demo), ShouldBeTrue)
 
 		demo = append(demo, 1)
-		So(IsEmptyInt(demo), ShouldBeFalse)
+		So(IsNotEmptyInt(demo), ShouldBeTrue)
 
 		demo2 := make([]int, 0)
 		So(IsEmptyInt(demo2), ShouldBeTrue)
 
 		demo2 = append(demo2, 3)
-		So(IsEmptyInt(demo), ShouldBeFalse)
+		So(IsNotEmptyInt(demo), ShouldBeTrue)
 	})
 }
 
@@ -75,13 +75,13 @@ func TestIsEmptyInt32Slice(t *testing.T) {
 		So(IsEmptyInt32(demo), ShouldBeTrue)
 
 		demo = append(demo, 1)
-		So(IsEmptyInt32(demo), ShouldBeFalse)
+		So(IsNotEmptyInt32(demo), ShouldBeTrue)
 
 		demo2 := make([]int32, 0)
 		So(IsEmptyInt32(demo2), ShouldBeTrue)
 
 		demo2 = append(demo2, 3)
-		So(IsEmptyInt32(demo), ShouldBeFalse)
+		So(IsNotEmptyInt32(demo), ShouldBeTrue)
 	})
 }
 
@@ -91,13 +91,13 @@ func TestIsEmptyInt64Slice(t *testing.T) {
 		So(IsEmptyInt64(demo), ShouldBeTrue)
 
 		demo = append(demo, 1)
-		So(IsEmptyInt64(demo), ShouldBeFalse)
+		So(IsNotEmptyInt64(demo), ShouldBeTrue)
 
 		demo2 := make([]int64, 0)
 		So(IsEmptyInt64(demo2), ShouldBeTrue)
 
 		demo2 = append(demo2, 3)
-		So(IsEmptyInt64(demo), ShouldBeFalse)
+		So(IsNotEmptyInt64(demo), ShouldBeTrue)
 	})
 }
 
@@ -107,12 +107,12 @@ func TestIsEmptyDoubleSlice(t *testing.T) {
 		So(IsEmptyDouble(demo), ShouldBeTrue)
 
 		demo = append(demo, 1.1)
-		So(IsEmptyDouble(demo), ShouldBeFalse)
+		So(IsNotEmptyDouble(demo), ShouldBeTrue)
 
 		demo2 := make([]float64, 0)
 		So(IsEmptyDouble(demo2), ShouldBeTrue)
 
 		demo2 = append(demo2, 3.333)
-		So(IsEmptyDouble(demo), ShouldBeFalse)
+		So(IsNotEmptyDouble(demo), ShouldBeTrue)
 	})
 }

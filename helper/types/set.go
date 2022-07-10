@@ -29,6 +29,42 @@ func NewSimpleSet() *Set {
 	}
 }
 
+func NewStrSet(vs ...string) *Set {
+	set := NewSimpleSet()
+	set.UpdateStrings(vs...)
+	return set
+}
+
+func NewIntSet(vs ...int) *Set {
+	set := NewSimpleSet()
+	set.UpdateInts(vs...)
+	return set
+}
+
+func NewInt32Set(vs ...int32) *Set {
+	set := NewSimpleSet()
+	set.UpdateInt32s(vs...)
+	return set
+}
+
+func NewInt64Set(vs ...int64) *Set {
+	set := NewSimpleSet()
+	set.UpdateInt64s(vs...)
+	return set
+}
+
+func NewFloat32Set(vs ...float32) *Set {
+	set := NewSimpleSet()
+	set.UpdateFloat32s(vs...)
+	return set
+}
+
+func NewFloat64Set(vs ...float64) *Set {
+	set := NewSimpleSet()
+	set.UpdateFloat64s(vs...)
+	return set
+}
+
 // Add 添加元素
 func (set *Set) Add(v interface{}) {
 	if set == nil {
@@ -275,7 +311,7 @@ func (set *Set) StrValues() ([]string, error) {
 	j := 0
 	keys := make([]string, len(set.data))
 	for k := range set.data {
-		v, err := str.Any2String(k)
+		v, err := str.Any2Char(k)
 		if err != nil {
 			return nil, err
 		}
@@ -294,7 +330,7 @@ func (set *Set) MustStrValues() []string {
 	j := 0
 	keys := make([]string, len(set.data))
 	for k := range set.data {
-		v := str.MustAny2String(k)
+		v := str.MustAny2Char(k)
 		keys[j] = v
 		j++
 	}

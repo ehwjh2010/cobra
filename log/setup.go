@@ -54,7 +54,7 @@ func InitLog(config Log, application string) error {
 
 	encoder := getEncoder(config.TimeFieldName, config.TimeLayout)
 	var l = new(zapcore.Level)
-	err = l.UnmarshalText(str.Str2Bytes(config.Level))
+	err = l.UnmarshalText(str.Char2Bytes(config.Level))
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func getWriters(conf *Log) (zapcore.WriteSyncer, error) {
 func init() {
 	_ = InitLog(Log{
 		Caller: DefaultCaller,
-		Level:  enums.DEBUG,
+		Level:  enums.INFO,
 	}, "application")
 }
 

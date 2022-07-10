@@ -66,7 +66,7 @@ func (app *App) Run() {
 	addr := fmt.Sprintf("%s:%d", app.setting.Host, app.setting.Port)
 
 	if app.setting.Swagger {
-		log.Info("Use swagger, url: " + fmt.Sprintf("http://%s%s", addr, constant.SwaggerAPIUrl))
+		log.Debug("Use swagger, url: " + fmt.Sprintf("http://%s%s", addr, constant.SwaggerAPIUrl))
 	}
 
 	s := &server.GraceHttp{
@@ -74,6 +74,7 @@ func (app *App) Run() {
 		Addr:       addr,
 		WaitSecond: app.setting.ShutDownTimeout,
 		OnHookFunc: app.setting.OnHookFunc,
+		GraceGrpc:  app.setting.GrpcConf,
 	}
 
 	log.FatalE(server.GraceHttpServer(s))

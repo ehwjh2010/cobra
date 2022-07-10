@@ -3,7 +3,6 @@
 8. 根据数据库自动生成结构体
 10. 日志输出到日志中心
 17. 定时器 https://github.com/robfig/cron,  https://segmentfault.com/a/1190000023029219,  https://mp.weixin.qq.com/s/Z4B7Tn8ikFIkXVGhXNbsVA
-24. gorm持续优化, 提供连表查询, 查询指定字段
 30. 框架层面支持traceID
 32. 支持更多中间件, 如: 鉴权, 限流, 追踪等
 33. 重连策略接口化
@@ -14,4 +13,5 @@
 
 优先级:
 4. 支持消息中间件kafka
-5. 流式操作
+7. 添加排序功能函数
+10. redis监听过期消息

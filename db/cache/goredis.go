@@ -127,4 +127,12 @@ func setRedisDefaultConf(conf *Cache) {
 	if conf.ConnMaxLifetime <= 0 {
 		conf.ConnMaxLifetime = connMaxLifetime
 	}
+
+	if conf.PeriodMillSec <= 0 {
+		conf.PeriodMillSec = 3000
+	}
+
+	if conf.AddMillSec <= 0 {
+		conf.AddMillSec = 5000
+	}
 }

@@ -19,6 +19,7 @@ type Setting struct {
 	Routine         routine.Routine   `json:"routine" yaml:"routine"`                 // 协程池配置
 	Middlewares     []gin.HandlerFunc // 中间件
 	OnHookFunc                        // server勾子函数
+	GrpcConf        *GraceGrpc        // grpc配置
 }
 
 // Arrange 处理零值及无效字段为默认值
