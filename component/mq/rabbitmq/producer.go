@@ -54,10 +54,8 @@ func (p *Producer) Start() error {
 
 	// 监听连接断开, 然后重连
 	go func() {
-		for {
-			<-p.conn.NotifyClose(make(chan *amqp.Error))
-			p.ReConnect()
-		}
+		<-p.conn.NotifyClose(make(chan *amqp.Error))
+		p.ReConnect()
 	}()
 
 	p.conn = conn

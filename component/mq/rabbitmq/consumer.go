@@ -66,10 +66,8 @@ func (c *Consumer) Start() error {
 
 	// 监听连接断开, 然后重连
 	go func() {
-		for {
-			<-c.conn.NotifyClose(make(chan *amqp.Error))
-			c.ReConnect()
-		}
+		<-c.conn.NotifyClose(make(chan *amqp.Error))
+		c.ReConnect()
 	}()
 
 	// 获取信道
