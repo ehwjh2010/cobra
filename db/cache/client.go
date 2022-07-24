@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	LuaScript = `
+	DelKeyScript = `
         if redis.call("get",KEYS[1]) == ARGV[1] then
             return redis.call("del",KEYS[1])
         else
@@ -1013,6 +1013,36 @@ func (r *RedisClient) HLen(key string) (int64, error) {
 	return count, nil
 }
 
+// HDel Redis命令hdel
+func (r *RedisClient) HDel(key string, fields ...string) (int64, error) {
+	ctx := context.TODO()
+
+	count, err := r.client.HDel(ctx, key, fields...).Result()
+
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+	}
+
+	return count, nil
+}
+
+// HExists Redis命令hexists
+func (r *RedisClient) HExists(key string, field string) (bool, error) {
+	ctx := context.TODO()
+
+	exists, err := r.client.HExists(ctx, key, field).Result()
+
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
 //===============================Command set===================================
 
 // SAdd Redis命令sadd
@@ -1512,8 +1542,12 @@ func (r *RedisClient) DoWithDistributeLock(req *DistributeKeyParam) error {
 			Mode: "NX",
 			TTL:  req.LockTime,
 		}); err != nil {
-			time.Sleep(time.Duration(100) * time.Millisecond)
-			continue
+			if errors.Is(err, redis.Nil) {
+				time.Sleep(time.Duration(100) * time.Millisecond)
+				continue
+			}
+
+			return err
 		}
 
 		acquire = true
@@ -1529,7 +1563,7 @@ func (r *RedisClient) DoWithDistributeLock(req *DistributeKeyParam) error {
 	defer func() {
 		ch <- struct{}{}
 		ctx := context.TODO()
-		r.client.Eval(ctx, LuaScript, []string{req.Key}, value)
+		r.client.Eval(ctx, DelKeyScript, []string{req.Key}, value)
 	}()
 
 	return req.Fn()
