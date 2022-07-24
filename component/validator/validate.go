@@ -83,7 +83,6 @@ func Translate(err error, tran ut.Translator) (errMsg string) {
 			tmp[field] = msg
 		}
 
-		//fmt.Println(tmp)
 		errMsg, _ = serialize.MarshalStr(tmp)
 
 	} else {
