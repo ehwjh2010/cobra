@@ -3,17 +3,15 @@ package requests
 import (
 	"errors"
 	"github.com/ehwjh2010/viper/constant"
+	"github.com/ehwjh2010/viper/helper/cookies"
+	"github.com/levigross/grequests"
 	"mime"
 	"net/http"
-	"strings"
-
-	"github.com/levigross/grequests"
 )
 
 var (
 	ErrNoDisposition    = errors.New("not found content disposition header")
 	ErrNotFoundDstField = errors.New("not found dst field")
-	ErrNoCookie         = errors.New("not found cookie")
 )
 
 type HTTPResponse struct {
@@ -62,14 +60,10 @@ func (resp *HTTPResponse) Header(name string) string {
 func (resp *HTTPResponse) Cookie(name string) (*http.Cookie, error) {
 	resp.parseCookie()
 
-	name = strings.ToUpper(name)
-	for _, c := range resp.cookies {
-		if strings.ToUpper(c.Name) == name {
-			return c, nil
-		}
-	}
+	cookieParser := cookies.NewCookieParser()
+	cookie, err := cookieParser.GetDestFromCookies(resp.cookies, name)
 
-	return nil, ErrNoCookie
+	return cookie, err
 }
 
 // Cookies 获取Cookies, 没有返回空切片
@@ -90,8 +84,9 @@ func (resp *HTTPResponse) parseCookie() {
 		return
 	}
 
-	cookies := CookieStr2Cookie(cookieStr)
-	resp.cookies = cookies
+	cookieParser := cookies.NewCookieParser()
+	cookie := cookieParser.ParseRawCookie(cookieStr)
+	resp.cookies = cookie
 	resp.parseCookieFlag = true
 }
 
