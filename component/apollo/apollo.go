@@ -16,20 +16,23 @@ type Client struct {
 }
 
 func NewClient(cli agollo.Client, rawConfig *ApolloConfig) *Client {
-
 	cache := cli.GetConfigCache(rawConfig.NamespaceName)
 
 	return &Client{cli: cli, rawConfig: rawConfig, cache: cache}
 }
 
-// GetString 获取配置
+// GetString
+// 获取配置
 func (i *Client) GetString(key string) (string, error) {
 	v, err := i.cache.Get(key)
 	if err != nil {
 		return "", err
 	}
 
-	value := v.(string)
+	value, ok := v.(string)
+	if !ok {
+		return "", err
+	}
 	return value, err
 }
 
