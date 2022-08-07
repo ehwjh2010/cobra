@@ -1,34 +1,15 @@
 package verror
 
 import (
-	"fmt"
+	"errors"
 )
 
-type CastError struct {
-	Value interface{}
-	Desc  string
-}
-
-func (c CastError) Error() string {
-	return fmt.Sprintf("%v %s", c.Value, c.Desc)
-}
-
-func NewCastError(value interface{}, desc string) *CastError {
-	return &CastError{Value: value, Desc: desc}
-}
-
-func CastBoolError(value interface{}) error {
-	return NewCastError(value, "cast bool error")
-}
-
-func CastDoubleError(value interface{}) error {
-	return NewCastError(value, "cast double error")
-}
-
-func CastIntegerError(value interface{}) error {
-	return NewCastError(value, "cast integer error")
-}
-
-func CastStringError(value interface{}) error {
-	return NewCastError(value, "cast string error")
-}
+var (
+	CastStrErr      = errors.New("convert str failed")
+	CastStrSliceErr = errors.New("convert str slice failed")
+	CastBoolErr     = errors.New("convert bool failed")
+	CastIntErr      = errors.New("convert int failed")
+	CastInt32Err    = errors.New("convert int32 failed")
+	CastInt64Err    = errors.New("convert int64 failed")
+	CastFloat64Err  = errors.New("convert float64 failed")
+)

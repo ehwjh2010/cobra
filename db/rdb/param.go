@@ -17,7 +17,7 @@ type Callback struct {
 
 // DB 数据库配置
 // Mysql Url eg: root:my_pass@tcp(127.0.0.1:3306)/my_db?charset=utf8mb4&parseTime=True&loc=UTC
-// Postgres Url eg: `host=127.0.0.1 user=root password=my_pass dbname=my_db port=5432 sslmode=disable TimeZone=UTC`
+// Postgres Url eg: `host=127.0.0.1 user=root password=my_pass dbname=my_db port=5432 sslmode=disable TimeZone=UTC`.
 type DB struct {
 	Url              string   `yaml:"url" json:"url"`                           // 写节点Url
 	Replicas         []string `yaml:"replicas" json:"replicas"`                 // 读节点Url

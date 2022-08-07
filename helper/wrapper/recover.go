@@ -1,9 +1,10 @@
 package wrapper
 
 import (
+	"runtime/debug"
+
 	"github.com/ehwjh2010/viper/log"
 	"go.uber.org/zap"
-	"runtime/debug"
 )
 
 func PanicHandler() {

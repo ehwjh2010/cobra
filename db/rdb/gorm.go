@@ -2,18 +2,17 @@ package rdb
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/enums"
 	"time"
 
+	"github.com/ehwjh2010/viper/enums"
+	"github.com/ehwjh2010/viper/helper/basic/str"
+	"github.com/ehwjh2010/viper/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 	"gorm.io/plugin/dbresolver"
-
-	"github.com/ehwjh2010/viper/helper/basic/str"
-	"github.com/ehwjh2010/viper/log"
 )
 
 const defaultCreateBatchSize = 1000
@@ -65,15 +64,15 @@ func InitDBWithGorm(dbConfig DB, dbType enums.DBType) (*gorm.DB, error) {
 		readerDialectors := make([]gorm.Dialector, len(dbConfig.Replicas))
 
 		for index, replica := range dbConfig.Replicas {
-			readerDialector, err := getDialector(replica, dbType)
-			if err != nil {
-				return nil, err
+			readerDialector, dialErr := getDialector(replica, dbType)
+			if dialErr != nil {
+				return nil, dialErr
 			}
 			readerDialectors[index] = readerDialector
 		}
 
 		// 设置读写节点
-		err := db.Use(dbresolver.Register(
+		useErr := db.Use(dbresolver.Register(
 			dbresolver.Config{
 				// 写节点
 				Sources: []gorm.Dialector{writeDialector},
@@ -91,8 +90,8 @@ func InitDBWithGorm(dbConfig DB, dbType enums.DBType) (*gorm.DB, error) {
 			// 设置连接最大存活时间
 			SetConnMaxLifetime(connMaxLifetime))
 
-		if err != nil {
-			return nil, err
+		if useErr != nil {
+			return nil, useErr
 		}
 	}
 
@@ -235,6 +234,9 @@ func InitDBWithGorm(dbConfig DB, dbType enums.DBType) (*gorm.DB, error) {
 
 func getDialector(url string, dbType enums.DBType) (gorm.Dialector, error) {
 	switch dbType {
+	case enums.Sqlite:
+		return nil, UnsupportedDBType
+
 	case enums.Mysql:
 		return mysql.Open(url), nil
 

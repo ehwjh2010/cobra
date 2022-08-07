@@ -4,7 +4,7 @@ import "time"
 
 const BJ = "Asia/Shanghai"
 
-// 常用时间 以下时间都是以秒为单位
+// 常用时间 以下时间都是以秒为单位.
 const (
 	ZeroSecond    = 0
 	OneSecond     = 1
@@ -34,7 +34,7 @@ const (
 	OneDay     = 24 * OneHour
 )
 
-// 常用时间 以下时间都是以time.Duration为单位
+// 常用时间 以下时间都是以time.Duration为单位.
 const (
 	ZeroSecD    = time.Duration(0)
 	OneSecD     = time.Duration(1) * time.Second

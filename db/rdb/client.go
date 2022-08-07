@@ -3,24 +3,23 @@ package rdb
 import (
 	"context"
 	"errors"
-	"github.com/ehwjh2010/viper/enums"
-	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"strings"
 	"time"
 
+	"github.com/ehwjh2010/viper/component/routine"
+	"github.com/ehwjh2010/viper/enums"
+	"github.com/ehwjh2010/viper/helper/basic/collection"
+	"github.com/ehwjh2010/viper/helper/basic/str"
+	"github.com/ehwjh2010/viper/log"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/plugin/dbresolver"
-
-	"github.com/ehwjh2010/viper/component/routine"
-	"github.com/ehwjh2010/viper/helper/basic/str"
-	"github.com/ehwjh2010/viper/log"
 )
 
 const (
-	// ASC 正序
+	// ASC 正序.
 	ASC = "asc"
-	// DESC 倒序
+	// DESC 倒序.
 	DESC = "desc"
 )
 
@@ -93,7 +92,7 @@ func (c *DBClient) RawConfig() DB {
 	return c.rawConfig
 }
 
-// Heartbeat 检测心跳
+// Heartbeat 检测心跳.
 func (c *DBClient) Heartbeat() error {
 	db, err := c.db.DB()
 	if err != nil {
@@ -103,7 +102,7 @@ func (c *DBClient) Heartbeat() error {
 	return db.Ping()
 }
 
-// WatchHeartbeat 监测心跳和重连
+// WatchHeartbeat 监测心跳和重连.
 func (c *DBClient) WatchHeartbeat() {
 	// TODO 重连逻辑接口化
 	fn := func() {
@@ -164,7 +163,7 @@ func (c *DBClient) WatchHeartbeat() {
 	}
 }
 
-// replaceDB 替换client内部的db对象
+// replaceDB 替换client内部的db对象.
 func (c *DBClient) replaceDB() (bool, error) {
 	newDB, err := InitDBWithGorm(c.rawConfig, c.DBType)
 	if err != nil {
@@ -181,7 +180,7 @@ func (c *DBClient) replaceDB() (bool, error) {
 
 // TODO Where 指定字段, 连表查询, 聚合查询, GROUP BY, HAVING, DISTINCT, COUNT, JOIN
 
-// Or 添加Or条件
+// Or 添加Or条件.
 func (where *Where) Or(w *Where) *Where {
 	if w != nil {
 		where.Ors = append(where.Ors, w)
@@ -190,67 +189,67 @@ func (where *Where) Or(w *Where) *Where {
 	return where
 }
 
-// NewWhere 设置查询条件
+// NewWhere 设置查询条件.
 func NewWhere(column string, value interface{}, sign string) *Where {
 	return &Where{Column: column, Value: value, Sign: sign}
 }
 
-// NewEqWhere =
+// NewEqWhere =.
 func NewEqWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Eq}
 }
 
-// NewNotEqWhere !=
+// NewNotEqWhere !=.
 func NewNotEqWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Neq}
 }
 
-// NewGtWhere >
+// NewGtWhere >.
 func NewGtWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Gt}
 }
 
-// NewGteWhere >=
+// NewGteWhere >=.
 func NewGteWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Gte}
 }
 
-// NewLteWhere <=
+// NewLteWhere <=.
 func NewLteWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Lte}
 }
 
-// NewLtWhere <
+// NewLtWhere <.
 func NewLtWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: Lt}
 }
 
-// NewInWhere in
+// NewInWhere in.
 func NewInWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: In}
 }
 
-// NewNotInWhere not in
+// NewNotInWhere not in.
 func NewNotInWhere(column string, value interface{}) *Where {
 	return &Where{Column: column, Value: value, Sign: NotIn}
 }
 
-// NewLikeWhere 模糊查询 %demo%
+// NewLikeWhere 模糊查询 %demo%.
 func NewLikeWhere(column string, value string) *Where {
 	return &Where{Column: column, Value: `%` + value + `%`, Sign: Like}
 }
 
-// NewLeftLikeWhere 模糊查询 %demo
+// NewLeftLikeWhere 模糊查询 %demo.
 func NewLeftLikeWhere(column string, value string) *Where {
 	return &Where{Column: column, Value: `%` + value, Sign: Like}
 }
 
-// NewRightLikeWhere 模糊查询 demo%
+// NewRightLikeWhere 模糊查询 demo%.
 func NewRightLikeWhere(column string, value string) *Where {
 	return &Where{Column: column, Value: value + `%`, Sign: Like}
 }
 
-// ToSQL 获取SQL
+// ToSQL 获取SQL.
 func (where *Where) ToSQL() (pattern string, value interface{}) {
 	pattern = where.Column + " " + where.Sign + " " + "?"
 	value = where.Value
@@ -268,25 +267,25 @@ func (o Order) String() string {
 	return "order by " + o.Column + " " + o.Sort
 }
 
-// NewOrder 正排序 order by asc
+// NewOrder 正排序 order by asc.
 func NewOrder(column string) (order *Order) {
 	order = &Order{Column: column, Sort: ASC}
 	return order
 }
 
-// NewDescOrder 逆排序 order by desc
+// NewDescOrder 逆排序 order by desc.
 func NewDescOrder(column string) (order *Order) {
 	order = &Order{Column: column, Sort: DESC}
 	return order
 }
 
-// description 获取排序SQL
+// description 获取排序SQL.
 func (o *Order) description() (description string) {
 	description = o.Column + " " + o.Sort
 	return description
 }
 
-// QueryCondition 查询条件
+// QueryCondition 查询条件.
 type QueryCondition struct {
 	//Where 查询条件
 	Where []*Where
@@ -316,7 +315,7 @@ func NewQueryCondition() *QueryCondition {
 	return cond
 }
 
-// AddWhere 添加条件
+// AddWhere 添加条件.
 func (qc *QueryCondition) AddWhere(where *Where) *QueryCondition {
 	if where != nil {
 		qc.Where = append(qc.Where, where)
@@ -324,7 +323,7 @@ func (qc *QueryCondition) AddWhere(where *Where) *QueryCondition {
 	return qc
 }
 
-// AddSort 添加排序
+// AddSort 添加排序.
 func (qc *QueryCondition) AddSort(sort *Order) *QueryCondition {
 	if sort != nil {
 		qc.Sort = append(qc.Sort, sort)
@@ -332,25 +331,25 @@ func (qc *QueryCondition) AddSort(sort *Order) *QueryCondition {
 	return qc
 }
 
-// SetPage 设置页数
+// SetPage 设置页数.
 func (qc *QueryCondition) SetPage(page int) *QueryCondition {
 	qc.Page = page
 	return qc
 }
 
-// SetPageSize 设置每页数量
+// SetPageSize 设置每页数量.
 func (qc *QueryCondition) SetPageSize(pageSize int) *QueryCondition {
 	qc.PageSize = pageSize
 	return qc
 }
 
-// SetTotalCount 设置是否查询总数
+// SetTotalCount 设置是否查询总数.
 func (qc *QueryCondition) SetTotalCount(query bool) *QueryCondition {
 	qc.TotalCount = query
 	return qc
 }
 
-// orderStr 获取Order排序
+// orderStr 获取Order排序.
 func (qc *QueryCondition) orderStr() string {
 	if qc.Sort == nil {
 		return ""
@@ -369,7 +368,7 @@ func (qc *QueryCondition) orderStr() string {
 	return result
 }
 
-// GetOffset 获取偏移量
+// GetOffset 获取偏移量.
 func (qc *QueryCondition) GetOffset() (offset int) {
 
 	if qc.Offset > 0 {
@@ -383,7 +382,7 @@ func (qc *QueryCondition) GetOffset() (offset int) {
 	return 0
 }
 
-// GetLimit 获取偏移量
+// GetLimit 获取偏移量.
 func (qc *QueryCondition) GetLimit() (limit int) {
 
 	if qc.Limit > 0 {
@@ -397,7 +396,7 @@ func (qc *QueryCondition) GetLimit() (limit int) {
 	return 0
 }
 
-// getOffsetByPage 获取偏移量
+// getOffsetByPage 获取偏移量.
 func (qc *QueryCondition) getOffsetByPage() (offset int) {
 	if qc.Page < 1 {
 		return 0
@@ -408,12 +407,12 @@ func (qc *QueryCondition) getOffsetByPage() (offset int) {
 	return offset
 }
 
-// getLimitByPage 获取Limit
+// getLimitByPage 获取Limit.
 func (qc *QueryCondition) getLimitByPage() (limit int) {
 	return qc.PageSize
 }
 
-// unexpectErr 判断是否为预期外的错误
+// unexpectErr 判断是否为预期外的错误.
 func (c *DBClient) unexpectErr(tx *gorm.DB, excludeErrs ...error) bool {
 
 	if tx.Error == nil {
@@ -468,7 +467,7 @@ func (c *DBClient) QueryByPrimaryKey(pkColumnName string, pkValue, pointer inter
 
 // QueryById 通过主键查询
 // exist 记录是否存在
-// err 发生的错误
+// err 发生的错误.
 func (c *DBClient) QueryById(id int64, pointer interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
@@ -477,7 +476,7 @@ func (c *DBClient) QueryById(id int64, pointer interface{}, opts ...OptDBFunc) (
 	return c.Check(tx)
 }
 
-// QueryByIds 通过主键查询
+// QueryByIds 通过主键查询.
 func (c *DBClient) QueryByIds(ids []int64, pointers interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
@@ -486,7 +485,7 @@ func (c *DBClient) QueryByIds(ids []int64, pointers interface{}, opts ...OptDBFu
 	return c.Check(tx)
 }
 
-// Query 查询
+// Query 查询.
 func (c *DBClient) Query(modelPtr interface{}, condition *QueryCondition, dst interface{}, opts ...OptDBFunc) (totalCount int64, err error) {
 	db := c.getReadDB(opts...)
 
@@ -532,7 +531,7 @@ func (c *DBClient) Query(modelPtr interface{}, condition *QueryCondition, dst in
 
 }
 
-// QueryCount 查询数量
+// QueryCount 查询数量.
 func (c *DBClient) QueryCount(modelPtr interface{}, condition *QueryCondition, opts ...OptDBFunc) (count int64, err error) {
 	db := c.getReadDB(opts...)
 
@@ -562,7 +561,7 @@ func (c *DBClient) QueryCount(modelPtr interface{}, condition *QueryCondition, o
 
 }
 
-// QueryByStruct 通过结构体查询, 结构体字段为零值的字段, 不会作为条件
+// QueryByStruct 通过结构体查询, 结构体字段为零值的字段, 不会作为条件.
 func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
@@ -571,7 +570,7 @@ func (c *DBClient) QueryByStruct(condition interface{}, dst interface{}, opts ..
 	return c.Check(tx)
 }
 
-// QueryByMap 通过Map查询
+// QueryByMap 通过Map查询.
 func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{}, modelPtr interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
@@ -580,7 +579,7 @@ func (c *DBClient) QueryByMap(condition map[string]interface{}, dst interface{},
 	return c.Check(tx)
 }
 
-// First 查询第一条记录
+// First 查询第一条记录.
 func (c *DBClient) First(condition interface{}, pointer interface{}, modelPtr interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
@@ -589,7 +588,7 @@ func (c *DBClient) First(condition interface{}, pointer interface{}, modelPtr in
 	return c.Check(tx, gorm.ErrRecordNotFound)
 }
 
-// Last 查询最后一条记录
+// Last 查询最后一条记录.
 func (c *DBClient) Last(condition interface{}, pointer interface{}, modelPtr interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	db := c.getReadDB(opts...)
 
@@ -598,13 +597,13 @@ func (c *DBClient) Last(condition interface{}, pointer interface{}, modelPtr int
 	return c.Check(tx, gorm.ErrRecordNotFound)
 }
 
-// Exist 记录是否存在
+// Exist 记录是否存在.
 func (c *DBClient) Exist(condition map[string]interface{}, modelPtr interface{}, dst interface{}, opts ...OptDBFunc) (exist bool, err error) {
 	return c.First(condition, dst, modelPtr)
 }
 
 // AddRecord 添加记录
-// data 结构体指针
+// data 结构体指针.
 func (c *DBClient) AddRecord(data interface{}, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
@@ -613,7 +612,7 @@ func (c *DBClient) AddRecord(data interface{}, opts ...OptDBFunc) error {
 	return tx.Error
 }
 
-//AddRecords 批量添加记录
+// AddRecords 批量添加记录.
 func (c *DBClient) AddRecords(data interface{}, batchSize int, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
@@ -624,7 +623,7 @@ func (c *DBClient) AddRecords(data interface{}, batchSize int, opts ...OptDBFunc
 
 // UpdateById 根据主键更新
 // data为结构体指针时, 结构体零值字段不会被更新
-// data为`map`时, 更具`map`更新属性
+// data为`map`时, 更具`map`更新属性.
 func (c *DBClient) UpdateById(modelPtr interface{}, id int64, data interface{}, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
@@ -637,7 +636,7 @@ func (c *DBClient) UpdateById(modelPtr interface{}, id int64, data interface{}, 
 // 如果想无条件更新, 请使用updateRecordWithoutCond
 // modelPtr  表名
 // dstValue	 struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
-// condition	 struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件
+// condition	 struct时, 只会把非零字段当做条件; map 时, 根据 `map` 设置条件.
 func (c *DBClient) UpdateRecord(modelPtr interface{}, condition interface{}, dstValue interface{}, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
@@ -648,7 +647,7 @@ func (c *DBClient) UpdateRecord(modelPtr interface{}, condition interface{}, dst
 
 // UpdateRecordNoCond 无条件更新记录
 // modelPtr 模型
-// dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性
+// dstValue,  struct时, 只会更新非零字段; map 时, 根据 `map` 更新属性.
 func (c *DBClient) UpdateRecordNoCond(modelPtr interface{}, dstValue interface{}, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
@@ -658,7 +657,7 @@ func (c *DBClient) UpdateRecordNoCond(modelPtr interface{}, dstValue interface{}
 }
 
 // Save 保存记录, 会保存所有的字段，即使字段是零值
-// ptr 必须是struct指针
+// ptr 必须是struct指针.
 func (c *DBClient) Save(ptr interface{}, opts ...OptDBFunc) error {
 	db := c.getWriteDB(opts...)
 
@@ -667,7 +666,7 @@ func (c *DBClient) Save(ptr interface{}, opts ...OptDBFunc) error {
 	return tx.Error
 }
 
-// getWriteDB 获取写节点DB
+// getWriteDB 获取写节点DB.
 func (c *DBClient) getWriteDB(optFns ...OptDBFunc) *gorm.DB {
 
 	if !collection.IsEmptyStr(c.rawConfig.Replicas) {
@@ -677,7 +676,7 @@ func (c *DBClient) getWriteDB(optFns ...OptDBFunc) *gorm.DB {
 	return c.getDB(optFns...)
 }
 
-// getReadDB 获取读节点DB
+// getReadDB 获取读节点DB.
 func (c *DBClient) getReadDB(optFns ...OptDBFunc) *gorm.DB {
 
 	if !collection.IsEmptyStr(c.rawConfig.Replicas) {
@@ -698,12 +697,12 @@ func (c *DBClient) getDB(optFns ...OptDBFunc) *gorm.DB {
 	return db
 }
 
-// GetWriteDB 获取写节点DB对象
+// GetWriteDB 获取写节点DB对象.
 func (c *DBClient) GetWriteDB(optFns ...OptDBFunc) *gorm.DB {
 	return c.getWriteDB(optFns...)
 }
 
-// GetReadDB 获取读节点DB对象
+// GetReadDB 获取读节点DB对象.
 func (c *DBClient) GetReadDB(optFns ...OptDBFunc) *gorm.DB {
 	return c.getReadDB(optFns...)
 }
@@ -719,7 +718,7 @@ func (c *DBClient) DelRecordsByIds(modelPtr interface{}, ids []int64) (int64, er
 // DelRecords 逻辑删除
 // modelPtr 模型指针
 // condition 删除条件
-// extraData 额外更新数据
+// extraData 额外更新数据.
 func (c *DBClient) DelRecords(modelPtr interface{}, condition interface{}, extraData map[string]interface{}) (int64, error) {
 	updateData := map[string]interface{}{
 		"deleted_at": time.Now(),
@@ -750,7 +749,7 @@ func (c *DBClient) DelRecords(modelPtr interface{}, condition interface{}, extra
 	return delCount, nil
 }
 
-// RecoverRecords 恢复记录
+// RecoverRecords 恢复记录.
 func (c *DBClient) RecoverRecords(modelPtr interface{}, condition interface{}, extraData map[string]interface{}) (int64, error) {
 	updateData := map[string]interface{}{
 		"deleted_at": gorm.Expr("NULL"),
@@ -781,7 +780,7 @@ func (c *DBClient) RecoverRecords(modelPtr interface{}, condition interface{}, e
 	return recoverCount, nil
 }
 
-// Close 关闭连接池
+// Close 关闭连接池.
 func (c *DBClient) Close() error {
 	if c.db == nil {
 		return nil

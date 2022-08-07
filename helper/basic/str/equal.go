@@ -20,8 +20,8 @@ func sliceStrEqual(v1, v2 []string, strict bool) bool {
 	}
 
 	if !strict {
-		sort.Sort(sort.StringSlice(v1))
-		sort.Sort(sort.StringSlice(v2))
+		sort.Strings(v1)
+		sort.Strings(v2)
 	}
 
 	// 遍历比较内部元素
@@ -39,7 +39,7 @@ func SliceStrEqualStrict(v1, v2 []string) bool {
 	return sliceStrEqual(v1, v2, true)
 }
 
-// SliceStrEqual 该方法会影响原来的排序
+// SliceStrEqual 该方法会影响原来的排序.
 func SliceStrEqual(v1, v2 []string) bool {
 	return sliceStrEqual(v1, v2, false)
 }

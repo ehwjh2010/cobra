@@ -22,7 +22,7 @@ type Setting struct {
 	GrpcConf        *GraceGrpc        // grpc配置
 }
 
-// Arrange 处理零值及无效字段为默认值
+// Arrange 处理零值及无效字段为默认值.
 func (s *Setting) Arrange() {
 	if s.Host == "" {
 		s.Host = "127.0.0.1"

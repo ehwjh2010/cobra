@@ -1,18 +1,17 @@
 package log
 
 import (
-	"github.com/ehwjh2010/viper/constant"
 	"io"
 	"os"
 
-	"github.com/natefinch/lumberjack"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
+	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
+	"github.com/natefinch/lumberjack"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -28,7 +27,7 @@ var (
 	writer          io.Writer
 )
 
-// InitLog 初始化Logger
+// InitLog 初始化Logger.
 func InitLog(config Log, application string) error {
 	if str.IsNotEmpty(config.FileDir) {
 		logFilePath, err := path.Relative2Abs(config.FileDir)

@@ -4,10 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ehwjh2010/viper/helper/cp"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-
-	"github.com/ehwjh2010/viper/helper/cp"
 )
 
 var DefaultAllowHeaders = []string{

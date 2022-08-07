@@ -1,15 +1,16 @@
 package boolean
 
 import (
-	"github.com/ehwjh2010/viper/verror"
 	"strconv"
+
+	"github.com/ehwjh2010/viper/verror"
 )
 
 //=================bool与interface转化================
 
 func Any2Bool(v interface{}) (bool, error) {
 	if dst, ok := v.(bool); !ok {
-		return false, verror.CastBoolError(v)
+		return false, verror.CastBoolErr
 	} else {
 		return dst, nil
 	}
@@ -17,14 +18,6 @@ func Any2Bool(v interface{}) (bool, error) {
 
 func MustAny2Bool(v interface{}) bool {
 	dst, _ := v.(bool)
-	return dst
-}
-
-func SliceBool2Any(v []bool) []interface{} {
-	dst := make([]interface{}, len(v))
-	for idx, val := range v {
-		dst[idx] = val
-	}
 	return dst
 }
 

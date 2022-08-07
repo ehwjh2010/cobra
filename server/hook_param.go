@@ -6,7 +6,7 @@ import (
 
 type HookHandler func() error
 
-// OnHookFunc 勾子结构体
+// OnHookFunc 勾子结构体.
 type OnHookFunc struct {
 	// StartUp 服务启动前执行函数
 	StartUp []HookHandler
@@ -14,7 +14,7 @@ type OnHookFunc struct {
 	ShutDown []HookHandler
 }
 
-// invokeFunc 执行函数
+// invokeFunc 执行函数.
 func (h OnHookFunc) invokeFunc(functions []HookHandler) error {
 	if functions == nil {
 		return nil
@@ -33,12 +33,12 @@ func (h OnHookFunc) invokeFunc(functions []HookHandler) error {
 	return multiErr.AsStdErr()
 }
 
-// ExecuteStartUp 执行启动前操作
+// ExecuteStartUp 执行启动前操作.
 func (h OnHookFunc) ExecuteStartUp() error {
 	return h.invokeFunc(h.StartUp)
 }
 
-// ExecuteShutDown 执行结束后操作
+// ExecuteShutDown 执行结束后操作.
 func (h OnHookFunc) ExecuteShutDown() error {
 	return h.invokeFunc(h.ShutDown)
 }

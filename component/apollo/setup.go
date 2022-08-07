@@ -6,7 +6,7 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
-// SetUp 初始化apollo
+// SetUp 初始化apollo.
 func SetUp(conf *ApolloConfig, logger log.LoggerInterface) (*Client, error) {
 
 	if logger != nil {

@@ -2,7 +2,7 @@ package cache
 
 import "time"
 
-// Cache 缓存配置
+// Cache 缓存配置.
 type Cache struct {
 	Network          string `yaml:"network" json:"network"`                   // 网络类型, tcp or unix，默认tcp
 	Addr             string `yaml:"addr" json:"addr"`                         // Redis地址 eg: localhost:6379

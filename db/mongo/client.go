@@ -3,13 +3,12 @@ package mongo
 import (
 	"context"
 	"errors"
-	"github.com/ehwjh2010/viper/enums"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-
 	"github.com/ehwjh2010/viper/component/routine"
+	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/log"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Client struct {
@@ -24,12 +23,12 @@ func NewClient(cli *mongo.Client, db *mongo.Database, rawConfig Mongo) *Client {
 	return &Client{db: db, rawConfig: rawConfig, cli: cli}
 }
 
-// Heartbeat ping连接
+// Heartbeat ping连接.
 func (c *Client) Heartbeat() error {
 	return c.cli.Ping(context.TODO(), nil)
 }
 
-// WatchHeartbeat 监测心跳和重连
+// WatchHeartbeat 监测心跳和重连.
 func (c *Client) WatchHeartbeat() {
 	// TODO 监测逻辑接口化
 
@@ -90,12 +89,12 @@ func (c *Client) WatchHeartbeat() {
 	}
 }
 
-// Close 关闭连接
+// Close 关闭连接.
 func (c *Client) Close() error {
 	return c.cli.Disconnect(context.TODO())
 }
 
-// replaceDB 替换内部连接
+// replaceDB 替换内部连接.
 func (c *Client) replaceDB() (bool, error) {
 	cli, db, err := setup(c.rawConfig)
 	if err != nil {
@@ -116,7 +115,7 @@ func (c *Client) getDB() *mongo.Database {
 	return db
 }
 
-// GetDB 获取原生db
+// GetDB 获取原生db.
 func (c *Client) GetDB() *mongo.Database {
 	return c.getDB()
 }

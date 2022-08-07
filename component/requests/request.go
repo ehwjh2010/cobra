@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/levigross/grequests"
-
 	"github.com/ehwjh2010/viper/helper/types"
+	"github.com/levigross/grequests"
 )
 
 type HTTPRequest struct {
@@ -41,7 +40,7 @@ func RWithContext(ctx context.Context) ROpt {
 	}
 }
 
-// RWithRetry 设置重试次数, 必须>=0
+// RWithRetry 设置重试次数, 必须>=0.
 func RWithRetry(times int) ROpt {
 	return func(r *HTTPRequest) {
 		if times < 0 {
@@ -105,7 +104,7 @@ func RWithFiles(files []*FileUpload) ROpt {
 	}
 }
 
-// toInternal 转换为RequestOptions
+// toInternal 转换为RequestOptions.
 func (r *HTTPRequest) toInternal() *grequests.RequestOptions {
 	if r == nil {
 		return nil

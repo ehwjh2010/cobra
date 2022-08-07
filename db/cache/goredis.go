@@ -2,12 +2,11 @@ package cache
 
 import (
 	"context"
-	"github.com/ehwjh2010/viper/enums"
 	"time"
 
-	"github.com/go-redis/redis/v8"
-
+	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/helper/basic/str"
+	"github.com/go-redis/redis/v8"
 )
 
 const (

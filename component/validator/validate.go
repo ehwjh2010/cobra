@@ -1,9 +1,10 @@
 package validator
 
 import (
-	"github.com/ehwjh2010/viper/constant"
 	"strings"
 
+	"github.com/ehwjh2010/viper/constant"
+	"github.com/ehwjh2010/viper/helper/serialize"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
@@ -12,11 +13,9 @@ import (
 	en2 "github.com/go-playground/validator/v10/translations/en"
 	zh2 "github.com/go-playground/validator/v10/translations/zh"
 	"github.com/pkg/errors"
-
-	"github.com/ehwjh2010/viper/helper/serialize"
 )
 
-// RegisterTrans 定义翻译的方法
+// RegisterTrans 定义翻译的方法.
 func RegisterTrans(language string) (translator ut.Translator, err error) {
 	var trans ut.Translator
 
@@ -64,7 +63,7 @@ func RegisterTrans(language string) (translator ut.Translator, err error) {
 	return trans, nil
 }
 
-// Translate 翻译错误信息
+// Translate 翻译错误信息.
 func Translate(err error, tran ut.Translator) (errMsg string) {
 	if err == nil || tran == nil {
 		return

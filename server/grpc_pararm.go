@@ -10,7 +10,7 @@ import (
 
 type HttpHandler func(context.Context, *runtime.ServeMux, string, []grpc.DialOption) error
 
-// GraceGrpc grpc启动配置
+// GraceGrpc grpc启动配置.
 type GraceGrpc struct {
 	// Addr grpc地址, eg: ":7777"
 	Addr   string

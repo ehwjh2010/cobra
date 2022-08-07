@@ -2,9 +2,10 @@ package random
 
 import (
 	"bytes"
-	"github.com/ehwjh2010/viper/constant"
 	"math/rand"
 	"time"
+
+	"github.com/ehwjh2010/viper/constant"
 )
 
 func seed() {
@@ -22,19 +23,19 @@ var (
 	asciiTotalLen = len(asciiTotal)
 )
 
-// Random 返回[0,1)的随机数
+// Random 返回[0,1)的随机数.
 func Random() float64 {
 	seed()
 	return rand.Float64()
 }
 
-// RandInt 返回[0,n)的随机数
+// RandInt 返回[0,n)的随机数.
 func RandInt(n int) int {
 	seed()
 	return rand.Intn(n)
 }
 
-// SimpleRandInt 返回[0,10)的随机数
+// SimpleRandInt 返回[0,10)的随机数.
 func SimpleRandInt() int {
 	seed()
 	return rand.Intn(10)
@@ -51,35 +52,35 @@ func baseRandStrN(count int, source []byte, srcLen int) string {
 	return result
 }
 
-// RandAsciiStr 随机字符串, 源: abcdefghijklmnopqrstuvwxyz
+// RandAsciiStr 随机字符串, 源: abcdefghijklmnopqrstuvwxyz.
 func RandAsciiStr() string {
 	count := 6
 	return baseRandStrN(count, asciiLettersLower, asciiLettersLowerLen)
 }
 
-// RandAsciiStrN 随机字符串, 源: abcdefghijklmnopqrstuvwxyz
+// RandAsciiStrN 随机字符串, 源: abcdefghijklmnopqrstuvwxyz.
 func RandAsciiStrN(count int) string {
 	return baseRandStrN(count, asciiLettersLower, asciiLettersLowerLen)
 }
 
-// RandAsciiStrCase 随机字符串, 大小写敏感, 源: abcdefghijklmnopqrstuvwxyz + ABCDEFGHIJKLMNOPQRSTUVWXYZ
+// RandAsciiStrCase 随机字符串, 大小写敏感, 源: abcdefghijklmnopqrstuvwxyz + ABCDEFGHIJKLMNOPQRSTUVWXYZ.
 func RandAsciiStrCase() string {
 	count := 6
 	return baseRandStrN(count, asciiLetters, asciiLettersLen)
 }
 
-// RandAsciiStrNCase 随机字符串, 大小写敏感, 源: abcdefghijklmnopqrstuvwxyz + ABCDEFGHIJKLMNOPQRSTUVWXYZ
+// RandAsciiStrNCase 随机字符串, 大小写敏感, 源: abcdefghijklmnopqrstuvwxyz + ABCDEFGHIJKLMNOPQRSTUVWXYZ.
 func RandAsciiStrNCase(count int) string {
 	return baseRandStrN(count, asciiLetters, asciiLettersLen)
 }
 
-// RandStr 随机字符串, 大小写敏感, 源: abcdefghijklmnopqrstuvwxyz + ABCDEFGHIJKLMNOPQRSTUVWXYZ + 01234567
+// RandStr 随机字符串, 大小写敏感, 源: abcdefghijklmnopqrstuvwxyz + ABCDEFGHIJKLMNOPQRSTUVWXYZ + 01234567.
 func RandStr() string {
 	count := 6
 	return baseRandStrN(count, asciiTotal, asciiTotalLen)
 }
 
-// RandStrN 随机字符串, 大小写敏感, 源: abcdefghijklmnopqrstuvwxyz + ABCDEFGHIJKLMNOPQRSTUVWXYZ + 01234567
+// RandStrN 随机字符串, 大小写敏感, 源: abcdefghijklmnopqrstuvwxyz + ABCDEFGHIJKLMNOPQRSTUVWXYZ + 01234567.
 func RandStrN(count int) string {
 	return baseRandStrN(count, asciiTotal, asciiTotalLen)
 }

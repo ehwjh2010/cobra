@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"errors"
+
 	"github.com/ehwjh2010/viper/helper/basic/str"
 )
 
@@ -14,13 +15,12 @@ const (
 
 var (
 	EmptyConnection  = errors.New("empty connection get channel")
-	EmptyQueue       = errors.New("empty queue")
 	EmptyRoutingKey  = errors.New("empty routing key")
 	CancelChannelErr = errors.New("consumer cancel failed")
 	CloseConnErr     = errors.New("amqp connection close error")
 )
 
-// Exchange 交换机
+// Exchange 交换机.
 type Exchange struct {
 	Name        string                 `json:"name" yaml:"name"`               // 交换器名
 	ExType      string                 `json:"exType" yaml:"exType"`           // 类型
@@ -31,7 +31,7 @@ type Exchange struct {
 	Arguments   map[string]interface{} // 额外属性
 }
 
-// checkAndSet 处理默认值
+// checkAndSet 处理默认值.
 func (e *Exchange) checkAndSet() {
 	if str.IsEmpty(e.ExType) {
 		e.ExType = Direct
@@ -45,13 +45,4 @@ type Queue struct {
 	Exclusive   bool                   `json:"exclusive" yaml:"exclusive"`     // 是否为排他队列（排他的队列仅对“首次”声明的conn可见[一个conn中的其他channel也能访问该队列]，conn结束后队列删除）
 	NoWait      bool                   `json:"noWait" yaml:"noWait"`           // 是否为非阻塞
 	Arguments   map[string]interface{} // 额外属性
-}
-
-// checkAndSet 处理默认值
-func (q *Queue) checkAndSet() error {
-	if str.IsEmpty(q.Name) {
-		return EmptyQueue
-	}
-
-	return nil
 }

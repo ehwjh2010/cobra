@@ -3,9 +3,8 @@ package requests
 import (
 	"io"
 
-	"github.com/levigross/grequests"
-
 	"github.com/ehwjh2010/viper/helper/cp"
+	"github.com/levigross/grequests"
 )
 
 type FileUpload struct {
@@ -15,7 +14,7 @@ type FileUpload struct {
 	FileMime     string        //文件类型, 默认是application/octet-stream
 }
 
-// toInternal 转化为grequests.FileUpload
+// toInternal 转化为grequests.FileUpload.
 func (fileUpload *FileUpload) toInternal() grequests.FileUpload {
 
 	var gUpload grequests.FileUpload
@@ -25,7 +24,7 @@ func (fileUpload *FileUpload) toInternal() grequests.FileUpload {
 	return gUpload
 }
 
-// BatchFileUpload2Internal 批量转化
+// BatchFileUpload2Internal 批量转化.
 func BatchFileUpload2Internal(files []*FileUpload) []grequests.FileUpload {
 	if files == nil {
 		return nil
