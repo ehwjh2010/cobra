@@ -18,14 +18,17 @@ const (
 	DefaultFilename      = "application.log"
 	DefaultCaller        = 1
 	DefaultTimeFieldName = "time"
+	LevelName            = "LOG_LEVEL"
 )
 
 var (
 	logger          = zap.L()
 	sugaredLogger   = zap.S()
-	realLogFilePath string
 	writer          io.Writer
+	realLogFilePath string
 )
+
+type VLog struct{}
 
 // InitLog 初始化Logger.
 func InitLog(config Log, application string) error {
@@ -127,9 +130,15 @@ func getWriters(conf *Log) (zapcore.WriteSyncer, error) {
 }
 
 func init() {
+	level := os.Getenv(LevelName)
+
+	if str.IsEmpty(level) {
+		level = enums.DEBUG
+	}
+
 	_ = InitLog(Log{
 		Caller: DefaultCaller,
-		Level:  enums.INFO,
+		Level:  level,
 	}, "application")
 }
 
