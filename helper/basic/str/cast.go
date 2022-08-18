@@ -1,9 +1,10 @@
 package str
 
 import (
+	"strconv"
+
 	"github.com/ehwjh2010/viper/verror"
 	"go.uber.org/zap/buffer"
-	"strconv"
 )
 
 //=================str与interface转化==================
@@ -14,7 +15,7 @@ func Char2Any(v string) interface{} {
 
 func Any2Char(v interface{}) (string, error) {
 	if dst, ok := v.(string); !ok {
-		return "", verror.CastStringError(v)
+		return "", verror.CastStrErr
 	} else {
 		return dst, nil
 	}
@@ -23,36 +24,6 @@ func Any2Char(v interface{}) (string, error) {
 func MustAny2Char(v interface{}) string {
 	dst, _ := Any2Char(v)
 	return dst
-}
-
-func SliceStr2Any(vs []string) []interface{} {
-	if vs == nil {
-		return nil
-	}
-
-	rs := make([]interface{}, len(vs))
-	for i, v := range vs {
-		rs[i] = v
-	}
-
-	return rs
-}
-
-func SliceAny2Char(vs []interface{}) ([]string, error) {
-	if vs == nil {
-		return nil, nil
-	}
-
-	rs := make([]string, len(vs))
-	for i, v := range vs {
-		value, err := Any2Char(v)
-		if err != nil {
-			return nil, err
-		}
-		rs[i] = value
-	}
-
-	return rs, nil
 }
 
 //=================str与bytes转化==================

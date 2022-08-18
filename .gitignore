@@ -1,10 +1,2 @@
 .idea/
 .DS_Store
-config_local.yaml
-pkg/
-application.log
-output/
-autoreload_run.sh
-bin/
-gin-bin
-cobra-example/

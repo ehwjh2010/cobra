@@ -1,11 +1,12 @@
 package rabbitmq
 
 import (
+	"time"
+
 	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
-	"time"
 )
 
 type ConsumerConf struct {
@@ -39,7 +40,7 @@ func NewConsumer(conf ConsumerConf) *Consumer {
 
 type MsgHandler func(delivery amqp.Delivery)
 
-// ReConnect 重连
+// ReConnect 重连.
 func (c *Consumer) ReConnect() {
 
 	for {
@@ -53,7 +54,7 @@ func (c *Consumer) ReConnect() {
 
 }
 
-// Start 开启消费者
+// Start 开启消费者.
 func (c *Consumer) Start() error {
 	c.conf.Exchange.checkAndSet()
 
@@ -66,10 +67,8 @@ func (c *Consumer) Start() error {
 
 	// 监听连接断开, 然后重连
 	go func() {
-		for {
-			<-c.conn.NotifyClose(make(chan *amqp.Error))
-			c.ReConnect()
-		}
+		<-c.conn.NotifyClose(make(chan *amqp.Error))
+		c.ReConnect()
 	}()
 
 	// 获取信道
@@ -96,7 +95,7 @@ func (c *Consumer) Start() error {
 	return nil
 }
 
-// Consume 消费消息
+// Consume 消费消息.
 func (c *Consumer) Consume(handler MsgHandler) error {
 	// 设置每次拉取消息的数量, 默认是30条
 	if err := c.ch.Qos(c.conf.BatchPullCount, 0, false); err != nil {
@@ -126,7 +125,7 @@ func (c *Consumer) Consume(handler MsgHandler) error {
 	return nil
 }
 
-// Close 关闭
+// Close 关闭.
 func (c *Consumer) Close() error {
 	log.Info("close rabbitmq consumer")
 	if err := c.ch.Cancel(c.conf.ConsumerTag, false); err != nil {

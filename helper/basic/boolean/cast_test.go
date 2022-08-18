@@ -107,14 +107,3 @@ func TestBool2Str(t *testing.T) {
 		}
 	})
 }
-
-func TestSliceBool2Any(t *testing.T) {
-	Convey("Cast bool to str", t, func() {
-		var b []bool
-		any := SliceBool2Any(b)
-		So(any, ShouldBeEmpty)
-		b = append(b, true)
-		any = SliceBool2Any(b)
-		So(any, ShouldNotBeEmpty)
-	})
-}

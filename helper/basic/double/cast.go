@@ -1,8 +1,9 @@
 package double
 
 import (
-	"github.com/ehwjh2010/viper/verror"
 	"strconv"
+
+	"github.com/ehwjh2010/viper/verror"
 )
 
 //=================浮点与interface转化================
@@ -13,7 +14,7 @@ func Double2Any(v interface{}) interface{} {
 
 func Any2Double(v interface{}) (float64, error) {
 	if dst, ok := v.(float64); !ok {
-		return 0, verror.CastDoubleError(v)
+		return 0, verror.CastFloat64Err
 	} else {
 		return dst, nil
 	}
@@ -41,7 +42,7 @@ func MustStr2Double(v string) float64 {
 
 //=================浮点切片与interface转化================
 
-func SliceDouble2Any(vs []float64) []interface{} {
+func DoubleSlice2AnySlice(vs []float64) []interface{} {
 
 	rs := make([]interface{}, len(vs))
 	for i, v := range vs {
@@ -51,7 +52,7 @@ func SliceDouble2Any(vs []float64) []interface{} {
 	return rs
 }
 
-func SliceAny2Double(vs []interface{}) ([]float64, error) {
+func AnySlice2DoubleSlice(vs []interface{}) ([]float64, error) {
 	if vs == nil {
 		return nil, nil
 	}

@@ -3,17 +3,16 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/ehwjh2010/viper"
-	"github.com/ehwjh2010/viper/constant"
-	"github.com/ehwjh2010/viper/verror"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	wrapErrs "github.com/pkg/errors"
-
+	"github.com/ehwjh2010/viper"
+	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/verror"
+	wrapErrs "github.com/pkg/errors"
 )
 
 var (
@@ -22,7 +21,7 @@ var (
 )
 
 func getStopChan() chan os.Signal {
-	stopChan := make(chan os.Signal)
+	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, constant.ListenSignals...)
 	return stopChan
 }

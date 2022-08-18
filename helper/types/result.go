@@ -2,8 +2,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/ehwjh2010/viper/constant"
 	"math"
+
+	"github.com/ehwjh2010/viper/constant"
 )
 
 const (

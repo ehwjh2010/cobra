@@ -1,17 +1,16 @@
 package requests
 
 import (
-	"github.com/ehwjh2010/viper/constant"
-	"github.com/ehwjh2010/viper/verror"
 	"net/http"
 	"time"
 
 	"github.com/avast/retry-go"
-	"github.com/levigross/grequests"
-
 	"github.com/ehwjh2010/viper/component/routine"
+	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/verror"
+	"github.com/levigross/grequests"
 )
 
 type HTTPClient struct {
@@ -44,7 +43,7 @@ func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
 	return cli
 }
 
-// CronClearIdle 定时清理闲置连接
+// CronClearIdle 定时清理闲置连接.
 func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration) error {
 	var err error
 
@@ -70,12 +69,12 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 	return err
 }
 
-// 默认超时时间为3秒, 重试次数为0
+// 默认超时时间为3秒, 重试次数为0.
 var defaultHTTPClient = NewHTTPClient(
 	HWithReq(NewRequest(RWithUserAgent(constant.UserAgent))),
 )
 
-// method 请求
+// method 请求.
 func (api *HTTPClient) method(method string, url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	req := NewRequest(rOpts...)
 
@@ -95,9 +94,9 @@ func (api *HTTPClient) method(method string, url string, rOpts ...ROpt) (*HTTPRe
 	// 请求函数
 	fn := func() error {
 		invokeMethod := api.getDestMethod(method)
-		resp, err := invokeMethod(url, req.toInternal())
-		if err != nil {
-			return err
+		resp, execErr := invokeMethod(url, req.toInternal())
+		if execErr != nil {
+			return execErr
 		}
 
 		response = NewResponse(resp)
@@ -116,7 +115,7 @@ func (api *HTTPClient) method(method string, url string, rOpts ...ROpt) (*HTTPRe
 	return response, nil
 }
 
-// getDestMethod 获取目标方法
+// getDestMethod 获取目标方法.
 func (api *HTTPClient) getDestMethod(method string) InvokeMethod {
 	switch method {
 	case http.MethodGet:
@@ -138,37 +137,37 @@ func (api *HTTPClient) getDestMethod(method string) InvokeMethod {
 	}
 }
 
-// Get GET请求方法
+// Get GET请求方法.
 func (api *HTTPClient) Get(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return api.method(http.MethodGet, url, rOpts...)
 }
 
-// Post Post请求方法
+// Post Post请求方法.
 func (api *HTTPClient) Post(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return api.method(http.MethodPost, url, rOpts...)
 }
 
-// Patch PATCH请求方法
+// Patch PATCH请求方法.
 func (api *HTTPClient) Patch(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return api.method(http.MethodPatch, url, rOpts...)
 }
 
-// Put PUT请求方法
+// Put PUT请求方法.
 func (api *HTTPClient) Put(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return api.method(http.MethodPut, url, rOpts...)
 }
 
-// Delete DELETE请求方法
+// Delete DELETE请求方法.
 func (api *HTTPClient) Delete(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return api.method(http.MethodDelete, url, rOpts...)
 }
 
-// Head HEAD请求方法
+// Head HEAD请求方法.
 func (api *HTTPClient) Head(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return api.method(http.MethodHead, url, rOpts...)
 }
 
-// Options OPTIONS请求方法
+// Options OPTIONS请求方法.
 func (api *HTTPClient) Options(url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	return api.method(http.MethodOptions, url, rOpts...)
 }

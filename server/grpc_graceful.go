@@ -3,17 +3,17 @@ package server
 import (
 	"context"
 	"errors"
+	"net"
+	"net/http"
+
 	"github.com/ehwjh2010/viper"
+	"github.com/ehwjh2010/viper/log"
+	"github.com/ehwjh2010/viper/verror"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	wrapErrs "github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	"net"
-	"net/http"
-
-	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/verror"
 )
 
 var (
@@ -21,7 +21,7 @@ var (
 	InvalidGrpcConf   = errors.New("invalid grpc config")
 )
 
-// graceGrpcServer 优雅启动grpc服务
+// graceGrpcServer 优雅启动grpc服务.
 func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
 	log.Info(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
@@ -61,10 +61,7 @@ func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
 		}
 	}()
 
-	var (
-		gatewayServer *http.Server
-		gatewayFlag   bool
-	)
+	var gatewayServer *http.Server
 	if graceGrpc.EnableGateway {
 		go func() {
 			ct := context.Background()
@@ -82,7 +79,6 @@ func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
 			}
 
 			gatewayServer = &http.Server{Addr: graceGrpc.GatewayAddr, Handler: mux}
-			gatewayFlag = true
 			log.Debug("start gateway server")
 			errChan <- gatewayServer.ListenAndServe()
 		}()
@@ -90,7 +86,7 @@ func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
 
 }
 
-// GraceGrpcServer 优雅启动grpc服务
+// GraceGrpcServer 优雅启动grpc服务.
 func GraceGrpcServer(graceGrpc *GraceGrpc) error {
 	stopChan := getStopChan()
 	errChan := getErrChan()

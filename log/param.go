@@ -1,6 +1,6 @@
 package log
 
-// Log 日志配置
+// Log 日志配置.
 type Log struct {
 	Level         string `json:"level" yaml:"level"`                 // 日志级别
 	EnableConsole bool   `yaml:"enableConsole" json:"enableConsole"` // 日志是否输出到终端

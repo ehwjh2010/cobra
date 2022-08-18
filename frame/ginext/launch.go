@@ -2,16 +2,15 @@ package ginext
 
 import (
 	"fmt"
-	"github.com/ehwjh2010/viper/constant"
-
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/ehwjh2010/viper/component/routine"
+	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/frame/ginext/middleware"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/server"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type App struct {
@@ -61,7 +60,7 @@ func Viper(settings server.Setting) *App {
 	return app
 }
 
-// Run 启动
+// Run 启动.
 func (app *App) Run() {
 	addr := fmt.Sprintf("%s:%d", app.setting.Host, app.setting.Port)
 
@@ -80,7 +79,7 @@ func (app *App) Run() {
 	log.FatalE(server.GraceHttpServer(s))
 }
 
-// Engine 返回引擎
+// Engine 返回引擎.
 func (app *App) Engine() *gin.Engine {
 	return app.engine
 }

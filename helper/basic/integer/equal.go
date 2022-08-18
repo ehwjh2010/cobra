@@ -2,17 +2,17 @@ package integer
 
 import "sort"
 
-type Int32Slice []int32
+type Int32s []int32
 
-func (x Int32Slice) Len() int           { return len(x) }
-func (x Int32Slice) Less(i, j int) bool { return x[i] < x[j] }
-func (x Int32Slice) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
+func (x Int32s) Len() int           { return len(x) }
+func (x Int32s) Less(i, j int) bool { return x[i] < x[j] }
+func (x Int32s) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 
-type Int64Slice []int64
+type Int64s []int64
 
-func (x Int64Slice) Len() int           { return len(x) }
-func (x Int64Slice) Less(i, j int) bool { return x[i] < x[j] }
-func (x Int64Slice) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
+func (x Int64s) Len() int           { return len(x) }
+func (x Int64s) Less(i, j int) bool { return x[i] < x[j] }
+func (x Int64s) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 
 func sliceIntEqual(v1, v2 []int, strict bool) bool {
 	// 都为nil, 则相等
@@ -32,8 +32,8 @@ func sliceIntEqual(v1, v2 []int, strict bool) bool {
 	}
 
 	if !strict {
-		sort.Sort(sort.IntSlice(v1))
-		sort.Sort(sort.IntSlice(v2))
+		sort.Ints(v1)
+		sort.Ints(v2)
 	}
 
 	// 遍历比较内部元素
@@ -73,8 +73,8 @@ func sliceInt32Equal(v1, v2 []int32, strict bool) bool {
 	}
 
 	if !strict {
-		sort.Sort(Int32Slice(v1))
-		sort.Sort(Int32Slice(v2))
+		sort.Sort(Int32s(v1))
+		sort.Sort(Int32s(v2))
 	}
 
 	// 遍历比较内部元素
@@ -114,8 +114,8 @@ func sliceInt64Equal(v1, v2 []int64, strict bool) bool {
 	}
 
 	if !strict {
-		sort.Sort(Int64Slice(v1))
-		sort.Sort(Int64Slice(v2))
+		sort.Sort(Int64s(v1))
+		sort.Sort(Int64s(v2))
 	}
 
 	// 遍历比较内部元素

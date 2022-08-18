@@ -3,8 +3,12 @@ package apollo
 import (
 	"github.com/apolloconfig/agollo/v4"
 	"github.com/apolloconfig/agollo/v4/agcache"
-
+	"github.com/ehwjh2010/viper/helper/basic/boolean"
+	"github.com/ehwjh2010/viper/helper/basic/double"
+	"github.com/ehwjh2010/viper/helper/basic/integer"
+	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/helper/serialize"
+	"github.com/ehwjh2010/viper/verror"
 )
 
 type Client struct {
@@ -16,86 +20,102 @@ type Client struct {
 }
 
 func NewClient(cli agollo.Client, rawConfig *ApolloConfig) *Client {
-
 	cache := cli.GetConfigCache(rawConfig.NamespaceName)
 
 	return &Client{cli: cli, rawConfig: rawConfig, cache: cache}
 }
 
-// GetString 获取配置
+// GetString
+// 获取配置.
 func (i *Client) GetString(key string) (string, error) {
 	v, err := i.cache.Get(key)
 	if err != nil {
 		return "", err
 	}
 
-	value := v.(string)
+	value, err := str.Any2Char(v)
 	return value, err
 }
 
-// GetInt32 获取配置
-func (i *Client) GetInt32(key string) (int, error) {
+func (i *Client) GetStringSlice(key string) ([]string, error) {
 	v, err := i.cache.Get(key)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	value := v.(int)
-	return value, err
+	strings, ok := v.([]string)
+	if !ok {
+		return nil, verror.CastStrSliceErr
+	}
+	return strings, nil
 }
 
-// GetInt 获取配置
+// GetInt 获取配置.
 func (i *Client) GetInt(key string) (int, error) {
 	v, err := i.cache.Get(key)
 	if err != nil {
 		return 0, err
 	}
 
-	value := v.(int)
+	value, err := integer.Any2Int(v)
 	return value, err
 }
 
-// GetInt64 获取配置
-func (i *Client) GetInt64(key string) (int, error) {
+// GetInt32 获取配置.
+func (i *Client) GetInt32(key string) (int32, error) {
 	v, err := i.cache.Get(key)
 	if err != nil {
 		return 0, err
 	}
 
-	value := v.(int)
+	value, err := integer.Any2Int32(v)
 	return value, err
 }
 
-// GetBool 获取配置
+// GetInt64 获取配置.
+func (i *Client) GetInt64(key string) (int64, error) {
+	v, err := i.cache.Get(key)
+	if err != nil {
+		return 0, err
+	}
+
+	value, err := integer.Any2Int64(v)
+	return value, err
+}
+
+// GetBool 获取配置.
 func (i *Client) GetBool(key string) (bool, error) {
 	v, err := i.cache.Get(key)
 	if err != nil {
 		return false, err
 	}
 
-	value := v.(bool)
-	return value, nil
+	value, err := boolean.Any2Bool(v)
+	return value, err
 }
 
-// GetFloat64 获取配置
+// GetFloat64 获取配置.
 func (i *Client) GetFloat64(key string) (float64, error) {
 	v, err := i.cache.Get(key)
 	if err != nil {
 		return 0, err
 	}
 
-	value := v.(float64)
-	return value, nil
+	value, err := double.Any2Double(v)
+	return value, err
 }
 
-// GetJson 获取配置
+// GetJson 获取配置.
 func (i *Client) GetJson(key string, v interface{}) error {
 	data, err := i.cache.Get(key)
 	if err != nil {
 		return err
 	}
 
-	value := data.(string)
+	value, err := str.Any2Char(data)
+	if err != nil {
+		return err
+	}
 	if err = serialize.UnmarshalStr(value, v); err != nil {
 		return err
 	}

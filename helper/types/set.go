@@ -14,7 +14,7 @@ func NewEmptyStruct() EmptyStruct {
 	return EmptyStruct{}
 }
 
-// Set 非线程安全Set
+// Set 非线程安全Set.
 type Set struct {
 	data map[interface{}]EmptyStruct
 }
@@ -65,7 +65,7 @@ func NewFloat64Set(vs ...float64) *Set {
 	return set
 }
 
-// Add 添加元素
+// Add 添加元素.
 func (set *Set) Add(v interface{}) {
 	if set == nil {
 		return
@@ -73,7 +73,7 @@ func (set *Set) Add(v interface{}) {
 	set.data[v] = NewEmptyStruct()
 }
 
-// Del 删除元素
+// Del 删除元素.
 func (set *Set) Del(v interface{}) {
 	if set == nil {
 		return
@@ -81,7 +81,7 @@ func (set *Set) Del(v interface{}) {
 	delete(set.data, v)
 }
 
-// Update 批量添加元素
+// Update 批量添加元素.
 func (set *Set) Update(vs ...interface{}) {
 	if vs == nil || set == nil {
 		return
@@ -92,7 +92,7 @@ func (set *Set) Update(vs ...interface{}) {
 	}
 }
 
-// UpdateInt64s 批量添加元素
+// UpdateInt64s 批量添加元素.
 func (set *Set) UpdateInt64s(vs ...int64) {
 	if vs == nil || set == nil {
 		return
@@ -103,7 +103,7 @@ func (set *Set) UpdateInt64s(vs ...int64) {
 	}
 }
 
-// UpdateStrings 批量添加元素
+// UpdateStrings 批量添加元素.
 func (set *Set) UpdateStrings(vs ...string) {
 	if vs == nil || set == nil {
 		return
@@ -114,7 +114,7 @@ func (set *Set) UpdateStrings(vs ...string) {
 	}
 }
 
-// UpdateFloat64s 批量添加元素
+// UpdateFloat64s 批量添加元素.
 func (set *Set) UpdateFloat64s(vs ...float64) {
 	if vs == nil || set == nil {
 		return
@@ -125,7 +125,7 @@ func (set *Set) UpdateFloat64s(vs ...float64) {
 	}
 }
 
-// UpdateFloat32s 批量添加元素
+// UpdateFloat32s 批量添加元素.
 func (set *Set) UpdateFloat32s(vs ...float32) {
 	if vs == nil || set == nil {
 		return
@@ -136,7 +136,7 @@ func (set *Set) UpdateFloat32s(vs ...float32) {
 	}
 }
 
-// UpdateInt32s 批量添加元素
+// UpdateInt32s 批量添加元素.
 func (set *Set) UpdateInt32s(vs ...int32) {
 	if vs == nil || set == nil {
 		return
@@ -147,7 +147,7 @@ func (set *Set) UpdateInt32s(vs ...int32) {
 	}
 }
 
-// UpdateInts 批量添加元素
+// UpdateInts 批量添加元素.
 func (set *Set) UpdateInts(vs ...int) {
 	if vs == nil || set == nil {
 		return
@@ -158,7 +158,7 @@ func (set *Set) UpdateInts(vs ...int) {
 	}
 }
 
-// Size 获取长度
+// Size 获取长度.
 func (set *Set) Size() int {
 	if set == nil {
 		return 0
@@ -166,7 +166,7 @@ func (set *Set) Size() int {
 	return len(set.data)
 }
 
-// Has 是否已包含
+// Has 是否已包含.
 func (set *Set) Has(v interface{}) bool {
 	if set.IsEmpty() {
 		return false
@@ -175,12 +175,12 @@ func (set *Set) Has(v interface{}) bool {
 	return exists
 }
 
-// NotHas 是否不包含
+// NotHas 是否不包含.
 func (set *Set) NotHas(v interface{}) bool {
 	return !set.Has(v)
 }
 
-// Values 获取所有的值
+// Values 获取所有的值.
 func (set *Set) Values() []interface{} {
 	if set.IsEmpty() {
 		return make([]interface{}, 0)
@@ -195,7 +195,7 @@ func (set *Set) Values() []interface{} {
 	return keys
 }
 
-// IntValues 获取所有的值
+// IntValues 获取所有的值.
 func (set *Set) IntValues() ([]int, error) {
 
 	if set.IsEmpty() {
@@ -215,7 +215,7 @@ func (set *Set) IntValues() ([]int, error) {
 	return values, nil
 }
 
-// MustIntValues 获取所有的值
+// MustIntValues 获取所有的值.
 func (set *Set) MustIntValues() []int {
 
 	if set.IsEmpty() {
@@ -232,7 +232,7 @@ func (set *Set) MustIntValues() []int {
 	return values
 }
 
-// Int64Values 获取所有的值
+// Int64Values 获取所有的值.
 func (set *Set) Int64Values() ([]int64, error) {
 	if set.IsEmpty() {
 		return make([]int64, 0), nil
@@ -251,7 +251,7 @@ func (set *Set) Int64Values() ([]int64, error) {
 	return values, nil
 }
 
-// MustInt64Values 获取所有的值
+// MustInt64Values 获取所有的值.
 func (set *Set) MustInt64Values() []int64 {
 	if set.IsEmpty() {
 		return make([]int64, 0)
@@ -267,7 +267,7 @@ func (set *Set) MustInt64Values() []int64 {
 	return values
 }
 
-// Int32Values 获取所有的值
+// Int32Values 获取所有的值.
 func (set *Set) Int32Values() ([]int32, error) {
 	if set.IsEmpty() {
 		return make([]int32, 0), nil
@@ -286,7 +286,7 @@ func (set *Set) Int32Values() ([]int32, error) {
 	return values, nil
 }
 
-// MustInt32Values 获取所有的值
+// MustInt32Values 获取所有的值.
 func (set *Set) MustInt32Values() []int32 {
 	if set.IsEmpty() {
 		return make([]int32, 0)
@@ -302,7 +302,7 @@ func (set *Set) MustInt32Values() []int32 {
 	return values
 }
 
-// StrValues 获取所有的值
+// StrValues 获取所有的值.
 func (set *Set) StrValues() ([]string, error) {
 	if set.IsEmpty() {
 		return make([]string, 0), nil
@@ -321,7 +321,7 @@ func (set *Set) StrValues() ([]string, error) {
 	return keys, nil
 }
 
-// MustStrValues 获取所有的值
+// MustStrValues 获取所有的值.
 func (set *Set) MustStrValues() []string {
 	if set.IsEmpty() {
 		return make([]string, 0)
@@ -337,7 +337,7 @@ func (set *Set) MustStrValues() []string {
 	return keys
 }
 
-// Float64Values 获取所有的值
+// Float64Values 获取所有的值.
 func (set *Set) Float64Values() ([]float64, error) {
 	if set.IsEmpty() {
 		return make([]float64, 0), nil
@@ -356,7 +356,7 @@ func (set *Set) Float64Values() ([]float64, error) {
 	return values, nil
 }
 
-// MustFloat64Values 获取所有的值
+// MustFloat64Values 获取所有的值.
 func (set *Set) MustFloat64Values() []float64 {
 	if set.IsEmpty() {
 		return make([]float64, 0)
@@ -372,14 +372,14 @@ func (set *Set) MustFloat64Values() []float64 {
 	return values
 }
 
-// Union 并集
+// Union 并集.
 func (set *Set) Union(s *Set) *Set {
 	r := set.Copy()
 	r.Update(s.Values()...)
 	return r
 }
 
-// Common 交集
+// Common 交集.
 func (set *Set) Common(s *Set) *Set {
 	if set.IsEmpty() || s.IsEmpty() {
 		return NewSimpleSet()
@@ -394,7 +394,7 @@ func (set *Set) Common(s *Set) *Set {
 	return r
 }
 
-// Diff 差集
+// Diff 差集.
 func (set *Set) Diff(s *Set) *Set {
 	if set.IsEmpty() {
 		return NewSimpleSet()
@@ -413,7 +413,7 @@ func (set *Set) Diff(s *Set) *Set {
 	return r
 }
 
-// Copy copy自身
+// Copy copy自身.
 func (set *Set) Copy() *Set {
 	if set.IsEmpty() {
 		return NewSimpleSet()
@@ -431,7 +431,7 @@ func (set *Set) Copy() *Set {
 	return copySet
 }
 
-// IsEmpty 判断集合是否为空
+// IsEmpty 判断集合是否为空.
 func (set *Set) IsEmpty() bool {
 	if set == nil || len(set.data) <= 0 {
 		return true
@@ -440,7 +440,7 @@ func (set *Set) IsEmpty() bool {
 	return false
 }
 
-// IsNotEmpty 判断集合不为空
+// IsNotEmpty 判断集合不为空.
 func (set *Set) IsNotEmpty() bool {
 	return !set.IsEmpty()
 }

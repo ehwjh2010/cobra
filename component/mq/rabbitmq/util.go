@@ -2,13 +2,12 @@ package rabbitmq
 
 import (
 	"github.com/ehwjh2010/viper/helper/basic/str"
+	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
-
-	"github.com/ehwjh2010/viper/log"
 )
 
-// Connect 连接
+// Connect 连接.
 func Connect(url string) (*amqp.Connection, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -18,7 +17,7 @@ func Connect(url string) (*amqp.Connection, error) {
 	return conn, nil
 }
 
-// GetChannel 获取Channel
+// GetChannel 获取Channel.
 func GetChannel(conn *amqp.Connection) (*amqp.Channel, error) {
 
 	if conn == nil {
@@ -32,7 +31,7 @@ func GetChannel(conn *amqp.Connection) (*amqp.Channel, error) {
 	return ch, nil
 }
 
-// CloseChannel 关闭Channel
+// CloseChannel 关闭Channel.
 func CloseChannel(ch *amqp.Channel) error {
 	if ch == nil {
 		return nil
@@ -41,7 +40,7 @@ func CloseChannel(ch *amqp.Channel) error {
 	return ch.Close()
 }
 
-// ExchangeDeclare 声明交换机
+// ExchangeDeclare 声明交换机.
 func ExchangeDeclare(ch *amqp.Channel, exchange Exchange) error {
 	// 当交换机name为空, 则使用默认交换机, 不需要声明
 	if !str.IsEmpty(exchange.Name) {
@@ -59,7 +58,7 @@ func ExchangeDeclare(ch *amqp.Channel, exchange Exchange) error {
 	return nil
 }
 
-// QueueDeclare 声明队列
+// QueueDeclare 声明队列.
 func QueueDeclare(ch *amqp.Channel, queue Queue) error {
 	if _, err := ch.QueueDeclare(
 		queue.Name,
@@ -75,7 +74,7 @@ func QueueDeclare(ch *amqp.Channel, queue Queue) error {
 	return nil
 }
 
-// BindExchangeQueue 交换机绑定队列
+// BindExchangeQueue 交换机绑定队列.
 func BindExchangeQueue(ch *amqp.Channel, queueName, exchangeName, routingKey string, broadcast bool) error {
 	if !broadcast && str.IsEmpty(routingKey) {
 		return EmptyRoutingKey

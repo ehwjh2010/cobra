@@ -6,7 +6,7 @@ func (d LogHandlerFunc) Printf(format string, args ...interface{}) {
 	d(format, args...)
 }
 
-// Routine 协程池配置
+// Routine 协程池配置.
 type Routine struct {
 	// MaxWorkerCount 最大worker数量, 默认是10
 	MaxWorkerCount int `json:"maxWorkerCount" yaml:"maxWorkerCount"`

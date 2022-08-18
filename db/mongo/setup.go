@@ -2,14 +2,14 @@ package mongo
 
 import (
 	"context"
-	"github.com/ehwjh2010/viper/enums"
 	"time"
 
+	"github.com/ehwjh2010/viper/enums"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// SetUp 初始化mongo
+// SetUp 初始化mongo.
 func SetUp(conf Mongo) (*Client, error) {
 	cli, db, err := setup(conf)
 	if err != nil {

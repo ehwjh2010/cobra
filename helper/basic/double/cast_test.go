@@ -114,27 +114,27 @@ func TestDouble2Any(t *testing.T) {
 func TestDoubleSlice2Any(t *testing.T) {
 	Convey("Cast double to str", t, func() {
 		temp := []float64{1.2, 1, 5, 2.456}
-		tmp := SliceDouble2Any(temp)
-		slice2Double, err := SliceAny2Double(tmp)
+		tmp := DoubleSlice2AnySlice(temp)
+		slice2Double, err := AnySlice2DoubleSlice(tmp)
 		So(err, ShouldBeNil)
 		So(SliceFloat64Equal(slice2Double, temp), ShouldBeTrue)
 
 		temp = nil
-		tmp = SliceDouble2Any(temp)
+		tmp = DoubleSlice2AnySlice(temp)
 		So(tmp, ShouldBeEmpty)
 
 		temp = make([]float64, 0)
-		tmp = SliceDouble2Any(temp)
-		slice2Double, err = SliceAny2Double(tmp)
+		tmp = DoubleSlice2AnySlice(temp)
+		slice2Double, err = AnySlice2DoubleSlice(tmp)
 		So(err, ShouldBeNil)
 		So(SliceFloat64Equal(slice2Double, temp), ShouldBeTrue)
 
-		anySlice2Double, err := SliceAny2Double(nil)
+		anySlice2Double, err := AnySlice2DoubleSlice(nil)
 		So(err, ShouldBeNil)
 		So(anySlice2Double, ShouldBeNil)
 
 		foo := []interface{}{1.22, "1", true}
-		double, err := SliceAny2Double(foo)
+		double, err := AnySlice2DoubleSlice(foo)
 		So(err, ShouldNotBeNil)
 		So(double, ShouldBeNil)
 

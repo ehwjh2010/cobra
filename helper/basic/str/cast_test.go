@@ -50,28 +50,125 @@ func TestStr2Any(t *testing.T) {
 	})
 }
 
-func TestStrSlice2Any(t *testing.T) {
-	Convey("Cast slice string to any", t, func() {
-		foo := []string{"a", "b", "c", "d"}
-		temp := SliceStr2Any(foo)
-		slice2Str, err := SliceAny2Char(temp)
-		So(err, ShouldBeNil)
-		So(slice2Str, ShouldResemble, foo)
+func TestChar2Int(t *testing.T) {
+	Convey("Cast str to int", t, func() {
+		tests := []struct {
+			Value   string
+			Success bool
+			Dest    int
+		}{
+			{"1111", true, 1111},
+			{"aaaaa", false, 0},
+			{"0", true, 0},
+			{"0.0", false, 0},
+			{"true", false, 0},
+		}
 
-		v := SliceStr2Any(nil)
-		So(v, ShouldBeNil)
+		for _, test := range tests {
+			dst, err := Char2Int(test.Value)
+			So(err == nil, ShouldEqual, test.Success)
+			if test.Success {
+				So(dst, ShouldEqual, test.Dest)
+			}
+		}
+	})
+}
 
-		tmp := make([]interface{}, 3)
-		tmp[0] = 1
-		tmp[0] = "1"
-		tmp[0] = true
+func TestMustChar2Int(t *testing.T) {
+	Convey("Cast str must to int", t, func() {
+		tests := []struct {
+			Value string
+			Dest  int
+		}{
+			{"1111", 1111},
+			{"0", 0},
+		}
 
-		slice2Str, err = SliceAny2Char(tmp)
-		So(err, ShouldNotBeNil)
-		So(slice2Str, ShouldBeEmpty)
+		for _, test := range tests {
+			dst := MustChar2Int(test.Value)
+			So(dst, ShouldEqual, test.Dest)
+		}
+	})
+}
 
-		str, err := SliceAny2Char(nil)
-		So(err, ShouldBeNil)
-		So(str, ShouldBeEmpty)
+func TestChar2Int32(t *testing.T) {
+	Convey("Cast str to int32", t, func() {
+		tests := []struct {
+			Value   string
+			Success bool
+			Dest    int32
+		}{
+			{"1111", true, 1111},
+			{"aaaaa", false, 0},
+			{"0", true, 0},
+			{"0.0", false, 0},
+			{"true", false, 0},
+		}
+
+		for _, test := range tests {
+			dst, err := Char2Int32(test.Value)
+			So(err == nil, ShouldEqual, test.Success)
+			if test.Success {
+				So(dst, ShouldEqual, test.Dest)
+			}
+		}
+	})
+}
+
+func TestMustChar2Int32(t *testing.T) {
+	Convey("Cast str must to int32", t, func() {
+		tests := []struct {
+			Value string
+			Dest  int32
+		}{
+			{"1111", 1111},
+			{"0", 0},
+		}
+
+		for _, test := range tests {
+			dst := MustChar2Int32(test.Value)
+			So(dst, ShouldEqual, test.Dest)
+		}
+	})
+}
+
+func TestChar2Int64(t *testing.T) {
+	Convey("Cast str to int64", t, func() {
+		tests := []struct {
+			Value   string
+			Success bool
+			Dest    int64
+		}{
+			{"1111", true, 1111},
+			{"aaaaa", false, 0},
+			{"0", true, 0},
+			{"0.0", false, 0},
+			{"true", false, 0},
+		}
+
+		for _, test := range tests {
+			dst, err := Char2Int64(test.Value)
+			So(err == nil, ShouldEqual, test.Success)
+			if test.Success {
+				So(dst, ShouldEqual, test.Dest)
+			}
+		}
+	})
+}
+
+func TestMustChar2Int64(t *testing.T) {
+	Convey("Cast str must to int32", t, func() {
+		tests := []struct {
+			Value string
+			Dest  int64
+		}{
+			{"1111", 1111},
+			{"0", 0},
+		}
+
+		for _, test := range tests {
+			dst := MustChar2Int64(test.Value)
+			So(dst, ShouldEqual, test.Dest)
+		}
 	})
 }

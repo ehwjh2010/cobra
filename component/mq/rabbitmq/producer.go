@@ -1,12 +1,11 @@
 package rabbitmq
 
 import (
-	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"time"
 
 	"github.com/ehwjh2010/viper/enums"
+	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"github.com/ehwjh2010/viper/log"
-
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 )
@@ -30,7 +29,7 @@ func NewProducer(conf ProducerConf) *Producer {
 	}
 }
 
-// ReConnect 重连
+// ReConnect 重连.
 func (p *Producer) ReConnect() {
 
 	for {
@@ -54,10 +53,8 @@ func (p *Producer) Start() error {
 
 	// 监听连接断开, 然后重连
 	go func() {
-		for {
-			<-p.conn.NotifyClose(make(chan *amqp.Error))
-			p.ReConnect()
-		}
+		<-p.conn.NotifyClose(make(chan *amqp.Error))
+		p.ReConnect()
 	}()
 
 	p.conn = conn
@@ -86,7 +83,7 @@ func (p *Producer) Start() error {
 	return nil
 }
 
-// SendMsg 发送消息
+// SendMsg 发送消息.
 func (p *Producer) SendMsg(body []byte) error {
 	if collection.IsEmptyBytes(body) {
 		return nil
@@ -106,7 +103,7 @@ func (p *Producer) SendMsg(body []byte) error {
 	return err
 }
 
-// Close 关闭
+// Close 关闭.
 func (c *Producer) Close() error {
 	if err := c.ch.Close(); err != nil {
 		return CancelChannelErr

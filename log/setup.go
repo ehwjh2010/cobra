@@ -1,34 +1,36 @@
 package log
 
 import (
-	"github.com/ehwjh2010/viper/constant"
 	"io"
 	"os"
 
-	"github.com/natefinch/lumberjack"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
+	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
+	"github.com/natefinch/lumberjack"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
 	DefaultFilename      = "application.log"
 	DefaultCaller        = 1
 	DefaultTimeFieldName = "time"
+	LevelName            = "LOG_LEVEL"
 )
 
 var (
 	logger          = zap.L()
 	sugaredLogger   = zap.S()
-	realLogFilePath string
 	writer          io.Writer
+	realLogFilePath string
 )
 
-// InitLog 初始化Logger
+type VLog struct{}
+
+// InitLog 初始化Logger.
 func InitLog(config Log, application string) error {
 	if str.IsNotEmpty(config.FileDir) {
 		logFilePath, err := path.Relative2Abs(config.FileDir)
@@ -128,9 +130,15 @@ func getWriters(conf *Log) (zapcore.WriteSyncer, error) {
 }
 
 func init() {
+	level := os.Getenv(LevelName)
+
+	if str.IsEmpty(level) {
+		level = enums.DEBUG
+	}
+
 	_ = InitLog(Log{
 		Caller: DefaultCaller,
-		Level:  enums.INFO,
+		Level:  level,
 	}, "application")
 }
 

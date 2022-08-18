@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"github.com/ehwjh2010/viper/helper/basic/double"
 	"github.com/ehwjh2010/viper/helper/basic/integer"
 	"github.com/ehwjh2010/viper/helper/basic/str"
@@ -47,7 +48,7 @@ func TestSimpleSet_Int64Values(t *testing.T) {
 	Convey("Set set int64 values", t, func() {
 		foo := []int64{1, 2, 3, 4, 5, 1}
 		set := NewSimpleSet()
-		set.Update(integer.SliceInt64TAny(foo)...)
+		set.Update(collection.Int64Slice2AnySlice(foo)...)
 		values, err := set.Int64Values()
 		So(err, ShouldBeNil)
 		So(integer.SliceInt64Equal(values, []int64{1, 2, 3, 4, 5}), ShouldBeTrue)
@@ -65,7 +66,7 @@ func TestSimpleSet_Int32Values(t *testing.T) {
 	Convey("Set set int32 values", t, func() {
 		var vs = []int32{0, 1, 2, 3, 4}
 		set := NewSimpleSet()
-		vsi := integer.SliceInt32TAny(vs)
+		vsi := collection.Int32Slice2AnySlice(vs)
 		set.Update(vsi...)
 
 		values, _ := set.Int32Values()

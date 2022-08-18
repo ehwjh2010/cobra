@@ -24,7 +24,7 @@ func (m *MultiErr) Error() string {
 	return result
 }
 
-// AddErr 添加错误
+// AddErr 添加错误.
 func (m *MultiErr) AddErr(args ...error) {
 	for _, err := range args {
 		if err == nil {
@@ -35,7 +35,7 @@ func (m *MultiErr) AddErr(args ...error) {
 	}
 }
 
-// IsEmpty 是否为空
+// IsEmpty 是否为空.
 func (m *MultiErr) IsEmpty() bool {
 	if m == nil || len(m.Errs) == 0 {
 		return true
@@ -44,12 +44,12 @@ func (m *MultiErr) IsEmpty() bool {
 	return false
 }
 
-// IsNotEmpty 是否为空
+// IsNotEmpty 是否为空.
 func (m *MultiErr) IsNotEmpty() bool {
-	return !m.IsNotEmpty()
+	return !m.IsEmpty()
 }
 
-// AsStdErr 转换为标准库错误
+// AsStdErr 转换为标准库错误.
 func (m *MultiErr) AsStdErr() error {
 	if m.IsEmpty() {
 		return nil
