@@ -49,12 +49,15 @@ type MsgHandler func(delivery amqp.Delivery)
 // ReConnect 重连.
 func (c *Consumer) ReConnect() {
 	closeChan := c.conn.NotifyClose(make(chan *amqp.Error))
+	oldConn := c.conn
+	oldCh := c.ch
 	for {
 		select {
 		case <-closeChan:
-			oldConn := c.conn
-			oldCh := c.ch
 			if err := c.Start(); err != nil {
+				log.Error("reconnect rabbitmq failed", zap.Error(err))
+				time.Sleep(enums.ThreeSecD)
+			} else {
 				oldCh.Close()
 				oldConn.Close()
 			}
