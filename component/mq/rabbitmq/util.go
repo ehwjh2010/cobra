@@ -61,14 +61,15 @@ func ExchangeDeclare(ch *amqp.Channel, exchange Exchange) error {
 
 // QueueDeclare 声明队列.
 func QueueDeclare(ch *amqp.Channel, queue Queue) error {
-	if _, err := ch.QueueDeclare(
+	_, err := ch.QueueDeclare(
 		queue.Name,
 		queue.Persistence,
 		queue.AutoDeleted,
 		queue.Exclusive,
 		queue.NoWait,
 		queue.Arguments,
-	); err != nil {
+	)
+	if err != nil {
 		return err
 	}
 

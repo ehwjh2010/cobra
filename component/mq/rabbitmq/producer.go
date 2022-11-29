@@ -13,7 +13,6 @@ import (
 type ProducerConf struct {
 	Url      string
 	Exchange Exchange
-	Queue    Queue
 }
 
 type Producer struct {
@@ -65,11 +64,6 @@ func (p *Producer) Start() error {
 
 	// 声明交换机
 	if err = ExchangeDeclare(ch, p.conf.Exchange); err != nil {
-		return err
-	}
-
-	// 声明队列
-	if err = QueueDeclare(ch, p.conf.Queue); err != nil {
 		return err
 	}
 

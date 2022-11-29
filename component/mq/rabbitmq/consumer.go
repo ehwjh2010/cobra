@@ -48,9 +48,10 @@ type MsgHandler func(delivery amqp.Delivery)
 
 // ReConnect 重连.
 func (c *Consumer) ReConnect() {
+	closeChan := c.conn.NotifyClose(make(chan *amqp.Error))
 	for {
 		select {
-		case <-c.conn.NotifyClose(make(chan *amqp.Error)):
+		case <-closeChan:
 			oldConn := c.conn
 			oldCh := c.ch
 			if err := c.Start(); err != nil {
@@ -60,7 +61,7 @@ func (c *Consumer) ReConnect() {
 		case <-c.done:
 			return
 		default:
-			time.Sleep(enums.ThreeSecD)
+			time.Sleep(enums.OneSecD)
 		}
 	}
 }
@@ -86,7 +87,8 @@ func (c *Consumer) Start() error {
 	}
 
 	// 声明队列
-	if err = QueueDeclare(ch, c.conf.Queue); err != nil {
+	err = QueueDeclare(ch, c.conf.Queue)
+	if err != nil {
 		return err
 	}
 
@@ -134,13 +136,15 @@ func (c *Consumer) Consume(handler MsgHandler) error {
 
 	for {
 		select {
-		case d, closed := <-deliveries:
-			if closed {
+		case d, open := <-deliveries:
+			if !open {
 				return nil
 			}
 			handler(d)
 		case <-c.done:
 			return nil
+		default:
+			time.Sleep(time.Second)
 		}
 	}
 }
@@ -149,7 +153,7 @@ func (c *Consumer) Consume(handler MsgHandler) error {
 func (c *Consumer) Close() error {
 	c.done <- struct{}{}
 	log.Info("close rabbitmq consumer")
-	if err := c.ch.Cancel(c.conf.ConsumerTag, false); err != nil {
+	if err := c.ch.Close(); err != nil {
 		log.Error("close rabbitmq channel consumer error", zap.Error(err))
 		return CancelChannelErr
 	}
