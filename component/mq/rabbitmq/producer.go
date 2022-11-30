@@ -16,39 +16,59 @@ type ProducerConf struct {
 }
 
 type Producer struct {
+	// 原生配置
 	conf ProducerConf
+
+	// 连接
 	conn *amqp.Connection
-	ch   *amqp.Channel
+	// 信道
+	ch *amqp.Channel
+	// 关闭通知信道
+	closeNotifyChan chan *amqp.Error
+
+	// 停止信道
+	stopChan chan struct{}
+	// 结束信道
 	done chan struct{}
 }
 
 func NewProducer(conf ProducerConf) *Producer {
 	return &Producer{
-		conf: conf,
-		done: make(chan struct{}),
+		conf:     conf,
+		stopChan: make(chan struct{}),
+		done:     make(chan struct{}),
 	}
 }
 
-// ReConnect 重连.
-func (p *Producer) ReConnect() {
+// Watch 监听连接断开, 然后重连.
+func (p *Producer) Watch() {
+	oldConn := p.conn
+	oldCh := p.ch
+
+watchProducerLoop:
 	for {
 		select {
-		case <-p.conn.NotifyClose(make(chan *amqp.Error)):
-			oldConn := p.conn
-			oldCh := p.ch
-			if err := p.Start(); err != nil {
+		case <-p.closeNotifyChan:
+			if err := p.Setup(); err != nil {
+				log.Error("rabbitmq producer reconnect failed", zap.Error(err))
+				time.Sleep(enums.FiveSecD)
+			} else {
 				oldCh.Close()
 				oldConn.Close()
+				oldConn, oldCh = p.conn, p.ch
+				log.Info("rabbitmq producer reconnect success")
 			}
-		case <-p.done:
-			return
+		case <-p.stopChan:
+			break watchProducerLoop
 		default:
 			time.Sleep(enums.ThreeSecD)
 		}
 	}
+
+	p.done <- struct{}{}
 }
 
-func (p *Producer) Start() error {
+func (p *Producer) Setup() error {
 	p.conf.Exchange.checkAndSet()
 
 	conn, err := Connect(p.conf.Url)
@@ -69,10 +89,18 @@ func (p *Producer) Start() error {
 
 	// 监听连接断开, 然后重连
 	p.ch, p.conn = ch, conn
-	go func() {
-		p.ReConnect()
-	}()
+	p.closeNotifyChan = conn.NotifyClose(make(chan *amqp.Error))
 
+	return nil
+}
+
+func (p *Producer) Start() error {
+	err := p.Setup()
+	if err != nil {
+		return err
+	}
+
+	go p.Watch()
 	return nil
 }
 
@@ -99,7 +127,8 @@ func (p *Producer) SendMsg(ctx context.Context, key string, body []byte) error {
 
 // Close 关闭.
 func (p *Producer) Close() error {
-	p.done <- struct{}{}
+	p.stopChan <- struct{}{}
+	<-p.done
 
 	if err := p.ch.Close(); err != nil {
 		log.Error("rabbitmq producer channel close failed", zap.Error(err))
@@ -111,5 +140,6 @@ func (p *Producer) Close() error {
 		return CloseConnErr
 	}
 
+	log.Info("rabbitmq producer close success")
 	return nil
 }
