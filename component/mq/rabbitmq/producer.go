@@ -1,49 +1,74 @@
 package rabbitmq
 
 import (
-	"time"
-
+	"context"
 	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
+	"time"
 )
 
 type ProducerConf struct {
-	Url        string
-	RoutingKey string
-	Exchange   Exchange
-	Queue      Queue
+	Url      string
+	Exchange Exchange
 }
 
 type Producer struct {
+	// 原生配置
 	conf ProducerConf
+
+	// 连接
 	conn *amqp.Connection
-	ch   *amqp.Channel
+	// 信道
+	ch *amqp.Channel
+	// 关闭通知信道
+	closeNotifyChan chan *amqp.Error
+
+	// 停止信道
+	stopChan chan struct{}
+	// 结束信道
+	done chan struct{}
 }
 
 func NewProducer(conf ProducerConf) *Producer {
 	return &Producer{
-		conf: conf,
+		conf:     conf,
+		stopChan: make(chan struct{}),
+		done:     make(chan struct{}),
 	}
 }
 
-// ReConnect 重连.
-func (p *Producer) ReConnect() {
+// Watch 监听连接断开, 然后重连.
+func (p *Producer) Watch() {
+	oldConn := p.conn
+	oldCh := p.ch
 
+watchProducerLoop:
 	for {
-		if err := p.Start(); err != nil {
-			log.Error("rabbitmq reconnect failed", zap.Error(err))
+		select {
+		case <-p.closeNotifyChan:
+			if err := p.Setup(); err != nil {
+				log.Error("rabbitmq producer reconnect failed", zap.Error(err))
+				time.Sleep(enums.FiveSecD)
+			} else {
+				oldCh.Close()
+				oldConn.Close()
+				oldConn, oldCh = p.conn, p.ch
+				log.Info("rabbitmq producer reconnect success")
+			}
+		case <-p.stopChan:
+			break watchProducerLoop
+		default:
 			time.Sleep(enums.ThreeSecD)
-		} else {
-			break
 		}
 	}
 
+	p.done <- struct{}{}
 }
 
-func (p *Producer) Start() error {
+func (p *Producer) Setup() error {
 	p.conf.Exchange.checkAndSet()
 
 	conn, err := Connect(p.conf.Url)
@@ -51,51 +76,48 @@ func (p *Producer) Start() error {
 		return err
 	}
 
-	// 监听连接断开, 然后重连
-	go func() {
-		<-p.conn.NotifyClose(make(chan *amqp.Error))
-		p.ReConnect()
-	}()
-
-	p.conn = conn
-
 	// 获取信道
-	if p.ch, err = p.conn.Channel(); err != nil {
-		return err
+	ch, channelErr := conn.Channel()
+	if channelErr != nil {
+		return channelErr
 	}
 
 	// 声明交换机
-	if err = ExchangeDeclare(p.ch, p.conf.Exchange); err != nil {
+	if err = ExchangeDeclare(ch, p.conf.Exchange); err != nil {
 		return err
 	}
 
-	// 声明队列
-	if err = QueueDeclare(p.ch, p.conf.Queue); err != nil {
-		return err
-	}
-
-	// 交换机与队列绑定
-	broadcast := p.conf.Exchange.ExType == Fanout
-	if err = BindExchangeQueue(p.ch, p.conf.Queue.Name, p.conf.Exchange.Name, p.conf.RoutingKey, broadcast); err != nil {
-		return err
-	}
+	// 监听连接断开, 然后重连
+	p.ch, p.conn = ch, conn
+	p.closeNotifyChan = conn.NotifyClose(make(chan *amqp.Error))
 
 	return nil
 }
 
+func (p *Producer) Start() error {
+	err := p.Setup()
+	if err != nil {
+		return err
+	}
+
+	go p.Watch()
+	return nil
+}
+
 // SendMsg 发送消息.
-func (p *Producer) SendMsg(body []byte) error {
+func (p *Producer) SendMsg(ctx context.Context, key string, body []byte) error {
 	if collection.IsEmptyBytes(body) {
 		return nil
 	}
 
-	err := p.ch.Publish(
+	err := p.ch.PublishWithContext(
+		ctx,
 		p.conf.Exchange.Name,
-		p.conf.RoutingKey,
+		key,
 		false, // 是否返回消息(匹配队列)，如果为true, 会根据binding规则匹配queue，如未匹配queue，则把发送的消息返回给发送者
 		false, // 是否返回消息(匹配消费者)，如果为true, 消息发送到queue后发现没有绑定消费者，则把发送的消息返回给发送者
 		amqp.Publishing{
-			DeliveryMode: amqp.Transient,
+			DeliveryMode: amqp.Persistent,
 			ContentType:  "text/plain", // 消息内容的类型,
 			Body:         body,
 		})
@@ -104,14 +126,20 @@ func (p *Producer) SendMsg(body []byte) error {
 }
 
 // Close 关闭.
-func (c *Producer) Close() error {
-	if err := c.ch.Close(); err != nil {
+func (p *Producer) Close() error {
+	p.stopChan <- struct{}{}
+	<-p.done
+
+	if err := p.ch.Close(); err != nil {
+		log.Error("rabbitmq producer channel close failed", zap.Error(err))
 		return CancelChannelErr
 	}
 
-	if err := c.conn.Close(); err != nil {
+	if err := p.conn.Close(); err != nil {
+		log.Error("rabbitmq producer connection close failed", zap.Error(err))
 		return CloseConnErr
 	}
 
+	log.Info("rabbitmq producer close success")
 	return nil
 }

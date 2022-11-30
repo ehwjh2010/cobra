@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -60,14 +61,15 @@ func ExchangeDeclare(ch *amqp.Channel, exchange Exchange) error {
 
 // QueueDeclare 声明队列.
 func QueueDeclare(ch *amqp.Channel, queue Queue) error {
-	if _, err := ch.QueueDeclare(
+	_, err := ch.QueueDeclare(
 		queue.Name,
 		queue.Persistence,
 		queue.AutoDeleted,
 		queue.Exclusive,
 		queue.NoWait,
 		queue.Arguments,
-	); err != nil {
+	)
+	if err != nil {
 		return err
 	}
 
@@ -75,19 +77,26 @@ func QueueDeclare(ch *amqp.Channel, queue Queue) error {
 }
 
 // BindExchangeQueue 交换机绑定队列.
-func BindExchangeQueue(ch *amqp.Channel, queueName, exchangeName, routingKey string, broadcast bool) error {
-	if !broadcast && str.IsEmpty(routingKey) {
+func BindExchangeQueue(
+	ch *amqp.Channel,
+	queueName,
+	exchangeName string,
+	routingKeys []string,
+	broadcast bool) error {
+	if !broadcast && collection.IsEmptyStr(routingKeys) {
 		return EmptyRoutingKey
 	}
 
-	if err := ch.QueueBind(
-		queueName,    // 绑定的队列名称
-		routingKey,   // routingKey 用于消息路由分发的key
-		exchangeName, // 绑定的exchange名
-		false,        // 非阻塞
-		nil,          // 额外属性
-	); err != nil {
-		return err
+	for _, routingKey := range routingKeys {
+		if err := ch.QueueBind(
+			queueName,    // 绑定的队列名称
+			routingKey,   // routingKey 用于消息路由分发的key
+			exchangeName, // 绑定的exchange名
+			false,        // 非阻塞
+			nil,          // 额外属性
+		); err != nil {
+			return err
+		}
 	}
 
 	return nil
