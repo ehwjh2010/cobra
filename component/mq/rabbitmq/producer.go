@@ -15,6 +15,10 @@ type ProducerConf struct {
 	Exchange Exchange
 }
 
+type RabbitProducer interface {
+	SendMsg(ctx context.Context, key string, body []byte) error
+}
+
 type Producer struct {
 	// 原生配置
 	conf ProducerConf

@@ -23,6 +23,10 @@ type ConsumerConf struct {
 	Args           amqp.Table
 }
 
+type RabbitConsumer interface {
+	Consume(handler MsgHandler)
+}
+
 type Consumer struct {
 	// 原生配置
 	conf ConsumerConf
