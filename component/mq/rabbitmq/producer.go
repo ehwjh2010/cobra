@@ -16,7 +16,9 @@ type ProducerConf struct {
 }
 
 type RabbitProducer interface {
+	Init() error
 	SendMsg(ctx context.Context, key string, body []byte) error
+	Close() error
 }
 
 type Producer struct {
@@ -36,7 +38,7 @@ type Producer struct {
 	done chan struct{}
 }
 
-func NewProducer(conf ProducerConf) *Producer {
+func NewProducer(conf ProducerConf) RabbitProducer {
 	return &Producer{
 		conf:     conf,
 		stopChan: make(chan struct{}),
@@ -98,7 +100,7 @@ func (p *Producer) Setup() error {
 	return nil
 }
 
-func (p *Producer) Start() error {
+func (p *Producer) Init() error {
 	err := p.Setup()
 	if err != nil {
 		return err

@@ -24,31 +24,31 @@ type ConsumerConf struct {
 }
 
 type RabbitConsumer interface {
+	Init() error
 	Consume(handler MsgHandler)
+	Close() error
 }
 
 type Consumer struct {
 	// 原生配置
 	conf ConsumerConf
-
 	// 连接
 	conn *amqp.Connection
 	// 信道
 	ch *amqp.Channel
-	// 关闭通知信道
-	closeNotifyChan chan *amqp.Error
-	// 消息通道
+	// 关闭通知信道, 用于监听连接断开
+	closeNotifyChan <-chan *amqp.Error
+	// 消息通道, 用于接收消息
 	deliveries <-chan amqp.Delivery
-
-	// 停止信道
+	// 停止信道, 用于停止监听
 	stopChan chan struct{}
-	// 结束信道
+	// 结束信道, 用于监听停止信道是否关闭
 	done chan struct{}
 }
 
 const DefaultBatchPullCount = 30
 
-func NewConsumer(conf ConsumerConf) *Consumer {
+func NewConsumer(conf ConsumerConf) RabbitConsumer {
 	if conf.BatchPullCount == 0 {
 		conf.BatchPullCount = DefaultBatchPullCount
 	}
@@ -71,7 +71,7 @@ watchConsumerLoop:
 	for {
 		select {
 		case <-c.closeNotifyChan:
-			if err := c.Setup(); err != nil {
+			if err := c.setup(); err != nil {
 				log.Error("rabbitmq consumer reconnect failed", zap.Error(err))
 				time.Sleep(enums.ThreeSecD)
 			} else {
@@ -90,7 +90,7 @@ watchConsumerLoop:
 	c.done <- struct{}{}
 }
 
-func (c *Consumer) Setup() error {
+func (c *Consumer) setup() error {
 	c.conf.Exchange.checkAndSet()
 
 	conn, err := Connect(c.conf.Url)
@@ -116,13 +116,12 @@ func (c *Consumer) Setup() error {
 	}
 
 	// 交换机与队列绑定
-	broadcast := c.conf.Exchange.ExType == Fanout
 	if err = BindExchangeQueue(
 		ch,
 		c.conf.Queue.Name,
 		c.conf.Exchange.Name,
 		c.conf.RoutingKeys,
-		broadcast); err != nil {
+		c.conf.Exchange.ExType); err != nil {
 		return err
 	}
 
@@ -133,12 +132,11 @@ func (c *Consumer) Setup() error {
 
 	c.conn, c.ch = conn, ch
 	c.closeNotifyChan = conn.NotifyClose(make(chan *amqp.Error))
-
 	return nil
 }
 
-func (c *Consumer) Start() error {
-	err := c.Setup()
+func (c *Consumer) Init() error {
+	err := c.setup()
 	if err != nil {
 		return err
 	}

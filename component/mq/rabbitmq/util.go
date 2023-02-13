@@ -69,11 +69,7 @@ func QueueDeclare(ch *amqp.Channel, queue Queue) error {
 		queue.NoWait,
 		queue.Arguments,
 	)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // BindExchangeQueue 交换机绑定队列.
@@ -82,8 +78,12 @@ func BindExchangeQueue(
 	queueName,
 	exchangeName string,
 	routingKeys []string,
-	broadcast bool) error {
-	if !broadcast && collection.IsEmptyStr(routingKeys) {
+	exchangeType string) error {
+
+	broadcast := exchangeType == Fanout
+	noRoutingKeys := collection.IsEmptyStr(routingKeys)
+
+	if !broadcast && noRoutingKeys {
 		return EmptyRoutingKey
 	}
 

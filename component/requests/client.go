@@ -49,7 +49,7 @@ func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
 func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration) error {
 	var err error
 
-	trickier := time.NewTicker(interval)
+	ticker := time.NewTicker(interval)
 
 	clearFn := func() {
 
@@ -60,7 +60,7 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 		}()
 
 		for {
-			<-trickier.C
+			<-ticker.C
 			api.session.CloseIdleConnections()
 		}
 	}
