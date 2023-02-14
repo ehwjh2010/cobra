@@ -6,7 +6,6 @@ import (
 	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"go.uber.org/zap"
 	"time"
 )
 
@@ -16,7 +15,9 @@ type ProducerConf struct {
 }
 
 type RabbitProducer interface {
+	Init() error
 	SendMsg(ctx context.Context, key string, body []byte) error
+	Close() error
 }
 
 type Producer struct {
@@ -36,7 +37,7 @@ type Producer struct {
 	done chan struct{}
 }
 
-func NewProducer(conf ProducerConf) *Producer {
+func NewProducer(conf ProducerConf) RabbitProducer {
 	return &Producer{
 		conf:     conf,
 		stopChan: make(chan struct{}),
@@ -54,13 +55,13 @@ watchProducerLoop:
 		select {
 		case <-p.closeNotifyChan:
 			if err := p.Setup(); err != nil {
-				log.Error("rabbitmq producer reconnect failed", zap.Error(err))
+				log.Errorf("rabbitmq producer reconnect failed, err: %s", err)
 				time.Sleep(enums.FiveSecD)
 			} else {
 				oldCh.Close()
 				oldConn.Close()
 				oldConn, oldCh = p.conn, p.ch
-				log.Info("rabbitmq producer reconnect success")
+				log.Infof("rabbitmq producer reconnect success")
 			}
 		case <-p.stopChan:
 			break watchProducerLoop
@@ -98,7 +99,7 @@ func (p *Producer) Setup() error {
 	return nil
 }
 
-func (p *Producer) Start() error {
+func (p *Producer) Init() error {
 	err := p.Setup()
 	if err != nil {
 		return err
@@ -135,15 +136,15 @@ func (p *Producer) Close() error {
 	<-p.done
 
 	if err := p.ch.Close(); err != nil {
-		log.Error("rabbitmq producer channel close failed", zap.Error(err))
+		log.Errorf("rabbitmq producer channel close failed, err: %s", err)
 		return CancelChannelErr
 	}
 
 	if err := p.conn.Close(); err != nil {
-		log.Error("rabbitmq producer connection close failed", zap.Error(err))
+		log.Errorf("rabbitmq producer connection close failed, err: %s", err)
 		return CloseConnErr
 	}
 
-	log.Info("rabbitmq producer close success")
+	log.Infof("rabbitmq producer close success")
 	return nil
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/ehwjh2010/viper/helper/basic/collection"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/plugin/dbresolver"
 )
@@ -158,7 +157,7 @@ func (c *DBClient) WatchHeartbeat() {
 		if errors.Is(err, routine.NoEnableRoutinePool) {
 			go fn()
 		} else {
-			log.Warn("watch heartbeat failed")
+			log.Warnf("watch heartbeat failed")
 		}
 	}
 }
@@ -167,14 +166,14 @@ func (c *DBClient) WatchHeartbeat() {
 func (c *DBClient) replaceDB() (bool, error) {
 	newDB, err := InitDBWithGorm(c.rawConfig, c.DBType)
 	if err != nil {
-		log.Error("reconnect db failed!", zap.Int("reconnectCount", c.rCount), zap.Error(err))
+		log.Errorf("reconnect db failed!, reconnectCount: %d, err: %s", c.rCount, err)
 		return false, err
 	}
 
 	// 关闭之前的连接
 	_ = c.Close()
 	c.db = newDB
-	log.Debug("reconnect db success")
+	log.Debugf("reconnect db success")
 	return true, nil
 }
 
@@ -795,9 +794,9 @@ func (c *DBClient) Close() error {
 	err = s.Close()
 
 	if err != nil {
-		log.Error("Close db failed!")
+		log.Errorf("Close db failed!")
 	} else {
-		log.Debug("Close db success!")
+		log.Debugf("Close db success!")
 	}
 
 	return err

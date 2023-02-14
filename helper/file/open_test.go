@@ -28,7 +28,7 @@ func TestOpenFile(t *testing.T) {
 		if _, err := file.WriteString("11\n22\n33\n"); err != nil {
 			panic(err)
 		}
-		exist, err := path.EnsurePathExist(filename)
+		exist, err := path.Exists(filename)
 		if err != nil {
 			panic(err)
 		}

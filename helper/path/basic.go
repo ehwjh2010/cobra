@@ -14,8 +14,8 @@ var ErrPathAlreadyExist = errors.New("path already exist")
 var ErrPathNoExist = errors.New("path no exist")
 var ErrInvalidPath = errors.New("invalid path")
 
-// EnsurePathExist 确认文件或文件夹是否存在.
-func EnsurePathExist(path string) (bool, error) {
+// Exists 确认文件或文件夹是否存在.
+func Exists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil
@@ -36,7 +36,7 @@ func MakeDir(path string, existReturnError bool) (err error) {
 		return ErrInvalidPath
 	}
 
-	exist, err := EnsurePathExist(path)
+	exist, err := Exists(path)
 	if err != nil {
 		return
 	}
@@ -67,7 +67,7 @@ func RemovePath(path string, noExistReturnError bool) (bool, error) {
 		return false, ErrInvalidPath
 	}
 
-	exists, err := EnsurePathExist(path)
+	exists, err := Exists(path)
 	if err != nil {
 		return false, err
 	}
@@ -116,15 +116,15 @@ func Relative2Abs(relativePath string) (string, error) {
 	}
 }
 
-// PathSplit 路径分割, 返回目录以及文件名.
-func PathSplit(path string) (string, string) {
+// Split 路径分割, 返回目录以及文件名.
+func Split(path string) (string, string) {
 	dirName := filepath.Dir(path)
 	fileName := filepath.Base(path)
 	return dirName, fileName
 }
 
-// MakeDirs 创建多级目录.
-func MakeDirs(path ...string) error {
+// MkDirs 创建多级目录.
+func MkDirs(path ...string) error {
 	tmp := JoinPath(path...)
 
 	if tmp == "" {

@@ -34,7 +34,9 @@ func HWithMaxRetry(maxTries int) HOpt {
 }
 
 func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
-	cli := &HTTPClient{}
+	cli := &HTTPClient{
+		session: grequests.NewSession(NewRequest().toInternal()),
+	}
 
 	for _, fn := range hOPts {
 		fn(cli)
@@ -47,6 +49,8 @@ func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
 func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration) error {
 	var err error
 
+	ticker := time.NewTicker(interval)
+
 	clearFn := func() {
 
 		defer func() {
@@ -56,7 +60,7 @@ func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration)
 		}()
 
 		for {
-			<-time.After(interval)
+			<-ticker.C
 			api.session.CloseIdleConnections()
 		}
 	}

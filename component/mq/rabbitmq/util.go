@@ -5,14 +5,13 @@ import (
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"go.uber.org/zap"
 )
 
 // Connect 连接.
 func Connect(url string) (*amqp.Connection, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
-		log.Error("connect rabbitmq failed", zap.Error(err), zap.String("Url", url))
+		log.Errorf("connect rabbitmq failed, err: %s, url: %s", err, url)
 		return nil, err
 	}
 	return conn, nil
@@ -69,11 +68,7 @@ func QueueDeclare(ch *amqp.Channel, queue Queue) error {
 		queue.NoWait,
 		queue.Arguments,
 	)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // BindExchangeQueue 交换机绑定队列.
@@ -82,8 +77,12 @@ func BindExchangeQueue(
 	queueName,
 	exchangeName string,
 	routingKeys []string,
-	broadcast bool) error {
-	if !broadcast && collection.IsEmptyStr(routingKeys) {
+	exchangeType string) error {
+
+	broadcast := exchangeType == Fanout
+	noRoutingKeys := collection.IsEmptyStr(routingKeys)
+
+	if !broadcast && noRoutingKeys {
 		return EmptyRoutingKey
 	}
 

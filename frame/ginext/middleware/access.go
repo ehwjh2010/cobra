@@ -14,7 +14,7 @@ import (
 // utc 是否使用UTC时间
 // skipPath 不记录日志的url.
 func AccessLog(skipPaths []string, utc bool, timeFormat string) gin.HandlerFunc {
-	log.Debug("Use ginzap middleware")
+	log.Debugf("Use ginzap middleware")
 	skipPaths = append(skipPaths, "/swagger")
 
 	return func(c *gin.Context) {
@@ -43,10 +43,10 @@ func AccessLog(skipPaths []string, utc bool, timeFormat string) gin.HandlerFunc 
 			if len(c.Errors) > 0 {
 				// Append error field if this is an erroneous request.
 				for _, e := range c.Errors.Errors() {
-					log.Error(e)
+					log.Errorf(e)
 				}
 			} else {
-				log.Info(path,
+				log.Infof(path,
 					zap.String("startTime", start.Format(timeFormat)),
 					zap.Int("status", c.Writer.Status()),
 					zap.String("method", c.Request.Method),

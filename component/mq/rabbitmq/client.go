@@ -2,10 +2,8 @@ package rabbitmq
 
 import (
 	"errors"
-	"github.com/ehwjh2010/viper/log"
-	"go.uber.org/zap"
-
 	"github.com/ehwjh2010/viper/helper/basic/str"
+	"github.com/ehwjh2010/viper/log"
 )
 
 const (
@@ -36,7 +34,7 @@ type Exchange struct {
 // checkAndSet 处理默认值.
 func (e *Exchange) checkAndSet() {
 	if str.IsEmpty(e.ExType) {
-		log.Info("set default exchager type", zap.String("ExType", Direct))
+		log.Debugf("set default exchager type, exType: %s", Direct)
 		e.ExType = Direct
 	}
 }

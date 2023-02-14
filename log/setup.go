@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/ehwjh2010/viper/constant"
-	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/helper/file"
 	"github.com/ehwjh2010/viper/helper/path"
@@ -18,28 +17,24 @@ const (
 	DefaultFilename      = "application.log"
 	DefaultCaller        = 1
 	DefaultTimeFieldName = "time"
-	LevelName            = "LOG_LEVEL"
 )
 
-var (
-	logger          = zap.L()
-	sugaredLogger   = zap.S()
-	writer          io.Writer
-	realLogFilePath string
-)
+type getWriterReq struct {
+	log         *ZapLogReq
+	logfilePath string
+}
 
-type VLog struct{}
-
-// InitLog 初始化Logger.
-func InitLog(config Log, application string) error {
+// InitZapLogger 初始化 zap Logger.
+func InitZapLogger(config ZapLogReq, application string) (*zap.Logger, error) {
+	var realLogFilePath string
 	if str.IsNotEmpty(config.FileDir) {
 		logFilePath, err := path.Relative2Abs(config.FileDir)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		realLogDir := path.JoinPath(logFilePath, application)
-		if err := path.MakeDirs(realLogDir); err != nil {
-			return err
+		if err = path.MkDirs(realLogDir); err != nil {
+			return nil, err
 		}
 
 		if str.IsEmpty(config.FileName) {
@@ -49,16 +44,19 @@ func InitLog(config Log, application string) error {
 		realLogFilePath = path.JoinPath(realLogDir, config.FileName)
 	}
 
-	writeSyncer, err := getWriters(&config)
+	writeSyncer, err := getWriters(getWriterReq{
+		log:         &config,
+		logfilePath: realLogFilePath,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	encoder := getEncoder(config.TimeFieldName, config.TimeLayout)
 	var l = new(zapcore.Level)
 	err = l.UnmarshalText(str.Char2Bytes(config.Level))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	core := zapcore.NewCore(encoder, writeSyncer, l)
 
@@ -68,10 +66,8 @@ func InitLog(config Log, application string) error {
 	if config.Caller <= 0 {
 		config.Caller = DefaultCaller
 	}
-	logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(config.Caller))
-	zap.ReplaceGlobals(logger) // 替换zap包中全局的logger实例，后续在其他包中只需使用zap.S()调用即可
-	sugaredLogger = zap.S()
-	return nil
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(config.Caller))
+	return logger, nil
 }
 
 func getEncoder(timeFieldName string, timeLayout string) zapcore.Encoder {
@@ -88,60 +84,43 @@ func getEncoder(timeFieldName string, timeLayout string) zapcore.Encoder {
 	encoderConfig.TimeKey = timeFieldName
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	encoderConfig.EncodeDuration = zapcore.SecondsDurationEncoder
-	encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+	encoderConfig.EncodeCaller = zapcore.FullCallerEncoder
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
-func getWriters(conf *Log) (zapcore.WriteSyncer, error) {
+func getWriters(req getWriterReq) (zapcore.WriteSyncer, error) {
 	var writers []io.Writer
 
-	if conf.EnableConsole {
+	if req.log.EnableConsole {
 		writers = append(writers, os.Stdout)
 	}
 
-	if str.IsNotEmpty(conf.FileDir) {
-		if conf.Rotated {
+	if str.IsNotEmpty(req.log.FileDir) {
+		if req.log.Rotated {
 			writer := &lumberjack.Logger{
-				Filename:   realLogFilePath,
-				MaxSize:    conf.MaxSize,
-				MaxBackups: conf.MaxBackups,
-				MaxAge:     conf.MaxAge,
-				LocalTime:  conf.LocalTime,
-				Compress:   conf.Compress,
+				Filename:   req.logfilePath,
+				MaxSize:    req.log.MaxSize,
+				MaxBackups: req.log.MaxBackups,
+				MaxAge:     req.log.MaxAge,
+				LocalTime:  req.log.LocalTime,
+				Compress:   req.log.Compress,
 			}
 			writers = append(writers, writer)
 		} else {
-			writer, err := file.OpenFile(realLogFilePath)
+			fileWriter, err := file.OpenFile(req.logfilePath)
 			if err != nil {
 				return nil, err
 			}
-			writers = append(writers, writer)
+			writers = append(writers, fileWriter)
 		}
 	}
 
 	if writers == nil {
-		Debug("not set log output, Use stdout as log output")
+		Debugf("not set log output, Use stdout as log output")
 		writers = append(writers, os.Stdout)
 	}
 
-	writer = io.MultiWriter(writers...)
+	writer := io.MultiWriter(writers...)
 
 	return zapcore.AddSync(writer), nil
-}
-
-func init() {
-	level := os.Getenv(LevelName)
-
-	if str.IsEmpty(level) {
-		level = enums.DEBUG
-	}
-
-	_ = InitLog(Log{
-		Caller: DefaultCaller,
-		Level:  level,
-	}, "application")
-}
-
-func GetWriter() io.Writer {
-	return writer
 }
