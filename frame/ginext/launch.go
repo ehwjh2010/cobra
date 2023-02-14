@@ -21,18 +21,10 @@ type App struct {
 func Viper(settings server.Setting) *App {
 	SetMode(settings.Debug)
 
-	if err := log.InitLog(settings.LogConfig, settings.Application); err != nil {
-		log.FatalErr("Log init failed", err)
-	}
-
 	gin.DisableConsoleColor()
-	writer := log.GetWriter()
-	if writer != nil {
-		gin.DefaultWriter = writer
-	}
 
 	if err := RegisterTrans(settings.Language); err != nil {
-		log.FatalErr("Register validator translator failed, ", err)
+		log.Fatalf("Register validator translator failed, error: %s", err)
 	}
 
 	if settings.EnableRtPool {
@@ -65,7 +57,7 @@ func (app *App) Run() {
 	addr := fmt.Sprintf("%s:%d", app.setting.Host, app.setting.Port)
 
 	if app.setting.Swagger {
-		log.Debug("Use swagger, url: " + fmt.Sprintf("http://%s%s", addr, constant.SwaggerAPIUrl))
+		log.Debugf("Use swagger, url: " + fmt.Sprintf("http://%s%s", addr, constant.SwaggerAPIUrl))
 	}
 
 	s := &server.GraceHttp{
@@ -76,7 +68,7 @@ func (app *App) Run() {
 		GraceGrpc:  app.setting.GrpcConf,
 	}
 
-	log.FatalE(server.GraceHttpServer(s))
+	log.FatalErr(server.GraceHttpServer(s))
 }
 
 // Engine 返回引擎.

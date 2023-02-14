@@ -32,7 +32,7 @@ func getErrChan() chan error {
 }
 
 func GraceHttpServer(graceHttp *GraceHttp) error {
-	log.Info(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
+	log.Infof(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
 	if graceHttp == nil {
 		return InvalidHttpConf
@@ -43,15 +43,15 @@ func GraceHttpServer(graceHttp *GraceHttp) error {
 	}
 
 	//Invoke OnStartUp
-	log.Debug("execute on startup functions")
+	log.Debugf("execute on startup functions")
 	if err := graceHttp.ExecuteStartUp(); err != nil {
 		return wrapErrs.Wrap(err, "on start function occur err")
 	}
 
 	defer func() {
-		log.Debug("execute on shutdown functions")
+		log.Debugf("execute on shutdown functions")
 		if closeErrs := graceHttp.ExecuteStartUp(); closeErrs != nil {
-			log.E(closeErrs)
+			log.Errors(closeErrs)
 		}
 	}()
 
@@ -80,7 +80,7 @@ func GraceHttpServer(graceHttp *GraceHttp) error {
 	select {
 	case <-stopChan:
 		var multiErr verror.MultiErr
-		log.Info("Shutting down gracefully")
+		log.Infof("Shutting down gracefully")
 		ctx, cancel := context.WithTimeout(context.Background(), time.Duration(graceHttp.WaitSecond)*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {

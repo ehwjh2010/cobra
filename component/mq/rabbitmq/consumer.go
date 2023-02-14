@@ -6,7 +6,6 @@ import (
 	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"go.uber.org/zap"
 )
 
 type ConsumerConf struct {
@@ -72,13 +71,13 @@ watchConsumerLoop:
 		select {
 		case <-c.closeNotifyChan:
 			if err := c.setup(); err != nil {
-				log.Error("rabbitmq consumer reconnect failed", zap.Error(err))
+				log.Errorf("rabbitmq consumer reconnect failed, err: %s", err)
 				time.Sleep(enums.ThreeSecD)
 			} else {
 				oldCh.Cancel(c.conf.ConsumerTag, true)
 				oldConn.Close()
 				oldConn, oldCh = c.conn, c.ch
-				log.Info("rabbitmq consumer reconnect success")
+				log.Infof("rabbitmq consumer reconnect success")
 			}
 		case <-c.stopChan:
 			break watchConsumerLoop
@@ -185,19 +184,19 @@ func (c *Consumer) Close() error {
 
 	if c.ch != nil {
 		if err := c.ch.Cancel(c.conf.ConsumerTag, true); err != nil {
-			log.Error("close rabbitmq channel consumer error", zap.Error(err))
+			log.Errorf("close rabbitmq channel consumer error, err: %s", err)
 			return CancelChannelErr
 		}
 	}
 
 	if c.conn != nil {
 		if err := c.conn.Close(); err != nil {
-			log.Error("close rabbitmq connection consumer error", zap.Error(err))
+			log.Errorf("close rabbitmq connection consumer error, err: %s", err)
 			return CloseConnErr
 		}
 	}
 
-	log.Info("close rabbitmq consumer success")
+	log.Infof("close rabbitmq consumer success")
 
 	return nil
 }

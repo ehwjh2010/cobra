@@ -83,7 +83,7 @@ func (c *Client) WatchHeartbeat() {
 		if errors.Is(err, routine.NoEnableRoutinePool) {
 			go fn()
 		} else {
-			log.Warn("watch heartbeat failed")
+			log.Warnf("watch heartbeat failed")
 		}
 
 	}

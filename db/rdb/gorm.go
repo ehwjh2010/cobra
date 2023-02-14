@@ -243,7 +243,7 @@ func getDialector(url string, dbType enums.DBType) (gorm.Dialector, error) {
 	case enums.Postgresql:
 		return postgres.Open(url), nil
 	default:
-		log.Debug("only support mysql, postgresql")
+		log.Debugf("only support mysql, postgresql")
 		return nil, UnsupportedDBType
 	}
 

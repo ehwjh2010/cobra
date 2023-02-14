@@ -14,7 +14,7 @@ type Setting struct {
 	Application     string            `json:"application" yaml:"application"`         // 应用名
 	Debug           bool              `json:"debug" yaml:"debug"`                     // debug, 默认false
 	Swagger         bool              `json:"swagger" yaml:"swagger"`                 // 是否启动swagger, 默认false
-	LogConfig       log.Log           `json:"log" yaml:"log"`                         // 日志配置
+	LogConfig       log.ZapLogReq     `json:"log" yaml:"log"`                         // 日志配置
 	EnableRtPool    bool              `json:"enableRtPool" yaml:"enableRtPool"`       // 启用协程池, 默认是false
 	Routine         routine.Routine   `json:"routine" yaml:"routine"`                 // 协程池配置
 	Middlewares     []gin.HandlerFunc // 中间件

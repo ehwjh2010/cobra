@@ -9,11 +9,11 @@ func SetUp(conf Cache) (client *RedisClient, err error) {
 
 	c, err := initCacheWithGoRedis(&conf)
 	if err != nil {
-		log.Err("connect redis failed", err)
+		log.Errorf("connect redis failed, error: %s", err)
 		return nil, err
 	}
 
-	log.Debug("connect redis success")
+	log.Debugf("connect redis success")
 
 	client = NewRedisClient(c, &conf)
 	client.WatchHeartbeat()

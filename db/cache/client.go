@@ -141,7 +141,7 @@ func (r *RedisClient) WatchHeartbeat() {
 		if errors.Is(err, routine.NoEnableRoutinePool) {
 			go fn()
 		} else {
-			log.Warn("watch heartbeat failed")
+			log.Warnf("watch heartbeat failed")
 		}
 
 	}
@@ -168,7 +168,7 @@ func (r *RedisClient) Close() error {
 	if err != nil {
 		return err
 	} else {
-		log.Debug("Close redis success!")
+		log.Debugf("Close redis success!")
 		return nil
 	}
 }
@@ -1576,16 +1576,16 @@ func (r *RedisClient) scheduleDistributeLock(key string, period time.Duration, e
 				ret := integer.MustAny2Int64(result)
 				switch ret {
 				case KeyNoExists:
-					log.Debug("distribute key no exists")
+					log.Debugf("distribute key no exists")
 					return
 				case NoOperate:
-					log.Debug("no operate distribute key")
+					log.Debugf("no operate distribute key")
 				case ReNewExp:
-					log.Debug("renew expire")
+					log.Debugf("renew expire")
 				}
 			}
 		case <-stopChan:
-			log.Debug("receive stop signal")
+			log.Debugf("receive stop signal")
 			return
 		}
 	}

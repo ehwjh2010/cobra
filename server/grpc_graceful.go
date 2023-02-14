@@ -23,7 +23,7 @@ var (
 
 // graceGrpcServer 优雅启动grpc服务.
 func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
-	log.Info(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
+	log.Infof(viper.SIGN + "\n" + "Viper Version: " + viper.VERSION)
 
 	if graceGrpc == nil {
 		panic(InvalidGrpcConf)
@@ -38,15 +38,15 @@ func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
 		reflection.Register(graceGrpc.Server)
 	}
 
-	log.Debug("execute grpc on startup functions")
+	log.Debugf("execute grpc on startup functions")
 	if err := graceGrpc.ExecuteStartUp(); err != nil {
 		panic(wrapErrs.Wrap(err, "on start function occur err"))
 	}
 
 	defer func() {
-		log.Debug("execute grpc on shutdown functions")
+		log.Debugf("execute grpc on shutdown functions")
 		if closeErrs := graceGrpc.ExecuteShutDown(); closeErrs != nil {
-			log.E(closeErrs)
+			log.Errors(closeErrs)
 		}
 	}()
 
@@ -56,8 +56,8 @@ func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
 	}
 
 	go func() {
-		if err := graceGrpc.Server.Serve(lis); err != nil {
-			errChan <- err
+		if serverErr := graceGrpc.Server.Serve(lis); serverErr != nil {
+			errChan <- serverErr
 		}
 	}()
 
@@ -79,7 +79,7 @@ func graceGrpcServer(graceGrpc *GraceGrpc, errChan chan<- error) {
 			}
 
 			gatewayServer = &http.Server{Addr: graceGrpc.GatewayAddr, Handler: mux}
-			log.Debug("start gateway server")
+			log.Debugf("start gateway server")
 			errChan <- gatewayServer.ListenAndServe()
 		}()
 	}
