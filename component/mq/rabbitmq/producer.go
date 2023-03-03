@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ehwjh2010/viper/enums"
 	"github.com/ehwjh2010/viper/helper/basic/collection"
+	"github.com/ehwjh2010/viper/helper/nano"
 	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"time"
@@ -16,7 +17,7 @@ type ProducerConf struct {
 
 type RabbitProducer interface {
 	Init() error
-	SendMsg(ctx context.Context, key string, body []byte) error
+	SendMsg(ctx context.Context, key string, body []byte, delay time.Duration) error
 	Close() error
 }
 
@@ -110,9 +111,14 @@ func (p *Producer) Init() error {
 }
 
 // SendMsg 发送消息.
-func (p *Producer) SendMsg(ctx context.Context, key string, body []byte) error {
+func (p *Producer) SendMsg(ctx context.Context, key string, body []byte, delay time.Duration) error {
 	if collection.IsEmptyBytes(body) {
 		return nil
+	}
+
+	var headers amqp.Table
+	if delay > 0 && p.conf.Exchange.ExType == XDelayedMessage {
+		headers = amqp.Table{"x-delay": delay.Milliseconds()} // x-delay 消息延时的时间(毫秒)
 	}
 
 	err := p.ch.PublishWithContext(
@@ -122,9 +128,12 @@ func (p *Producer) SendMsg(ctx context.Context, key string, body []byte) error {
 		false, // 是否返回消息(匹配队列)，如果为true, 会根据binding规则匹配queue，如未匹配queue，则把发送的消息返回给发送者
 		false, // 是否返回消息(匹配消费者)，如果为true, 消息发送到queue后发现没有绑定消费者，则把发送的消息返回给发送者
 		amqp.Publishing{
+			MessageId:    nano.MustGetNanoId(),
+			Timestamp:    time.Now(),
 			DeliveryMode: amqp.Persistent,
 			ContentType:  "text/plain", // 消息内容的类型,
 			Body:         body,
+			Headers:      headers,
 		})
 
 	return err
