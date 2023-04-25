@@ -17,29 +17,6 @@ func Connect(url string) (*amqp.Connection, error) {
 	return conn, nil
 }
 
-// GetChannel 获取Channel.
-func GetChannel(conn *amqp.Connection) (*amqp.Channel, error) {
-
-	if conn == nil {
-		return nil, EmptyConnection
-	}
-
-	ch, err := conn.Channel()
-	if err != nil {
-		return nil, err
-	}
-	return ch, nil
-}
-
-// CloseChannel 关闭Channel.
-func CloseChannel(ch *amqp.Channel) error {
-	if ch == nil {
-		return nil
-	}
-
-	return ch.Close()
-}
-
 // ExchangeDeclare 声明交换机.
 func ExchangeDeclare(ch *amqp.Channel, exchange Exchange) error {
 	// 当交换机name为空, 则使用默认交换机, 不需要声明

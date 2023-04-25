@@ -4,17 +4,20 @@ import (
 	"errors"
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 const (
-	Direct  = "direct"
-	Fanout  = "fanout"
-	Topic   = "topic"
-	Headers = "headers"
+	Direct          = "direct"
+	Fanout          = "fanout"
+	Topic           = "topic"
+	Headers         = "headers"
+	XDelayedMessage = "x-delayed-message"
 )
 
+var DelayTable = amqp.Table{"x-delayed-type": "direct"}
+
 var (
-	EmptyConnection  = errors.New("empty connection get channel")
 	EmptyRoutingKey  = errors.New("empty routing key")
 	CancelChannelErr = errors.New("consumer cancel failed")
 	CloseConnErr     = errors.New("amqp connection close error")
