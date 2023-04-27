@@ -5,11 +5,14 @@ import (
 	"github.com/ehwjh2010/viper/helper/basic/str"
 	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"time"
 )
 
 // Connect 连接.
 func Connect(url string) (*amqp.Connection, error) {
-	conn, err := amqp.Dial(url)
+	conn, err := amqp.DialConfig(url, amqp.Config{
+		Heartbeat: time.Second * 5,
+	})
 	if err != nil {
 		log.Errorf("connect rabbitmq failed, err: %s, url: %s", err, url)
 		return nil, err
