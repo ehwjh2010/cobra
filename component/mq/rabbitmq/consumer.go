@@ -197,7 +197,7 @@ func (c *Consumer) Consume(handler MsgHandler) {
 		for delivery := range c.deliveries {
 			handler(delivery)
 		}
-		time.Sleep(enums.FiveSecD)
+		time.Sleep(enums.OneSecD)
 	}
 }
 
