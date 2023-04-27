@@ -17,7 +17,7 @@ type ProducerConf struct {
 
 type RabbitProducer interface {
 	Init() error
-	SendMsg(ctx context.Context, key string, body []byte, delay time.Duration) error
+	SendMsg(ctx context.Context, msg *Msg) error
 	Close() error
 }
 
@@ -110,8 +110,17 @@ func (p *Producer) Init() error {
 	return nil
 }
 
+type Msg struct {
+	Key   string
+	Body  []byte
+	Delay time.Duration
+}
+
 // SendMsg 发送消息.
-func (p *Producer) SendMsg(ctx context.Context, key string, body []byte, delay time.Duration) error {
+func (p *Producer) SendMsg(ctx context.Context, msg *Msg) error {
+	body := msg.Body
+	delay := msg.Delay
+	key := msg.Key
 	if collection.IsEmptyBytes(body) {
 		return nil
 	}
