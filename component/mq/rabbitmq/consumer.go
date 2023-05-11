@@ -43,8 +43,6 @@ type Consumer struct {
 	stopChan chan struct{}
 	// 结束信道, 用于监听停止信道是否关闭
 	done chan struct{}
-	// notifyChannel
-	notifyChannel chan struct{}
 }
 
 const DefaultBatchPullCount = 30
@@ -67,7 +65,6 @@ type MsgHandler func(delivery amqp.Delivery)
 func (c *Consumer) Watch() {
 	oldConn := c.conn
 	oldCh := c.ch
-
 watchConsumerLoop:
 	for {
 		select {
