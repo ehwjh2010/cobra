@@ -43,8 +43,6 @@ type Consumer struct {
 	stopChan chan struct{}
 	// 结束信道, 用于监听停止信道是否关闭
 	done chan struct{}
-	// notifyChannel
-	notifyChannel chan struct{}
 }
 
 const DefaultBatchPullCount = 30
@@ -55,10 +53,9 @@ func NewConsumer(conf ConsumerConf) RabbitConsumer {
 	}
 
 	return &Consumer{
-		conf:          conf,
-		stopChan:      make(chan struct{}),
-		done:          make(chan struct{}),
-		notifyChannel: make(chan struct{}),
+		conf:     conf,
+		stopChan: make(chan struct{}),
+		done:     make(chan struct{}),
 	}
 }
 
@@ -68,7 +65,6 @@ type MsgHandler func(delivery amqp.Delivery)
 func (c *Consumer) Watch() {
 	oldConn := c.conn
 	oldCh := c.ch
-
 watchConsumerLoop:
 	for {
 		select {
@@ -84,8 +80,6 @@ watchConsumerLoop:
 			}
 		case <-c.stopChan:
 			break watchConsumerLoop
-		case <-c.notifyChannel:
-			oldCh = c.ch
 		default:
 			time.Sleep(enums.OneSecD)
 		}
@@ -139,24 +133,6 @@ func (c *Consumer) setup() error {
 	return nil
 }
 
-func (c *Consumer) watchChannel() {
-	for {
-		if c.ch.IsClosed() {
-			channel, err := c.conn.Channel()
-			if err != nil {
-				continue
-			}
-			c.ch = channel
-			if err = c.fetchDeliveries(channel); err != nil {
-				continue
-			}
-			c.notifyChannel <- struct{}{}
-		} else {
-			time.Sleep(enums.OneSecD)
-		}
-	}
-}
-
 func (c *Consumer) Init() error {
 	err := c.setup()
 	if err != nil {
@@ -164,7 +140,6 @@ func (c *Consumer) Init() error {
 	}
 
 	go c.Watch()
-	go c.watchChannel()
 	return nil
 }
 
