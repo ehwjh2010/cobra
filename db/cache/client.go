@@ -192,10 +192,14 @@ func (r *RedisClient) Exist(key string) (bool, error) {
 }
 
 // Delete 删除指定key.
-func (r *RedisClient) Delete(key ...string) error {
+func (r *RedisClient) Delete(keys ...string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+
 	ctx := context.TODO()
 
-	_, err := r.client.Del(ctx, key...).Result()
+	_, err := r.client.Del(ctx, keys...).Result()
 
 	if err != nil && !errors.Is(err, redis.Nil) {
 		return err
@@ -513,17 +517,25 @@ func (r *RedisClient) DecrBy(key string, decr int64) (int64, error) {
 //===============================Command list===================================
 
 // LPush 往列表插入值.
-func (r *RedisClient) LPush(key string, value ...interface{}) error {
+func (r *RedisClient) LPush(key string, values ...interface{}) error {
+	if len(values) == 0 {
+		return nil
+	}
+
 	ctx := context.TODO()
 
-	return r.client.LPush(ctx, key, value...).Err()
+	return r.client.LPush(ctx, key, values...).Err()
 }
 
 // RPush 往列表插入值.
-func (r *RedisClient) RPush(key string, value ...interface{}) error {
+func (r *RedisClient) RPush(key string, values ...interface{}) error {
+	if len(values) == 0 {
+		return nil
+	}
+
 	ctx := context.TODO()
 
-	return r.client.RPush(ctx, key, value...).Err()
+	return r.client.RPush(ctx, key, values...).Err()
 }
 
 // LMembersStr 获取列表全部内容.
@@ -1003,6 +1015,10 @@ func (r *RedisClient) HLen(key string) (int64, error) {
 
 // HDel Redis命令hdel.
 func (r *RedisClient) HDel(key string, fields ...string) (int64, error) {
+	if len(fields) == 0 {
+		return 0, nil
+	}
+
 	ctx := context.TODO()
 
 	count, err := r.client.HDel(ctx, key, fields...).Result()
@@ -1034,10 +1050,14 @@ func (r *RedisClient) HExists(key string, field string) (bool, error) {
 //===============================Command set===================================
 
 // SAdd Redis命令sadd.
-func (r *RedisClient) SAdd(key string, value ...interface{}) error {
+func (r *RedisClient) SAdd(key string, values ...interface{}) error {
+	if len(values) == 0 {
+		return nil
+	}
+
 	ctx := context.TODO()
 
-	if _, err := r.client.SAdd(ctx, key, value...).Result(); err != nil {
+	if _, err := r.client.SAdd(ctx, key, values...).Result(); err != nil {
 		return err
 	}
 
@@ -1235,6 +1255,10 @@ func (r *RedisClient) SPopFloat64(key string) (float64, error) {
 
 // SRem Redis命令srem, 返回删除个数.
 func (r *RedisClient) SRem(key string, dst ...interface{}) (int64, error) {
+	if len(dst) == 0 {
+		return 0, nil
+	}
+
 	ctx := context.TODO()
 
 	result, err := r.client.SRem(ctx, key, dst...).Result()
@@ -1254,6 +1278,10 @@ func (r *RedisClient) SRem(key string, dst ...interface{}) (int64, error) {
 
 // ZAdd Redis命令 zadd.
 func (r *RedisClient) ZAdd(key string, members ...*redis.Z) error {
+	if len(members) == 0 {
+		return nil
+	}
+
 	ctx := context.TODO()
 
 	if len(members) <= 0 {
@@ -1448,6 +1476,10 @@ func (r *RedisClient) ZRemRangeByScore(key string, min, max string) (uint64, err
 
 // ZRem Redis命令zrem, 删除指定member的field.
 func (r *RedisClient) ZRem(key string, members ...interface{}) (int64, error) {
+	if len(members) == 0 {
+		return 0, nil
+	}
+
 	ctx := context.TODO()
 
 	result, err := r.client.ZRem(ctx, key, members...).Result()
