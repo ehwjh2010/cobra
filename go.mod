@@ -1,10 +1,10 @@
 module github.com/ehwjh2010/viper
 
-go 1.17
+go 1.18
 
 require (
 	github.com/apolloconfig/agollo/v4 v4.2.1
-	github.com/avast/retry-go v3.0.0+incompatible
+	github.com/avast/retry-go/v4 v4.5.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-playground/locales v0.14.0

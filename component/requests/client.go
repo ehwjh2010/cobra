@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	"github.com/ehwjh2010/viper/component/routine"
 	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/helper/types"
