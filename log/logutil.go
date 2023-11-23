@@ -15,6 +15,55 @@ func methodLog(level string, args ...interface{}) {
 	log.Println(fmt.Sprintf("level: %s, ", level), args)
 }
 
+type Logger interface {
+	Debug(args ...interface{})
+	Debugf(msg string, args ...interface{})
+	Info(args ...interface{})
+	Infof(msg string, args ...interface{})
+	Warn(args ...interface{})
+	Warnf(msg string, args ...interface{})
+	Error(args ...interface{})
+	Errorf(msg string, args ...interface{})
+}
+
+type defaultLog struct{}
+
+func NewStdLogger() Logger {
+	return &defaultLog{}
+}
+
+func (d defaultLog) Debug(args ...interface{}) {
+	Debug(args)
+}
+
+func (d defaultLog) Debugf(msg string, args ...interface{}) {
+	Debugf(msg, args)
+}
+
+func (d defaultLog) Info(args ...interface{}) {
+	Info(args)
+}
+
+func (d defaultLog) Infof(msg string, args ...interface{}) {
+	Infof(msg, args)
+}
+
+func (d defaultLog) Warn(args ...interface{}) {
+	Warn(args)
+}
+
+func (d defaultLog) Warnf(msg string, args ...interface{}) {
+	Warnf(msg, args)
+}
+
+func (d defaultLog) Error(args ...interface{}) {
+	Error(args)
+}
+
+func (d defaultLog) Errorf(msg string, args ...interface{}) {
+	Errorf(msg, args)
+}
+
 //-----------------------------------------------------------
 //Debug日志相关方法
 
