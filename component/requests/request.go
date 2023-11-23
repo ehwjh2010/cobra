@@ -2,9 +2,9 @@ package requests
 
 import (
 	"context"
-	"github.com/ehwjh2010/viper/log"
 	"github.com/go-resty/resty/v2"
 	"net/http"
+	"time"
 )
 
 type HTTPRequest struct {
@@ -16,6 +16,8 @@ type HTTPRequest struct {
 	UserAgent string            // UserAgent
 	Files     []*FileUpload     // 文件
 	Context   context.Context   // 上下文
+	Timeout   time.Duration     // 超時時間
+	Retries   int               // 重試次數
 }
 
 func NewRequest(args ...ROpt) *HTTPRequest {
@@ -32,6 +34,18 @@ type ROpt func(r *HTTPRequest)
 func RWithContext(ctx context.Context) ROpt {
 	return func(r *HTTPRequest) {
 		r.Context = ctx
+	}
+}
+
+func RWithTimeout(timeout time.Duration) ROpt {
+	return func(r *HTTPRequest) {
+		r.Timeout = timeout
+	}
+}
+
+func RWithTries(retries int) ROpt {
+	return func(r *HTTPRequest) {
+		r.Retries = retries
 	}
 }
 
@@ -83,10 +97,8 @@ func RWithFiles(files []*FileUpload) ROpt {
 	}
 }
 
-// toInternal 转换为RequestOptions.
-func (r *HTTPRequest) toInternal(logger log.Logger) *resty.Request {
-	request := &resty.Request{}
-	request.SetLogger(logger)
+// SetAttributes 設置屬性.
+func (r *HTTPRequest) setAttributes(request *resty.Request) {
 	if len(r.Header) > 0 {
 		request.SetHeaders(r.Header)
 	}
@@ -122,6 +134,4 @@ func (r *HTTPRequest) toInternal(logger log.Logger) *resty.Request {
 			request.SetMultipartField(f.FieldName, f.FileName, f.FileMime, f.FileContents)
 		}
 	}
-
-	return request
 }
