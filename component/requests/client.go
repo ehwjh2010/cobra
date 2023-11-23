@@ -5,27 +5,23 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/ehwjh2010/viper/component/routine"
-	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/ehwjh2010/viper/verror"
+	"github.com/go-resty/resty/v2"
 	"github.com/levigross/grequests"
 )
 
 type HTTPClient struct {
 	session  *grequests.Session
 	maxTries types.NullInt
+	logger   log.Logger
+	client   *resty.Client
+	timeout  time.Duration
 }
 
 type HOpt func(client *HTTPClient)
 type InvokeMethod func(url string, ro *grequests.RequestOptions) (*grequests.Response, error)
-
-func HWithReq(r *HTTPRequest) HOpt {
-	return func(client *HTTPClient) {
-		client.session = grequests.NewSession(r.toInternal())
-	}
-}
 
 func HWithMaxRetry(maxTries int) HOpt {
 	return func(client *HTTPClient) {
@@ -33,9 +29,21 @@ func HWithMaxRetry(maxTries int) HOpt {
 	}
 }
 
+func HWithLogger(logger log.Logger) HOpt {
+	return func(client *HTTPClient) {
+		client.logger = logger
+	}
+}
+
+func HWithTimeout(timeout time.Duration) HOpt {
+	return func(client *HTTPClient) {
+		client.timeout = timeout
+	}
+}
+
 func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
 	cli := &HTTPClient{
-		session: grequests.NewSession(NewRequest().toInternal()),
+		client: resty.New(),
 	}
 
 	for _, fn := range hOPts {
@@ -45,38 +53,8 @@ func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
 	return cli
 }
 
-// CronClearIdle 定时清理闲置连接.
-func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration) error {
-	var err error
-
-	ticker := time.NewTicker(interval)
-
-	clearFn := func() {
-
-		defer func() {
-			if e := recover(); e != nil {
-				log.Errorf("httpClient cronClearIdle occur err, err ==> ", e)
-			}
-		}()
-
-		for {
-			<-ticker.C
-			api.session.CloseIdleConnections()
-		}
-	}
-
-	if task != nil {
-		err = task.AsyncDO(clearFn)
-	} else {
-		go clearFn()
-	}
-	return err
-}
-
 // 默认超时时间为3秒, 重试次数为0.
-var defaultHTTPClient = NewHTTPClient(
-	HWithReq(NewRequest(RWithUserAgent(constant.UserAgent))),
-)
+var defaultHTTPClient = NewHTTPClient()
 
 // method 请求.
 func (api *HTTPClient) method(method string, url string, rOpts ...ROpt) (*HTTPResponse, error) {
@@ -89,10 +67,9 @@ func (api *HTTPClient) method(method string, url string, rOpts ...ROpt) (*HTTPRe
 	)
 
 	switch {
-	case !req.RetryTimes.IsNull():
-		retryTimes = req.RetryTimes.GetValue()
 	case !api.maxTries.IsNull():
 		retryTimes = api.maxTries.GetValue()
+	default:
 	}
 
 	// 请求函数
@@ -141,9 +118,15 @@ func (api *HTTPClient) getDestMethod(method string) InvokeMethod {
 	}
 }
 
+func (api *HTTPClient) do(method string, rOpts ...ROpt) {
+	request := NewRequest(rOpts...)
+	api.client.GetClient().Do(request.toInternal(api.logger))
+}
+
 // Get GET请求方法.
 func (api *HTTPClient) Get(url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	return api.method(http.MethodGet, url, rOpts...)
+	api.client.GetClient().Do()
+	return
 }
 
 // Post Post请求方法.
