@@ -13,6 +13,7 @@ import (
 type ProducerConf struct {
 	Url      string
 	Exchange Exchange
+	Logger   log.Logger
 }
 
 type RabbitProducer interface {
@@ -39,6 +40,10 @@ type Producer struct {
 }
 
 func NewProducer(conf ProducerConf) RabbitProducer {
+	if conf.Logger == nil {
+		conf.Logger = log.NewStdLogger()
+	}
+
 	return &Producer{
 		conf:     conf,
 		stopChan: make(chan struct{}),
@@ -56,13 +61,13 @@ watchProducerLoop:
 		select {
 		case <-p.closeNotifyChan:
 			if err := p.Setup(); err != nil {
-				log.Errorf("rabbitmq producer reconnect failed, err: %s", err)
+				p.conf.Logger.Errorf("rabbitmq producer reconnect failed, err: %s", err)
 				time.Sleep(enums.FiveSecD)
 			} else {
 				oldCh.Close()
 				oldConn.Close()
 				oldConn, oldCh = p.conn, p.ch
-				log.Infof("rabbitmq producer reconnect success")
+				p.conf.Logger.Infof("rabbitmq producer reconnect success")
 			}
 		case <-p.stopChan:
 			break watchProducerLoop
@@ -154,15 +159,15 @@ func (p *Producer) Close() error {
 	<-p.done
 
 	if err := p.ch.Close(); err != nil {
-		log.Errorf("rabbitmq producer channel close failed, err: %s", err)
+		p.conf.Logger.Errorf("rabbitmq producer channel close failed, err: %s", err)
 		return CancelChannelErr
 	}
 
 	if err := p.conn.Close(); err != nil {
-		log.Errorf("rabbitmq producer connection close failed, err: %s", err)
+		p.conf.Logger.Errorf("rabbitmq producer connection close failed, err: %s", err)
 		return CloseConnErr
 	}
 
-	log.Infof("rabbitmq producer close success")
+	p.conf.Logger.Infof("rabbitmq producer close success")
 	return nil
 }

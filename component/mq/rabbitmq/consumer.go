@@ -1,10 +1,10 @@
 package rabbitmq
 
 import (
+	"github.com/ehwjh2010/viper/log"
 	"time"
 
 	"github.com/ehwjh2010/viper/enums"
-	"github.com/ehwjh2010/viper/log"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -20,6 +20,7 @@ type ConsumerConf struct {
 	NoLocal        bool
 	NoWait         bool
 	Args           amqp.Table
+	Logger         log.Logger
 }
 
 type RabbitConsumer interface {
@@ -70,13 +71,13 @@ watchConsumerLoop:
 		select {
 		case <-c.closeNotifyChan:
 			if err := c.setup(); err != nil {
-				log.Errorf("rabbitmq consumer reconnect failed, err: %s", err)
+				c.conf.Logger.Errorf("rabbitmq consumer reconnect failed, err: %s", err)
 				time.Sleep(enums.ThreeSecD)
 			} else {
 				oldCh.Cancel(c.conf.ConsumerTag, true)
 				oldConn.Close()
 				oldConn, oldCh = c.conn, c.ch
-				log.Infof("rabbitmq consumer reconnect success")
+				c.conf.Logger.Infof("rabbitmq consumer reconnect success")
 			}
 		case <-c.stopChan:
 			break watchConsumerLoop
@@ -183,19 +184,19 @@ func (c *Consumer) Close() error {
 
 	if c.ch != nil {
 		if err := c.ch.Cancel(c.conf.ConsumerTag, true); err != nil {
-			log.Errorf("close rabbitmq channel consumer error, err: %s", err)
+			c.conf.Logger.Errorf("close rabbitmq channel consumer error, err: %s", err)
 			return CancelChannelErr
 		}
 	}
 
 	if c.conn != nil {
 		if err := c.conn.Close(); err != nil {
-			log.Errorf("close rabbitmq connection consumer error, err: %s", err)
+			c.conf.Logger.Errorf("close rabbitmq connection consumer error, err: %s", err)
 			return CloseConnErr
 		}
 	}
 
-	log.Infof("close rabbitmq consumer success")
+	c.conf.Logger.Infof("close rabbitmq consumer success")
 
 	return nil
 }
