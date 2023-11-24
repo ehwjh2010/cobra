@@ -8,25 +8,29 @@ import (
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
 	"github.com/go-resty/resty/v2"
-	"github.com/levigross/grequests"
 )
 
 var RequestError = errors.New("RequestError")
 
 type HTTPClient struct {
-	session  *grequests.Session
-	maxTries types.NullInt
-	logger   log.Logger
-	client   *resty.Client
-	timeout  time.Duration
+	maxTries      types.NullInt
+	logger        log.Logger
+	client        *resty.Client
+	timeout       time.Duration
+	retryWaitTime time.Duration
 }
 
 type HOpt func(client *HTTPClient)
-type InvokeMethod func(url string) (*resty.Response, error)
 
 func HWithMaxRetry(maxTries int) HOpt {
 	return func(client *HTTPClient) {
 		client.maxTries = types.NewInt(maxTries)
+	}
+}
+
+func HWithRetryWaitTime(t time.Duration) HOpt {
+	return func(client *HTTPClient) {
+		client.retryWaitTime = t
 	}
 }
 
@@ -60,13 +64,66 @@ var defaultHTTPClient = NewHTTPClient(
 	HWithLogger(log.NewStdLogger()),
 	HWithTimeout(enums.ThreeSecD))
 
+type retryConfig struct {
+	access        bool
+	retries       int
+	retryWaitTime time.Duration
+}
+
+func (api *HTTPClient) getRetryConfig(request *HTTPRequest) *retryConfig {
+	if request.Retries > 0 || (!api.maxTries.IsNull() && api.maxTries.GetValue() > 0) {
+		retries := api.getRetries(request)
+		retryWaitTime := api.getRetryWaitTime(request)
+		return &retryConfig{
+			access:        true,
+			retries:       retries,
+			retryWaitTime: retryWaitTime,
+		}
+	}
+
+	return &retryConfig{}
+}
+
+func (api *HTTPClient) accessRetry(request *HTTPRequest) bool {
+	if request.Retries > 0 || (!api.maxTries.IsNull() && api.maxTries.GetValue() > 0) {
+		return true
+	}
+
+	return false
+}
+
+func (api *HTTPClient) getRetries(request *HTTPRequest) int {
+	if request.Retries > 0 {
+		return request.Retries
+	} else if !api.maxTries.IsNull() && api.maxTries.GetValue() > 0 {
+		return api.maxTries.GetValue()
+	}
+	return 0
+}
+
+func (api *HTTPClient) getRetryWaitTime(request *HTTPRequest) time.Duration {
+	if request.RetryWaitTime > 0 {
+		return request.RetryWaitTime
+	} else if api.retryWaitTime > 0 {
+		return api.retryWaitTime
+	}
+	return 100 * time.Millisecond
+}
+
 func (api *HTTPClient) do(method, url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	request := NewRequest(rOpts...)
 	client := api.client
-	if request.Retries > 0 {
-		client.SetRetryCount(request.Retries)
-	} else if !api.maxTries.IsNull() && api.maxTries.GetValue() > 0 {
-		client.SetRetryCount(api.maxTries.GetValue())
+
+	retryConfig := api.getRetryConfig(request)
+	if retryConfig.access {
+		client.SetRetryCount(retryConfig.retries).
+			SetRetryWaitTime(retryConfig.retryWaitTime).
+			AddRetryCondition(func(response *resty.Response, err error) bool {
+				if err != nil || response.IsError() {
+					return true
+				}
+				return false
+			})
 	}
 	r := client.R()
 	request.setAttributes(r)

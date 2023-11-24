@@ -8,16 +8,17 @@ import (
 )
 
 type HTTPRequest struct {
-	Header    map[string]string // 请求头
-	Params    map[string]string // 查询字符串
-	Form      map[string]string // 表单参数
-	Json      []byte            // json请求体
-	Cookie    []*http.Cookie    // Cookie
-	UserAgent string            // UserAgent
-	Files     []*FileUpload     // 文件
-	Context   context.Context   // 上下文
-	Timeout   time.Duration     // 超時時間
-	Retries   int               // 重試次數
+	Header        map[string]string // 请求头
+	Params        map[string]string // 查询字符串
+	Form          map[string]string // 表单参数
+	Json          []byte            // json请求体
+	Cookie        []*http.Cookie    // Cookie
+	UserAgent     string            // UserAgent
+	Files         []*FileUpload     // 文件
+	Context       context.Context   // 上下文
+	Timeout       time.Duration     // 超市时间
+	Retries       int               // 重试次数
+	RetryWaitTime time.Duration     // 重试等待时间
 }
 
 func NewRequest(args ...ROpt) *HTTPRequest {
@@ -40,6 +41,12 @@ func RWithContext(ctx context.Context) ROpt {
 func RWithTimeout(timeout time.Duration) ROpt {
 	return func(r *HTTPRequest) {
 		r.Timeout = timeout
+	}
+}
+
+func RWithRetryWaitTime(t time.Duration) ROpt {
+	return func(r *HTTPRequest) {
+		r.RetryWaitTime = t
 	}
 }
 

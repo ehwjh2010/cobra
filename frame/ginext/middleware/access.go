@@ -6,7 +6,6 @@ import (
 
 	"github.com/ehwjh2010/viper/log"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 // AccessLog 使用ZAP接管GIN相关日志
@@ -46,17 +45,8 @@ func AccessLog(skipPaths []string, utc bool, timeFormat string) gin.HandlerFunc 
 					log.Errorf(e)
 				}
 			} else {
-				log.Infof(path,
-					zap.String("startTime", start.Format(timeFormat)),
-					zap.Int("status", c.Writer.Status()),
-					zap.String("method", c.Request.Method),
-					zap.String("path", path),
-					zap.String("query", query),
-					zap.String("ip", c.ClientIP()),
-					//zap.String("user-agent", c.Request.UserAgent()),
-					zap.String("endTime", end.Format(timeFormat)),
-					zap.Int64("cost(ms)", latency),
-				)
+				log.Infof("%s, startTime: %s, status: %d, method: %s, query: %s, IP: %s, endTime: %s, cost(ms): %d ms",
+					path, start.Format(timeFormat), c.Writer.Status(), c.Request.Method, query, c.ClientIP(), end.Format(timeFormat), latency)
 			}
 		}
 	}
