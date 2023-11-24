@@ -200,7 +200,7 @@ func (c *Consumer) Close() error {
 		}
 	}
 
-	c.conf.Logger.Infof("close rabbitmq consumer success")
+	c.conf.Logger.Info("close rabbitmq consumer success")
 
 	return nil
 }

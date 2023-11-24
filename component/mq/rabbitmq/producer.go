@@ -168,6 +168,6 @@ func (p *Producer) Close() error {
 		return CloseConnErr
 	}
 
-	p.conf.Logger.Infof("rabbitmq producer close success")
+	p.conf.Logger.Info("rabbitmq producer close success")
 	return nil
 }
