@@ -48,8 +48,10 @@ func HWithTimeout(timeout time.Duration) HOpt {
 }
 
 func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
+	logger := log.NewStdLogger()
 	cli := &HTTPClient{
-		client: resty.New(),
+		client: resty.New().SetLogger(logger),
+		logger: logger,
 	}
 
 	for _, fn := range hOPts {
@@ -110,6 +112,16 @@ func (api *HTTPClient) getRetryWaitTime(request *HTTPRequest) time.Duration {
 	return 100 * time.Millisecond
 }
 
+func (api *HTTPClient) getTimeout(request *HTTPRequest) time.Duration {
+	if request.Timeout > 0 {
+		return request.Timeout
+	} else if api.timeout > 0 {
+		return api.timeout
+	}
+
+	return 0
+}
+
 func (api *HTTPClient) do(method, url string, rOpts ...ROpt) (*HTTPResponse, error) {
 	request := NewRequest(rOpts...)
 	client := api.client
@@ -125,6 +137,11 @@ func (api *HTTPClient) do(method, url string, rOpts ...ROpt) (*HTTPResponse, err
 				return false
 			})
 	}
+
+	if timeout := api.getTimeout(request); timeout > 0 {
+		client.SetTimeout(timeout)
+	}
+
 	r := client.R()
 	request.setAttributes(r)
 	response, err := r.Execute(method, url)
