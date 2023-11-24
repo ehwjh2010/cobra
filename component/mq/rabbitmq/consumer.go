@@ -53,6 +53,10 @@ func NewConsumer(conf ConsumerConf) RabbitConsumer {
 		conf.BatchPullCount = DefaultBatchPullCount
 	}
 
+	if conf.Logger == nil {
+		conf.Logger = log.NewStdLogger()
+	}
+
 	return &Consumer{
 		conf:     conf,
 		stopChan: make(chan struct{}),
