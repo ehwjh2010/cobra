@@ -1,13 +1,14 @@
 package requests
 
 import (
+	"encoding/json"
 	"errors"
+	"github.com/go-resty/resty/v2"
 	"mime"
 	"net/http"
 
 	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/helper/cookies"
-	"github.com/levigross/grequests"
 )
 
 var (
@@ -16,23 +17,22 @@ var (
 )
 
 type HTTPResponse struct {
-	response        *grequests.Response
-	cookies         []*http.Cookie
-	parseCookieFlag bool
+	cookies  []*http.Cookie
+	response *resty.Response
 }
 
-func NewResponse(response *grequests.Response) *HTTPResponse {
+func NewResponse(response *resty.Response) *HTTPResponse {
 	return &HTTPResponse{response: response}
 }
 
 // OK 状态码是否在200~300之间.
 func (resp *HTTPResponse) OK() bool {
-	return resp.response.Ok
+	return resp.response.IsSuccess()
 }
 
 // Json 请求体序列化结构体.
 func (resp *HTTPResponse) Json(dst interface{}) error {
-	err := resp.response.JSON(dst)
+	err := json.Unmarshal(resp.response.Body(), dst)
 	return err
 }
 
@@ -42,53 +42,31 @@ func (resp *HTTPResponse) Text() string {
 	return s
 }
 
-// Bytes 字节, 适用于小文件, 大文件推荐使用Stream.
-func (resp *HTTPResponse) Bytes() []byte {
-	return resp.response.Bytes()
-}
-
-// Status 状态码.
-func (resp *HTTPResponse) Status() int {
-	return resp.response.StatusCode
+// StatusCode 状态码.
+func (resp *HTTPResponse) StatusCode() int {
+	return resp.response.StatusCode()
 }
 
 // Header 返回的Header.
 func (resp *HTTPResponse) Header(name string) string {
-	return resp.response.Header.Get(name)
+	value := resp.response.Header()[name]
+	if len(value) == 0 {
+		return ""
+	}
+
+	return value[0]
 }
 
 // Cookie 获取Cookie, 没有返回空字符串.
 func (resp *HTTPResponse) Cookie(name string) (*http.Cookie, error) {
-	resp.parseCookie()
-
 	cookieParser := cookies.NewCookieParser()
-	cookie, err := cookieParser.GetDestFromCookies(resp.cookies, name)
-
+	cookie, err := cookieParser.GetDestFromCookies(resp.response.Cookies(), name)
 	return cookie, err
 }
 
 // Cookies 获取Cookies, 没有返回空切片.
 func (resp *HTTPResponse) Cookies() []*http.Cookie {
-	resp.parseCookie()
-	return resp.cookies
-}
-
-// parseCookie 解析Cookie.
-func (resp *HTTPResponse) parseCookie() {
-	if resp.parseCookieFlag {
-		return
-	}
-
-	cookieStr := resp.Header("Cookie")
-	if len(cookieStr) <= 0 {
-		resp.parseCookieFlag = true
-		return
-	}
-
-	cookieParser := cookies.NewCookieParser()
-	cookie := cookieParser.ParseRawCookie(cookieStr)
-	resp.cookies = cookie
-	resp.parseCookieFlag = true
+	return resp.response.Cookies()
 }
 
 // FileName 文件名.

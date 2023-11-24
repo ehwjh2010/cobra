@@ -2,25 +2,23 @@ package requests
 
 import (
 	"context"
+	"github.com/go-resty/resty/v2"
 	"net/http"
 	"time"
-
-	"github.com/ehwjh2010/viper/helper/types"
-	"github.com/levigross/grequests"
 )
 
 type HTTPRequest struct {
-	Url        string            // Url
-	Header     map[string]string // 请求头
-	Params     map[string]string // 查询字符串
-	Form       map[string]string // 表单参数
-	Json       []byte            // json请求体
-	Cookie     []*http.Cookie    // Cookie
-	UserAgent  string            // UserAgent
-	Timeout    time.Duration     // 请求超时时间
-	Files      []*FileUpload     // 文件
-	RetryTimes types.NullInt     // 重试次数
-	Context    context.Context   // 上下文
+	Header        map[string]string // 请求头
+	Params        map[string]string // 查询字符串
+	Form          map[string]string // 表单参数
+	Json          []byte            // json请求体
+	Cookie        []*http.Cookie    // Cookie
+	UserAgent     string            // UserAgent
+	Files         []*FileUpload     // 文件
+	Context       context.Context   // 上下文
+	Timeout       time.Duration     // 超市时间
+	Retries       int               // 重试次数
+	RetryWaitTime time.Duration     // 重试等待时间
 }
 
 func NewRequest(args ...ROpt) *HTTPRequest {
@@ -40,13 +38,21 @@ func RWithContext(ctx context.Context) ROpt {
 	}
 }
 
-// RWithRetry 设置重试次数, 必须>=0.
-func RWithRetry(times int) ROpt {
+func RWithTimeout(timeout time.Duration) ROpt {
 	return func(r *HTTPRequest) {
-		if times < 0 {
-			times = 0
-		}
-		r.RetryTimes = types.NewInt(times)
+		r.Timeout = timeout
+	}
+}
+
+func RWithRetryWaitTime(t time.Duration) ROpt {
+	return func(r *HTTPRequest) {
+		r.RetryWaitTime = t
+	}
+}
+
+func RWithTries(retries int) ROpt {
+	return func(r *HTTPRequest) {
+		r.Retries = retries
 	}
 }
 
@@ -86,12 +92,6 @@ func RWithUserAgent(userAgent string) ROpt {
 	}
 }
 
-func RWithTimeout(timeout time.Duration) ROpt {
-	return func(r *HTTPRequest) {
-		r.Timeout = timeout
-	}
-}
-
 func RWithFile(file *FileUpload) ROpt {
 	return func(r *HTTPRequest) {
 		r.Files = []*FileUpload{file}
@@ -104,30 +104,41 @@ func RWithFiles(files []*FileUpload) ROpt {
 	}
 }
 
-// toInternal 转换为RequestOptions.
-func (r *HTTPRequest) toInternal() *grequests.RequestOptions {
-	if r == nil {
-		return nil
+// SetAttributes 設置屬性.
+func (r *HTTPRequest) setAttributes(request *resty.Request) {
+	if len(r.Header) > 0 {
+		request.SetHeaders(r.Header)
 	}
 
-	rOpt := &grequests.RequestOptions{
-		Headers:        r.Header,
-		Params:         r.Params,
-		Cookies:        r.Cookie,
-		UserAgent:      r.UserAgent,
-		RequestTimeout: r.Timeout,
-		Context:        r.Context,
+	if len(r.Params) > 0 {
+		request.SetQueryParams(r.Params)
 	}
 
-	if r.Files != nil {
-		rOpt.Files = BatchFileUpload2Internal(r.Files)
+	if len(r.Cookie) > 0 {
+		request.SetCookies(r.Cookie)
 	}
 
-	if r.Json != nil {
-		rOpt.JSON = r.Json
-	} else if r.Form != nil {
-		rOpt.Data = r.Form
+	if r.Context != nil {
+		request.SetContext(r.Context)
 	}
 
-	return rOpt
+	if r.UserAgent != "" {
+		request.SetHeader("UserAgent", r.UserAgent)
+	}
+
+	if len(r.Json) > 0 {
+		request.SetBody(r.Json).
+			SetHeader("Content-Type", "application/json").
+			SetHeader("Accept", "application/json")
+	}
+
+	if len(r.Form) > 0 {
+		request.SetFormData(r.Form)
+	}
+
+	if len(r.Files) > 0 {
+		for _, f := range r.Files {
+			request.SetMultipartField(f.FieldName, f.FileName, f.FileMime, f.FileContents)
+		}
+	}
 }

@@ -1,10 +1,9 @@
 package str
 
 import (
-	"strconv"
-
+	"bytes"
 	"github.com/ehwjh2010/viper/verror"
-	"go.uber.org/zap/buffer"
+	"strconv"
 )
 
 //=================str与interface转化==================
@@ -29,7 +28,7 @@ func MustAny2Char(v interface{}) string {
 //=================str与bytes转化==================
 
 func Char2Bytes(v string) []byte {
-	var buff buffer.Buffer
+	var buff bytes.Buffer
 
 	_, _ = buff.WriteString(v)
 

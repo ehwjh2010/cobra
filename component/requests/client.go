@@ -1,31 +1,26 @@
 package requests
 
 import (
-	"net/http"
+	"errors"
+	"github.com/ehwjh2010/viper/enums"
 	"time"
 
-	"github.com/avast/retry-go/v4"
-	"github.com/ehwjh2010/viper/component/routine"
-	"github.com/ehwjh2010/viper/constant"
 	"github.com/ehwjh2010/viper/helper/types"
 	"github.com/ehwjh2010/viper/log"
-	"github.com/ehwjh2010/viper/verror"
-	"github.com/levigross/grequests"
+	"github.com/go-resty/resty/v2"
 )
 
+var RequestError = errors.New("RequestError")
+
 type HTTPClient struct {
-	session  *grequests.Session
-	maxTries types.NullInt
+	maxTries      types.NullInt
+	logger        log.Logger
+	client        *resty.Client
+	timeout       time.Duration
+	retryWaitTime time.Duration
 }
 
 type HOpt func(client *HTTPClient)
-type InvokeMethod func(url string, ro *grequests.RequestOptions) (*grequests.Response, error)
-
-func HWithReq(r *HTTPRequest) HOpt {
-	return func(client *HTTPClient) {
-		client.session = grequests.NewSession(r.toInternal())
-	}
-}
 
 func HWithMaxRetry(maxTries int) HOpt {
 	return func(client *HTTPClient) {
@@ -33,9 +28,28 @@ func HWithMaxRetry(maxTries int) HOpt {
 	}
 }
 
+func HWithRetryWaitTime(t time.Duration) HOpt {
+	return func(client *HTTPClient) {
+		client.retryWaitTime = t
+	}
+}
+
+func HWithLogger(logger log.Logger) HOpt {
+	return func(client *HTTPClient) {
+		client.client.SetLogger(logger)
+		client.logger = logger
+	}
+}
+
+func HWithTimeout(timeout time.Duration) HOpt {
+	return func(client *HTTPClient) {
+		client.timeout = timeout
+	}
+}
+
 func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
 	cli := &HTTPClient{
-		session: grequests.NewSession(NewRequest().toInternal()),
+		client: resty.New(),
 	}
 
 	for _, fn := range hOPts {
@@ -45,135 +59,120 @@ func NewHTTPClient(hOPts ...HOpt) *HTTPClient {
 	return cli
 }
 
-// CronClearIdle 定时清理闲置连接.
-func (api *HTTPClient) CronClearIdle(task *routine.Task, interval time.Duration) error {
-	var err error
-
-	ticker := time.NewTicker(interval)
-
-	clearFn := func() {
-
-		defer func() {
-			if e := recover(); e != nil {
-				log.Errorf("httpClient cronClearIdle occur err, err ==> ", e)
-			}
-		}()
-
-		for {
-			<-ticker.C
-			api.session.CloseIdleConnections()
-		}
-	}
-
-	if task != nil {
-		err = task.AsyncDO(clearFn)
-	} else {
-		go clearFn()
-	}
-	return err
-}
-
 // 默认超时时间为3秒, 重试次数为0.
 var defaultHTTPClient = NewHTTPClient(
-	HWithReq(NewRequest(RWithUserAgent(constant.UserAgent))),
-)
+	HWithLogger(log.NewStdLogger()),
+	HWithTimeout(enums.ThreeSecD))
 
-// method 请求.
-func (api *HTTPClient) method(method string, url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	req := NewRequest(rOpts...)
+type retryConfig struct {
+	access        bool
+	retries       int
+	retryWaitTime time.Duration
+}
 
-	var (
-		retryTimes int
-		response   *HTTPResponse
-		err        error
-	)
-
-	switch {
-	case !req.RetryTimes.IsNull():
-		retryTimes = req.RetryTimes.GetValue()
-	case !api.maxTries.IsNull():
-		retryTimes = api.maxTries.GetValue()
-	}
-
-	// 请求函数
-	fn := func() error {
-		invokeMethod := api.getDestMethod(method)
-		resp, execErr := invokeMethod(url, req.toInternal())
-		if execErr != nil {
-			return execErr
+func (api *HTTPClient) getRetryConfig(request *HTTPRequest) *retryConfig {
+	if request.Retries > 0 || (!api.maxTries.IsNull() && api.maxTries.GetValue() > 0) {
+		retries := api.getRetries(request)
+		retryWaitTime := api.getRetryWaitTime(request)
+		return &retryConfig{
+			access:        true,
+			retries:       retries,
+			retryWaitTime: retryWaitTime,
 		}
-
-		response = NewResponse(resp)
-		return nil
 	}
 
-	// 尝试次数加上第一次等于总次数
-	retryCnt := retryTimes + 1
+	return &retryConfig{}
+}
 
-	err = retry.Do(fn, retry.Attempts(uint(retryCnt)))
+func (api *HTTPClient) accessRetry(request *HTTPRequest) bool {
+	if request.Retries > 0 || (!api.maxTries.IsNull() && api.maxTries.GetValue() > 0) {
+		return true
+	}
 
+	return false
+}
+
+func (api *HTTPClient) getRetries(request *HTTPRequest) int {
+	if request.Retries > 0 {
+		return request.Retries
+	} else if !api.maxTries.IsNull() && api.maxTries.GetValue() > 0 {
+		return api.maxTries.GetValue()
+	}
+	return 0
+}
+
+func (api *HTTPClient) getRetryWaitTime(request *HTTPRequest) time.Duration {
+	if request.RetryWaitTime > 0 {
+		return request.RetryWaitTime
+	} else if api.retryWaitTime > 0 {
+		return api.retryWaitTime
+	}
+	return 100 * time.Millisecond
+}
+
+func (api *HTTPClient) do(method, url string, rOpts ...ROpt) (*HTTPResponse, error) {
+	request := NewRequest(rOpts...)
+	client := api.client
+
+	retryConfig := api.getRetryConfig(request)
+	if retryConfig.access {
+		client.SetRetryCount(retryConfig.retries).
+			SetRetryWaitTime(retryConfig.retryWaitTime).
+			AddRetryCondition(func(response *resty.Response, err error) bool {
+				if err != nil || response.IsError() {
+					return true
+				}
+				return false
+			})
+	}
+	r := client.R()
+	request.setAttributes(r)
+	response, err := r.Execute(method, url)
 	if err != nil {
 		return nil, err
 	}
 
-	return response, nil
-}
-
-// getDestMethod 获取目标方法.
-func (api *HTTPClient) getDestMethod(method string) InvokeMethod {
-	switch method {
-	case http.MethodGet:
-		return api.session.Get
-	case http.MethodPost:
-		return api.session.Post
-	case http.MethodPut:
-		return api.session.Put
-	case http.MethodPatch:
-		return api.session.Patch
-	case http.MethodDelete:
-		return api.session.Delete
-	case http.MethodHead:
-		return api.session.Head
-	case http.MethodOptions:
-		return api.session.Options
-	default:
-		panic(verror.UnsupportedMethod)
+	temp := response.Error()
+	if temp != nil {
+		api.logger.Errorf("RequestError, err: %v", temp)
+		return nil, RequestError
 	}
+	return NewResponse(response), nil
 }
 
 // Get GET请求方法.
 func (api *HTTPClient) Get(url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	return api.method(http.MethodGet, url, rOpts...)
+	return api.do(resty.MethodGet, url, rOpts...)
 }
 
 // Post Post请求方法.
 func (api *HTTPClient) Post(url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	return api.method(http.MethodPost, url, rOpts...)
+	return api.do(resty.MethodPost, url, rOpts...)
 }
 
 // Patch PATCH请求方法.
 func (api *HTTPClient) Patch(url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	return api.method(http.MethodPatch, url, rOpts...)
+	return api.do(resty.MethodPatch, url, rOpts...)
 }
 
 // Put PUT请求方法.
 func (api *HTTPClient) Put(url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	return api.method(http.MethodPut, url, rOpts...)
+	return api.do(resty.MethodPut, url, rOpts...)
 }
 
 // Delete DELETE请求方法.
 func (api *HTTPClient) Delete(url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	return api.method(http.MethodDelete, url, rOpts...)
+	return api.do(resty.MethodDelete, url, rOpts...)
 }
 
 // Head HEAD请求方法.
 func (api *HTTPClient) Head(url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	return api.method(http.MethodHead, url, rOpts...)
+	return api.do(resty.MethodHead, url, rOpts...)
 }
 
 // Options OPTIONS请求方法.
 func (api *HTTPClient) Options(url string, rOpts ...ROpt) (*HTTPResponse, error) {
-	return api.method(http.MethodOptions, url, rOpts...)
+	return api.do(resty.MethodOptions, url, rOpts...)
 }
 
 func Get(url string, rOpts ...ROpt) (*HTTPResponse, error) {
