@@ -68,12 +68,12 @@ type MsgHandler func(delivery amqp.Delivery)
 
 // Watch 监听连接断开, 然后重连.
 func (c *Consumer) Watch() {
-	oldConn := c.conn
-	oldCh := c.ch
 watchConsumerLoop:
 	for {
 		select {
 		case <-c.closeNotifyChan:
+			oldConn := c.conn
+			oldCh := c.ch
 			if err := c.setup(); err != nil {
 				c.conf.Logger.Errorf("rabbitmq consumer reconnect failed, err: %s", err)
 				time.Sleep(enums.ThreeSecD)

@@ -53,13 +53,12 @@ func NewProducer(conf ProducerConf) RabbitProducer {
 
 // Watch 监听连接断开, 然后重连.
 func (p *Producer) Watch() {
-	oldConn := p.conn
-	oldCh := p.ch
-
 watchProducerLoop:
 	for {
 		select {
 		case <-p.closeNotifyChan:
+			oldConn := p.conn
+			oldCh := p.ch
 			if err := p.Setup(); err != nil {
 				p.conf.Logger.Errorf("rabbitmq producer reconnect failed, err: %s", err)
 				time.Sleep(enums.FiveSecD)
@@ -121,6 +120,19 @@ type Msg struct {
 	Delay time.Duration
 }
 
+func (p *Producer) getChannel() *amqp.Channel {
+	if p.ch.IsClosed() {
+		if ch, channelErr := p.conn.Channel(); channelErr != nil {
+			p.conf.Logger.Error("reconnect channel err, channelErr=", channelErr)
+		} else {
+			p.ch = ch
+			p.conf.Logger.Info("reconnect channel success")
+		}
+	}
+
+	return p.ch
+}
+
 // SendMsg 发送消息.
 func (p *Producer) SendMsg(ctx context.Context, msg *Msg) error {
 	body := msg.Body
@@ -135,7 +147,7 @@ func (p *Producer) SendMsg(ctx context.Context, msg *Msg) error {
 		headers = amqp.Table{"x-delay": delay.Milliseconds()} // x-delay 消息延时的时间(毫秒)
 	}
 
-	err := p.ch.PublishWithContext(
+	err := p.getChannel().PublishWithContext(
 		ctx,
 		p.conf.Exchange.Name,
 		key,
